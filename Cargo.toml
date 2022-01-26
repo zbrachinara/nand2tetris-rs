@@ -1,2 +1,2 @@
 [workspace]
-name = "nand2tetris"
+members = [ "jack_compiler" ]
