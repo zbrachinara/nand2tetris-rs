@@ -1,6 +1,11 @@
 use lazy_static::lazy_static;
+use nom::branch::alt;
 use nom::bytes::complete::take_till;
+use nom::character::complete::char;
+use nom::combinator::{rest, success};
+use nom::sequence::{terminated, tuple};
 use nom::IResult;
+use nom::Parser;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -26,11 +31,12 @@ struct Argument<'a> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, internal) = take_till(|c| c == '=')(arg)?;
-    let (remainder, _) = take_till(|c: char| c.is_ascii_alphabetic())(remainder)?;
-    let (remainder, external) = take_till(|c| c == ',')(remainder)?;
-
-    let (internal, external) = (internal.trim(), external.trim());
+    let (remainder, (internal, _, external)) = tuple((
+        take_till(|c| c == '=').map(|s: &str| s.trim()),
+        (take_till(|c: char| c.is_ascii_alphabetic())),
+        (alt((take_till(|c| c == ','), rest)).map(|s: &str| s.trim())),
+    ))
+    .parse(arg)?;
 
     IResult::Ok((remainder, Argument { internal, external }))
 }
