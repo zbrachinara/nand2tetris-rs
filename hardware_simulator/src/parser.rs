@@ -20,8 +20,8 @@ struct Instruction {
 
 #[derive(Eq, PartialEq, Debug)]
 struct Argument<'a> {
-    in_pin: &'a str,
-    out_pin: &'a str,
+    internal: &'a str,
+    external: &'a str,
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
@@ -44,8 +44,8 @@ mod test {
             Ok((
                 "",
                 Argument {
-                    in_pin: "in",
-                    out_pin: "true"
+                    internal: "in",
+                    external: "true"
                 }
             ))
         );
