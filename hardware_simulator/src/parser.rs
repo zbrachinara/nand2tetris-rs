@@ -1,7 +1,7 @@
 use lazy_static::lazy_static;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take, take_till};
-use nom::combinator::rest;
+use nom::combinator::{opt, rest};
 use nom::sequence::tuple;
 use nom::IResult;
 use nom::Parser;
@@ -30,15 +30,22 @@ struct Argument<'a> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, (internal, .., external)) = tuple((
+    let (remainder, (internal, _, external, _)) = tuple((
+        // get the first name
         is_not("=").map(str::trim),
-        take(1_usize),
-        take_till(|c: char| !c.is_ascii_whitespace()),
+        // skip this comma
+        tuple((take(1_usize), take_till(|c: char| !c.is_ascii_whitespace()))),
+        // get the second name
         alt((is_not(","), rest)).map(str::trim),
+        // skip the next comma, if it exists
+        opt(tuple((
+            take(1_usize),
+            take_till(|c: char| !c.is_ascii_whitespace()),
+        ))),
     ))
     .parse(arg)?;
 
-    IResult::Ok((remainder, Argument { internal, external }))
+    IResult::Ok((remainder.trim_start(), Argument { internal, external }))
 }
 
 fn parse_instruction(_: &str) -> nom::IResult<Instruction, &str> {
@@ -55,6 +62,36 @@ mod test {
             parse_arg("in = true"),
             Ok((
                 "",
+                Argument {
+                    internal: "in",
+                    external: "true"
+                }
+            ))
+        );
+        assert_eq!(
+            parse_arg("in\n=\ntrue"),
+            Ok((
+                "",
+                Argument {
+                    internal: "in",
+                    external: "true"
+                }
+            ))
+        );
+        assert_eq!(
+            parse_arg("in=true"),
+            Ok((
+                "",
+                Argument {
+                    internal: "in",
+                    external: "true"
+                }
+            ))
+        );
+        assert_eq!(
+            parse_arg("in=true, out=false"),
+            Ok((
+                "out=false",
                 Argument {
                     internal: "in",
                     external: "true"
