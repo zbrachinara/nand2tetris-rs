@@ -18,6 +18,37 @@ struct Instruction {
     inputs: Vec<bool>,
 }
 
-fn parse_instruction() -> Instruction {
+#[derive(Eq, PartialEq, Debug)]
+struct Argument<'a> {
+    in_pin: &'a str,
+    out_pin: &'a str,
+}
+
+fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     todo!()
+}
+
+fn parse_instruction(_: &str) -> nom::IResult<Instruction, &str> {
+    todo!()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_parse_arg() {
+
+        assert_eq!(
+            parse_arg("in = true"),
+            Ok((
+                "",
+                Argument {
+                    in_pin: "in",
+                    out_pin: "true"
+                }
+            ))
+        );
+
+    }
 }
