@@ -1,9 +1,8 @@
 use lazy_static::lazy_static;
 use nom::branch::alt;
-use nom::bytes::complete::take_till;
-use nom::character::complete::char;
-use nom::combinator::{rest, success};
-use nom::sequence::{terminated, tuple};
+use nom::bytes::complete::{is_not, take, take_till};
+use nom::combinator::rest;
+use nom::sequence::tuple;
 use nom::IResult;
 use nom::Parser;
 use std::collections::HashMap;
@@ -31,10 +30,11 @@ struct Argument<'a> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, (internal, _, external)) = tuple((
-        take_till(|c| c == '=').map(|s: &str| s.trim()),
-        (take_till(|c: char| c.is_ascii_alphabetic())),
-        (alt((take_till(|c| c == ','), rest)).map(|s: &str| s.trim())),
+    let (remainder, (internal, .., external)) = tuple((
+        is_not("=").map(str::trim),
+        take(1_usize),
+        take_till(|c: char| !c.is_ascii_whitespace()),
+        alt((is_not(","), rest)).map(str::trim),
     ))
     .parse(arg)?;
 
