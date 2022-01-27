@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use nom::bytes::complete::take_till;
+use nom::IResult;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -25,7 +26,13 @@ struct Argument<'a> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    todo!()
+    let (remainder, internal) = take_till(|c| c == '=')(arg)?;
+    let (remainder, _) = take_till(|c: char| c.is_ascii_alphabetic())(remainder)?;
+    let (remainder, external) = take_till(|c| c == ',')(remainder)?;
+
+    let (internal, external) = (internal.trim(), external.trim());
+
+    IResult::Ok((remainder, Argument { internal, external }))
 }
 
 fn parse_instruction(_: &str) -> nom::IResult<Instruction, &str> {
@@ -38,7 +45,6 @@ mod test {
 
     #[test]
     fn test_parse_arg() {
-
         assert_eq!(
             parse_arg("in = true"),
             Ok((
@@ -49,6 +55,5 @@ mod test {
                 }
             ))
         );
-
     }
 }
