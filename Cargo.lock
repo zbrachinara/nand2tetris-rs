@@ -3,6 +3,13 @@
 version = 3
 
 [[package]]
+name = "hardware_simulator"
+version = "0.1.0"
+dependencies = [
+ "nom",
+]
+
+[[package]]
 name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13,13 +20,6 @@ name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
-
-[[package]]
-name = "nand2tetris"
-version = "0.1.0"
-dependencies = [
- "nom",
-]
 
 [[package]]
 name = "nom"

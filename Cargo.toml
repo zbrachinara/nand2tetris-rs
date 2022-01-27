@@ -1,2 +1,2 @@
 [workspace]
-members = [ "jack_compiler" ]
+members = [ "hardware_simulator" ]
