@@ -2,14 +2,14 @@ use lazy_static::lazy_static;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take, take_till};
 use nom::character::streaming::char;
-use nom::combinator::{opt, rest};
+use nom::combinator::{opt, rest, value};
 use nom::error::{ErrorKind, ParseError};
 use nom::sequence::{delimited, pair, separated_pair, tuple};
 use nom::Parser;
 use nom::{IResult, InputIter};
 use std::any::Any;
-use std::collections::btree_map::IntoValues;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use thiserror::Error;
 
@@ -47,19 +47,20 @@ enum Symbol<'a> {
     Number(usize),
 }
 
+#[derive(Debug, Eq, PartialEq)]
 struct BusRange {
     start: u16,
     end: u16,
 }
 
 #[derive(Error, Debug, PartialEq)]
-pub enum HdlParseError {
+pub enum HdlParseError<'a> {
     #[error("Symbol `{0}` is not a valid symbol")]
-    BadSymbol(String),
+    BadSymbol(&'a str),
 }
 
 impl<'a> TryFrom<&'a str> for Symbol<'a> {
-    type Error = HdlParseError;
+    type Error = HdlParseError<'a>;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
         // a valid symbol must be in only ascii characters, as well as consisting of no whitespace
@@ -74,15 +75,29 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
                 }
             })
         } else {
-            Err(HdlParseError::BadSymbol(String::from(value)))
+            Err(HdlParseError::BadSymbol(value))
         }
     }
 }
 
-fn bus_range(arg: &str) -> nom::IResult<&str, (&str, &str)> {
-    delimited(char('['), is_not("]"), char(']'))
+fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
+    let (remainder, (start, end)) = delimited(char('['), is_not("]"), char(']'))
         .and_then(separated_pair(is_not("."), tag(".."), rest))
-        .parse(arg)
+        .parse(arg)?;
+
+    use nom::error::Error;
+    use nom::Err::*;
+    match (u16::from_str_radix(start, 10), u16::from_str_radix(end, 10)) {
+        (Ok(start), Ok(end)) => Ok((remainder, BusRange { start, end })),
+        (Err(e), _) => Err(Failure(Error {
+            input: start,
+            code: ErrorKind::Tag,
+        })),
+        (_, Err(e)) => Err(Failure(Error {
+            input: end,
+            code: ErrorKind::Tag,
+        })),
+    }
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
@@ -131,9 +146,15 @@ mod test {
 
     #[test]
     fn test_bus_range() {
-        assert_eq!(bus_range("[0..1]"), Ok(("", ("0", "1"))));
-        assert_eq!(bus_range("[5..10]"), Ok(("", ("5", "10"))));
-        assert_eq!(bus_range("[5..10] and"), Ok((" and", ("5", "10"))));
+        assert_eq!(bus_range("[0..1]"), Ok(("", BusRange { start: 0, end: 1 })));
+        assert_eq!(
+            bus_range("[5..10]"),
+            Ok(("", BusRange { start: 5, end: 10 }))
+        );
+        assert_eq!(
+            bus_range("[5..10] and"),
+            Ok((" and", BusRange { start: 5, end: 10 }))
+        );
     }
 
     #[test]
