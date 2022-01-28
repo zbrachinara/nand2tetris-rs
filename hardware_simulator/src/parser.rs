@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 
 use lazy_static::lazy_static;
 use nom::branch::alt;
-use nom::bytes::complete::{is_not, tag, take, take_till};
+use nom::bytes::complete::{is_not, tag, take, take_till, take_until};
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt, rest};
 use nom::error::ErrorKind;
@@ -31,7 +31,9 @@ struct Instruction {
 #[derive(Eq, PartialEq, Debug)]
 struct Argument<'a> {
     internal: Symbol<'a>,
+    internal_bus: Option<BusRange>,
     external: Symbol<'a>,
+    external_bus: Option<BusRange>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -115,10 +117,13 @@ fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, (internal, external)) = take_till(|c: char| c == ',')
-        .and_then(separated_pair(is_not("="), tag("="), rest))
-        .map(trim_pair)
-        .parse(arg)?;
+    let (remainder, (internal, external)) =
+        separated_pair(is_not("="), tag("="), alt((take_until(","), rest)))
+            .map(trim_pair)
+            .parse(arg)?;
+
+    let ((internal, internal_bus), (external, external_bus)) =
+        (symbol_bus(internal)?.1, symbol_bus(external)?.1);
 
     // fast forward to next argument, if it exists
     let (remainder, _) = opt(tuple((
@@ -133,7 +138,15 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
         Symbol::try_from(external).unwrap(),
     );
 
-    IResult::Ok((remainder.trim_start(), Argument { internal, external }))
+    IResult::Ok((
+        remainder.trim_start(),
+        Argument {
+            internal,
+            internal_bus,
+            external,
+            external_bus,
+        },
+    ))
 }
 
 fn parse_instruction(_: &str) -> nom::IResult<Instruction, &str> {
@@ -194,7 +207,9 @@ mod test {
                 "",
                 Argument {
                     internal: Symbol::Name("in"),
-                    external: Symbol::Value(Value::True)
+                    internal_bus: None,
+                    external: Symbol::Value(Value::True),
+                    external_bus: None,
                 }
             ))
         );
@@ -204,7 +219,9 @@ mod test {
                 "",
                 Argument {
                     internal: Symbol::Name("in"),
-                    external: Symbol::Value(Value::True)
+                    internal_bus: None,
+                    external: Symbol::Value(Value::True),
+                    external_bus: None,
                 }
             ))
         );
@@ -214,7 +231,9 @@ mod test {
                 "",
                 Argument {
                     internal: Symbol::Name("in"),
-                    external: Symbol::Value(Value::True)
+                    internal_bus: None,
+                    external: Symbol::Value(Value::True),
+                    external_bus: None,
                 }
             ))
         );
@@ -224,9 +243,35 @@ mod test {
                 "out=false",
                 Argument {
                     internal: Symbol::Name("in"),
-                    external: Symbol::Value(Value::True)
+                    internal_bus: None,
+                    external: Symbol::Value(Value::True),
+                    external_bus: None,
                 }
             ))
         );
+        assert_eq!(
+            parse_arg("in[3..4]=true, out=false"),
+            Ok((
+                "out=false",
+                Argument {
+                    internal: Symbol::Name("in"),
+                    internal_bus: Some(BusRange { start: 3, end: 4 }),
+                    external: Symbol::Value(Value::True),
+                    external_bus: None,
+                }
+            ))
+        );
+        assert_eq!(
+            parse_arg("a[9..10]=b[5..10]"),
+            Ok((
+                "",
+                Argument {
+                    internal: Symbol::Name("a"),
+                    internal_bus: Some(BusRange { start: 9, end: 10 }),
+                    external: Symbol::Name("b"),
+                    external_bus: Some(BusRange { start: 5, end: 10 })
+                }
+            ))
+        )
     }
 }
