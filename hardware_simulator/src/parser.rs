@@ -2,9 +2,11 @@ use lazy_static::lazy_static;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take, take_till};
 use nom::combinator::{opt, rest};
+use nom::error::{ErrorKind, ParseError};
 use nom::sequence::tuple;
 use nom::Parser;
 use nom::{IResult, InputIter};
+use std::any::Any;
 use std::collections::btree_map::IntoValues;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -45,13 +47,13 @@ enum Symbol<'a> {
 }
 
 #[derive(Error, Debug, PartialEq)]
-pub enum ParseError {
+pub enum HdlParseError {
     #[error("Symbol `{0}` is not a valid symbol")]
     BadSymbol(String),
 }
 
 impl<'a> TryFrom<&'a str> for Symbol<'a> {
-    type Error = ParseError;
+    type Error = HdlParseError;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
         // a valid symbol must be in only ascii characters, as well as consisting of no whitespace
@@ -66,7 +68,7 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
                 }
             })
         } else {
-            Err(ParseError::BadSymbol(String::from(value)))
+            Err(HdlParseError::BadSymbol(String::from(value)))
         }
     }
 }
@@ -87,6 +89,12 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     ))
     .parse(arg)?;
 
+    //TODO: Integrate these error types into the nom error types
+    let (internal, external) = (
+        Symbol::try_from(internal).unwrap(),
+        Symbol::try_from(external).unwrap(),
+    );
+
     IResult::Ok((remainder.trim_start(), Argument { internal, external }))
 }
 
@@ -105,7 +113,7 @@ mod test {
         assert_eq!(Symbol::try_from("false"), Ok(Symbol::Value(Value::False)));
         assert!(matches!(
             Symbol::try_from("u r bad"),
-            Err(ParseError::BadSymbol(_))
+            Err(HdlParseError::BadSymbol(_))
         ));
     }
 
