@@ -59,6 +59,19 @@ pub enum HdlParseError<'a> {
     BadSymbol(&'a str),
 }
 
+pub fn drop_err<I: Clone, O, E: ParseError<I>, F>(mut f: F) -> impl FnMut(I) -> IResult<I, Option<O>, E>
+    where
+        F: Parser<I, O, E>,
+{
+    move |input: I| {
+        let i = input.clone();
+        match f.parse(input) {
+            Ok((i, o)) => Ok((i, Some(o))),
+            Err(_) => Ok((i, None)),
+        }
+    }
+}
+
 impl<'a> TryFrom<&'a str> for Symbol<'a> {
     type Error = HdlParseError<'a>;
 
@@ -100,8 +113,11 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     }
 }
 
-fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
+fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
+    tuple((alt((is_not(",=["), rest)), drop_err(bus_range))).parse(arg)
+}
 
+fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     let (remainder, (internal, external)) = take_till(|c: char| c == ',')
         .and_then(separated_pair(is_not("="), tag("="), rest))
         .map(|(x, y): (&str, &str)| (x.trim(), y.trim()))
@@ -111,7 +127,8 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     let (remainder, _) = opt(tuple((
         take(1_usize),
         take_till(|c: char| !c.is_ascii_whitespace()),
-    ))).parse(remainder)?;
+    )))
+    .parse(remainder)?;
 
     //TODO: Integrate these error types into the nom error types
     let (internal, external) = (
@@ -152,6 +169,15 @@ mod test {
             bus_range("[5..10] and"),
             Ok((" and", BusRange { start: 5, end: 10 }))
         );
+    }
+
+    #[test]
+    fn test_symbol_bus() {
+        assert_eq!(
+            symbol_bus("limo[1..10]"),
+            Ok(("", ("limo", Some(BusRange { start: 1, end: 10 }))))
+        );
+        assert_eq!(symbol_bus("limo"), Ok(("", ("limo", None))))
     }
 
     #[test]
