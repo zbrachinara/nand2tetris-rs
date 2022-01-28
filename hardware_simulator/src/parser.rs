@@ -101,20 +101,17 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, (internal, _, external, _)) = tuple((
-        // get the first name
-        is_not("=").map(str::trim),
-        // skip this equals sign
-        tuple((take(1_usize), take_till(|c: char| !c.is_ascii_whitespace()))),
-        // get the second name
-        alt((is_not(","), rest)).map(str::trim),
-        // skip the next comma, if it exists
-        opt(tuple((
-            take(1_usize),
-            take_till(|c: char| !c.is_ascii_whitespace()),
-        ))),
-    ))
-    .parse(arg)?;
+
+    let (remainder, (internal, external)) = take_till(|c: char| c == ',')
+        .and_then(separated_pair(is_not("="), tag("="), rest))
+        .map(|(x, y): (&str, &str)| (x.trim(), y.trim()))
+        .parse(arg)?;
+
+    // fast forward to next argument, if it exists
+    let (remainder, _) = opt(tuple((
+        take(1_usize),
+        take_till(|c: char| !c.is_ascii_whitespace()),
+    ))).parse(remainder)?;
 
     //TODO: Integrate these error types into the nom error types
     let (internal, external) = (
