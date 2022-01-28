@@ -75,7 +75,7 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     let (remainder, (internal, _, external, _)) = tuple((
         // get the first name
         is_not("=").map(str::trim),
-        // skip this comma
+        // skip this equals sign
         tuple((take(1_usize), take_till(|c: char| !c.is_ascii_whitespace()))),
         // get the second name
         alt((is_not(","), rest)).map(str::trim),
@@ -96,7 +96,6 @@ fn parse_instruction(_: &str) -> nom::IResult<Instruction, &str> {
 
 #[cfg(test)]
 mod test {
-    use crate::parser::ParseError::BadSymbol;
     use super::*;
 
     #[test]
