@@ -4,14 +4,14 @@ use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
 use lazy_static::lazy_static;
-use nom::{InputIter, IResult};
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take, take_till};
 use nom::character::streaming::char;
 use nom::combinator::{opt, rest, value};
 use nom::error::{ErrorKind, ParseError};
-use nom::Parser;
 use nom::sequence::{delimited, pair, separated_pair, tuple};
+use nom::Parser;
+use nom::{IResult, InputIter};
 use thiserror::Error;
 
 lazy_static! {
@@ -111,11 +111,11 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     use nom::Err::*;
     match (u16::from_str_radix(start, 10), u16::from_str_radix(end, 10)) {
         (Ok(start), Ok(end)) => Ok((remainder, BusRange { start, end })),
-        (Err(e), _) => Err(Failure(Error {
+        (Err(_), _) => Err(Failure(Error {
             input: start,
             code: ErrorKind::Tag,
         })),
-        (_, Err(e)) => Err(Failure(Error {
+        (_, Err(_)) => Err(Failure(Error {
             input: end,
             code: ErrorKind::Tag,
         })),
@@ -198,10 +198,7 @@ mod test {
             symbol_bus("limo   [  1  .. 10  ]"),
             Ok(("", ("limo", Some(BusRange { start: 1, end: 10 }))))
         );
-        assert_eq!(
-            symbol_bus("limo   "),
-            Ok(("", ("limo", None)))
-        );
+        assert_eq!(symbol_bus("limo   "), Ok(("", ("limo", None))));
         assert_eq!(symbol_bus("limo"), Ok(("", ("limo", None))))
     }
 
