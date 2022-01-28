@@ -29,6 +29,19 @@ struct Argument<'a> {
     external: &'a str,
 }
 
+#[derive(Eq, PartialEq, Debug)]
+enum Value {
+    True,
+    False,
+}
+
+#[derive(Eq, PartialEq, Debug)]
+enum Symbol<'a> {
+    Name(&'a str),
+    Value(Value),
+    Number(usize),
+}
+
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     let (remainder, (internal, _, external, _)) = tuple((
         // get the first name
