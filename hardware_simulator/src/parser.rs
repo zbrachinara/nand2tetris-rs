@@ -1,9 +1,10 @@
 use lazy_static::lazy_static;
 use nom::branch::alt;
-use nom::bytes::complete::{is_not, take, take_till};
+use nom::bytes::complete::{is_not, tag, take, take_till};
+use nom::character::streaming::char;
 use nom::combinator::{opt, rest};
 use nom::error::{ErrorKind, ParseError};
-use nom::sequence::tuple;
+use nom::sequence::{delimited, pair, separated_pair, tuple};
 use nom::Parser;
 use nom::{IResult, InputIter};
 use std::any::Any;
@@ -46,6 +47,11 @@ enum Symbol<'a> {
     Number(usize),
 }
 
+struct BusRange {
+    start: u16,
+    end: u16,
+}
+
 #[derive(Error, Debug, PartialEq)]
 pub enum HdlParseError {
     #[error("Symbol `{0}` is not a valid symbol")]
@@ -71,6 +77,12 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
             Err(HdlParseError::BadSymbol(String::from(value)))
         }
     }
+}
+
+fn bus_range(arg: &str) -> nom::IResult<&str, (&str, &str)> {
+    delimited(char('['), is_not("]"), char(']'))
+        .and_then(separated_pair(is_not("."), tag(".."), rest))
+        .parse(arg)
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
@@ -115,6 +127,13 @@ mod test {
             Symbol::try_from("u r bad"),
             Err(HdlParseError::BadSymbol(_))
         ));
+    }
+
+    #[test]
+    fn test_bus_range() {
+        assert_eq!(bus_range("[0..1]"), Ok(("", ("0", "1"))));
+        assert_eq!(bus_range("[5..10]"), Ok(("", ("5", "10"))));
+        assert_eq!(bus_range("[5..10] and"), Ok((" and", ("5", "10"))));
     }
 
     #[test]
