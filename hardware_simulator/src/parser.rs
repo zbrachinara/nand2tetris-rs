@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
@@ -7,11 +6,11 @@ use lazy_static::lazy_static;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take, take_till};
 use nom::character::streaming::char;
-use nom::combinator::{complete, opt, rest, value};
-use nom::error::{ErrorKind, ParseError};
-use nom::sequence::{delimited, pair, separated_pair, tuple};
+use nom::combinator::{complete, opt, rest};
+use nom::error::ErrorKind;
+use nom::sequence::{delimited, separated_pair, tuple};
+use nom::IResult;
 use nom::Parser;
-use nom::{IResult, InputIter};
 use thiserror::Error;
 
 lazy_static! {
