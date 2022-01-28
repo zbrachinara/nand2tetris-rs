@@ -27,8 +27,8 @@ struct Instruction {
 
 #[derive(Eq, PartialEq, Debug)]
 struct Argument<'a> {
-    internal: &'a str,
-    external: &'a str,
+    internal: Symbol<'a>,
+    external: Symbol<'a>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -100,12 +100,13 @@ mod test {
 
     #[test]
     fn create_symbol() {
-
         assert_eq!(Symbol::try_from("breh"), Ok(Symbol::Name("breh")));
         assert_eq!(Symbol::try_from("12345"), Ok(Symbol::Number(12345)));
         assert_eq!(Symbol::try_from("false"), Ok(Symbol::Value(Value::False)));
-        assert!(matches!(Symbol::try_from("u r bad"), Err(ParseError::BadSymbol(_))));
-
+        assert!(matches!(
+            Symbol::try_from("u r bad"),
+            Err(ParseError::BadSymbol(_))
+        ));
     }
 
     #[test]
@@ -115,8 +116,8 @@ mod test {
             Ok((
                 "",
                 Argument {
-                    internal: "in",
-                    external: "true"
+                    internal: Symbol::Name("in"),
+                    external: Symbol::Value(Value::True)
                 }
             ))
         );
@@ -125,8 +126,8 @@ mod test {
             Ok((
                 "",
                 Argument {
-                    internal: "in",
-                    external: "true"
+                    internal: Symbol::Name("in"),
+                    external: Symbol::Value(Value::True)
                 }
             ))
         );
@@ -135,8 +136,8 @@ mod test {
             Ok((
                 "",
                 Argument {
-                    internal: "in",
-                    external: "true"
+                    internal: Symbol::Name("in"),
+                    external: Symbol::Value(Value::True)
                 }
             ))
         );
@@ -145,8 +146,8 @@ mod test {
             Ok((
                 "out=false",
                 Argument {
-                    internal: "in",
-                    external: "true"
+                    internal: Symbol::Name("in"),
+                    external: Symbol::Value(Value::True)
                 }
             ))
         );
