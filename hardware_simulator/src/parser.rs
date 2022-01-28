@@ -1,16 +1,17 @@
+use std::any::Any;
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::sync::{Arc, RwLock};
+
 use lazy_static::lazy_static;
+use nom::{InputIter, IResult};
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take, take_till};
 use nom::character::streaming::char;
 use nom::combinator::{opt, rest, value};
 use nom::error::{ErrorKind, ParseError};
-use nom::sequence::{delimited, pair, separated_pair, tuple};
 use nom::Parser;
-use nom::{IResult, InputIter};
-use std::any::Any;
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::sync::{Arc, RwLock};
+use nom::sequence::{delimited, pair, separated_pair, tuple};
 use thiserror::Error;
 
 lazy_static! {
@@ -59,9 +60,15 @@ pub enum HdlParseError<'a> {
     BadSymbol(&'a str),
 }
 
-pub fn drop_err<I: Clone, O, E: ParseError<I>, F>(mut f: F) -> impl FnMut(I) -> IResult<I, Option<O>, E>
-    where
-        F: Parser<I, O, E>,
+fn trim_pair<'a, 'b>((x, y): (&'a str, &'b str)) -> (&'a str, &'b str) {
+    (x.trim(), y.trim())
+}
+
+pub fn drop_err<I: Clone, O, E: ParseError<I>, F>(
+    mut f: F,
+) -> impl FnMut(I) -> IResult<I, Option<O>, E>
+where
+    F: Parser<I, O, E>,
 {
     move |input: I| {
         let i = input.clone();
@@ -93,9 +100,11 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
     }
 }
 
+// required to start on the beginning of the bus range
 fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     let (remainder, (start, end)) = delimited(char('['), is_not("]"), char(']'))
         .and_then(separated_pair(is_not("."), tag(".."), rest))
+        .map(trim_pair)
         .parse(arg)?;
 
     use nom::error::Error;
@@ -114,13 +123,17 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
 }
 
 fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
-    tuple((alt((is_not(",=["), rest)), drop_err(bus_range))).parse(arg)
+    tuple((
+        alt((is_not(",=["), rest)).map(str::trim),
+        drop_err(bus_range),
+    ))
+    .parse(arg)
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     let (remainder, (internal, external)) = take_till(|c: char| c == ',')
         .and_then(separated_pair(is_not("="), tag("="), rest))
-        .map(|(x, y): (&str, &str)| (x.trim(), y.trim()))
+        .map(trim_pair)
         .parse(arg)?;
 
     // fast forward to next argument, if it exists
@@ -169,6 +182,10 @@ mod test {
             bus_range("[5..10] and"),
             Ok((" and", BusRange { start: 5, end: 10 }))
         );
+        assert_eq!(
+            bus_range("[   5   ..  10       ] and"),
+            Ok((" and", BusRange { start: 5, end: 10 }))
+        );
     }
 
     #[test]
@@ -176,6 +193,14 @@ mod test {
         assert_eq!(
             symbol_bus("limo[1..10]"),
             Ok(("", ("limo", Some(BusRange { start: 1, end: 10 }))))
+        );
+        assert_eq!(
+            symbol_bus("limo   [  1  .. 10  ]"),
+            Ok(("", ("limo", Some(BusRange { start: 1, end: 10 }))))
+        );
+        assert_eq!(
+            symbol_bus("limo   "),
+            Ok(("", ("limo", None)))
         );
         assert_eq!(symbol_bus("limo"), Ok(("", ("limo", None))))
     }
