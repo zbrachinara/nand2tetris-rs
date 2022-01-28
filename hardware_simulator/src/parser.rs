@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take, take_till};
 use nom::character::streaming::char;
-use nom::combinator::{opt, rest, value};
+use nom::combinator::{complete, opt, rest, value};
 use nom::error::{ErrorKind, ParseError};
 use nom::sequence::{delimited, pair, separated_pair, tuple};
 use nom::Parser;
@@ -64,21 +64,6 @@ fn trim_pair<'a, 'b>((x, y): (&'a str, &'b str)) -> (&'a str, &'b str) {
     (x.trim(), y.trim())
 }
 
-pub fn drop_err<I: Clone, O, E: ParseError<I>, F>(
-    mut f: F,
-) -> impl FnMut(I) -> IResult<I, Option<O>, E>
-where
-    F: Parser<I, O, E>,
-{
-    move |input: I| {
-        let i = input.clone();
-        match f.parse(input) {
-            Ok((i, o)) => Ok((i, Some(o))),
-            Err(_) => Ok((i, None)),
-        }
-    }
-}
-
 impl<'a> TryFrom<&'a str> for Symbol<'a> {
     type Error = HdlParseError<'a>;
 
@@ -125,7 +110,7 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
 fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
     tuple((
         alt((is_not(",=["), rest)).map(str::trim),
-        drop_err(bus_range),
+        opt(complete(bus_range)),
     ))
     .parse(arg)
 }
