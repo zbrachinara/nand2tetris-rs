@@ -1,6 +1,9 @@
-use nom::bytes::complete::{take_till, take_while};
-use nom::character::complete::{char, multispace0};
+use nom::branch::alt;
+use nom::bytes::complete::{is_not, tag, take_till, take_until, take_while};
+use nom::character::complete::{char, multispace0, multispace1};
 use nom::combinator::{complete, opt};
+use nom::error::ParseError;
+use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
 use nom::{IResult, Parser};
 use thiserror::Error;
@@ -96,6 +99,20 @@ fn skip_comma(arg: &str) -> IResult<&str, ()> {
     .parse(arg)
 }
 
+fn generic_space1(arg: &str) -> IResult<&str, ()> {
+    many0(alt((
+        multispace1,
+        complete(delimited(tag("/*"), take_until("*/"), tag("*/"))),
+        complete(delimited(tag("//"), is_not("\n"), tag("\n"))),
+    )))
+    .map(|_| ())
+    .parse(arg)
+}
+
+fn generic_space0(arg: &str) -> IResult<&str, ()> {
+    opt(generic_space1).map(|_| ()).parse(arg)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -117,5 +134,11 @@ mod test {
             Symbol::try_from("u r bad"),
             Err(HdlParseError::BadSymbol(_))
         ));
+    }
+
+    #[test]
+    fn test_generic_space0() {
+        assert_eq!(generic_space0("/* // bruh */  abc"), Ok(("abc", ())));
+        assert_eq!(generic_space0("//abc\ndef"), Ok(("def", ())));
     }
 }
