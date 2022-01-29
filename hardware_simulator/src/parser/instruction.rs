@@ -11,8 +11,9 @@ use nom::combinator::{complete, opt, rest};
 use nom::error::ErrorKind;
 use nom::multi::{many0, many_till};
 use nom::sequence::{delimited, separated_pair, tuple};
-use nom::IResult;
+use nom::Err::Error;
 use nom::Parser;
+use nom::{Err, IResult};
 use thiserror::Error;
 
 lazy_static! {
@@ -119,11 +120,8 @@ fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, ((internal, internal_bus), (external, external_bus))) = separated_pair(
-        symbol_bus,
-        tag("="),
-        symbol_bus
-    ).parse(arg)?;
+    let (remainder, ((internal, internal_bus), (external, external_bus))) =
+        separated_pair(symbol_bus, tag("="), symbol_bus).parse(arg)?;
 
     // fast forward to next argument, if it exists
     let (remainder, _) = opt(complete(tuple((
@@ -153,8 +151,24 @@ fn parse_args(arg: &str) -> nom::IResult<&str, Vec<Argument>> {
     delimited(char('('), many0(complete(parse_arg)), char(')'))(arg)
 }
 
-fn parse_instruction(_: &str) -> nom::IResult<&str, Instruction> {
-    todo!()
+fn parse_instruction(arg: &str) -> nom::IResult<&str, Instruction> {
+    let (remainder, (name, args, ..)) =
+        tuple((symbol, parse_args, multispace0, char(';'), multispace0))(arg)?;
+
+    if let Ok(Symbol::Name(x)) = Symbol::try_from(name) {
+        Ok((
+            remainder,
+            Instruction {
+                chip_name: Symbol::Name(x),
+                inputs: args,
+            },
+        ))
+    } else {
+        Err(nom::Err::Failure(nom::error::Error {
+            input: name,
+            code: ErrorKind::Alpha,
+        }))
+    }
 }
 
 #[cfg(test)]
@@ -321,5 +335,38 @@ mod test {
                 ]
             ))
         );
+    }
+
+    #[test]
+    fn test_parse_instruction() {
+        assert_eq!(
+            parse_instruction("Nand (a[3..4]=2, b[1..10]=  \nfalse, out=foo[6  ..  9])   ;"),
+            Ok((
+                "",
+                Instruction {
+                    chip_name: Symbol::Name("Nand"),
+                    inputs: vec![
+                        Argument {
+                            internal: Symbol::Name("a"),
+                            internal_bus: Some(BusRange { start: 3, end: 4 }),
+                            external: Symbol::Number(2),
+                            external_bus: None,
+                        },
+                        Argument {
+                            internal: Symbol::Name("b"),
+                            internal_bus: Some(BusRange { start: 1, end: 10 }),
+                            external: Symbol::Value(Value::False),
+                            external_bus: None,
+                        },
+                        Argument {
+                            internal: Symbol::Name("out"),
+                            internal_bus: None,
+                            external: Symbol::Name("foo"),
+                            external_bus: Some(BusRange { start: 6, end: 9 }),
+                        }
+                    ]
+                }
+            ))
+        )
     }
 }
