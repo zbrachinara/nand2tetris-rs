@@ -1,4 +1,6 @@
+use crate::parser::{symbol, Pin, Symbol};
 use nom::character::complete::{char, digit1, multispace0};
+use nom::combinator::{complete, opt};
 use nom::sequence::{delimited, tuple};
 use nom::IResult;
 
@@ -12,6 +14,27 @@ fn bus_declaration(arg: &str) -> IResult<&str, u16> {
     Ok((remainder, u16::from_str_radix(size, 10).unwrap()))
 }
 
+fn pin_decl(arg: &str) -> IResult<&str, Pin> {
+    let (remainder, (name, bus)) = tuple((symbol, opt(complete(bus_declaration))))(arg)?;
+
+    use nom::error::Error;
+    use nom::error::ErrorKind;
+    use nom::Err::*;
+    match Symbol::try_from(name) {
+        Ok(Symbol::Name(x)) => Ok((
+            remainder,
+            Pin {
+                name: Symbol::Name(x),
+                size: bus,
+            },
+        )),
+        _ => Err(Failure(Error {
+            input: name,
+            code: ErrorKind::Tag,
+        })),
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -23,5 +46,10 @@ mod test {
         assert_eq!(bus_declaration("[25]"), Ok(("", 25)));
         assert_eq!(bus_declaration("\n[\n25\n]\n"), Ok(("", 25)));
         assert_eq!(bus_declaration("\n[\n25\n]\nbruh"), Ok(("bruh", 25)));
+    }
+
+    #[test]
+    fn test_pin_decl() {
+        assert_eq!(pin_decl("in[5]"), Ok(("", Pin { name: Symbol::Name("in"), size: Some(5) })))
     }
 }

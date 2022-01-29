@@ -12,9 +12,10 @@ struct Chip {
     out_pins: Vec<String>,
 }
 
+#[derive(Eq, PartialEq, Debug)]
 struct Pin<'a> {
     name: Symbol<'a>,
-    size: u16,
+    size: Option<u16>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
