@@ -90,14 +90,17 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
 }
 
 fn symbol(arg: &str) -> IResult<&str, &str> {
-    delimited(multispace0, take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')), multispace0)(arg)
+    delimited(
+        multispace0,
+        take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')),
+        multispace0,
+    )(arg)
 }
 
 // required to start on the beginning of the bus range
 fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     let (remainder, (start, end)) = delimited(char('['), is_not("]"), char(']'))
-        .and_then(separated_pair(is_not("."), tag(".."), rest))
-        .map(trim_pair)
+        .and_then(separated_pair(symbol, tag(".."), symbol))
         .parse(arg)?;
 
     use nom::error::Error;
@@ -116,24 +119,15 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
 }
 
 fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
-    tuple((
-        alt((is_not(",=["), rest)).map(str::trim),
-        opt(complete(bus_range)),
-    ))
-    .parse(arg)
+    tuple((symbol, opt(complete(bus_range)))).parse(arg)
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, (internal, external)) = separated_pair(
-        is_not("="),
+    let (remainder, ((internal, internal_bus), (external, external_bus))) = separated_pair(
+        symbol_bus,
         tag("="),
-        alt((take_till(|c| matches!(c, ',' | ')')), rest)),
-    )
-    .map(trim_pair)
-    .parse(arg)?;
-
-    let ((internal, internal_bus), (external, external_bus)) =
-        (symbol_bus(internal)?.1, symbol_bus(external)?.1);
+        symbol_bus
+    ).parse(arg)?;
 
     // fast forward to next argument, if it exists
     let (remainder, _) = opt(complete(tuple((
