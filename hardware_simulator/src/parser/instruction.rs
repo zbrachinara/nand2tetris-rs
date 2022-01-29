@@ -1,4 +1,4 @@
-use nom::bytes::complete::{is_not, tag, take_till, take_while};
+use nom::bytes::complete::{is_not, tag, take_till};
 use nom::character::complete::multispace0;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
@@ -9,35 +9,6 @@ use nom::IResult;
 use nom::Parser;
 
 use super::*;
-
-impl<'a> TryFrom<&'a str> for Symbol<'a> {
-    type Error = HdlParseError<'a>;
-
-    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
-        // a valid symbol must be in only ascii characters, as well as consisting of no whitespace
-        if value.is_ascii() && value.chars().all(|c| !c.is_ascii_whitespace()) {
-            Ok(if let Ok(num) = usize::from_str_radix(value, 10) {
-                Symbol::Number(num)
-            } else {
-                match value {
-                    "true" => Symbol::Value(Value::True),
-                    "false" => Symbol::Value(Value::False),
-                    x => Symbol::Name(x),
-                }
-            })
-        } else {
-            Err(HdlParseError::BadSymbol(value))
-        }
-    }
-}
-
-fn symbol(arg: &str) -> IResult<&str, &str> {
-    delimited(
-        multispace0,
-        take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')),
-        multispace0,
-    )(arg)
-}
 
 fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     let (remainder, (start, end)) = delimited(

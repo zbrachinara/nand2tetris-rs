@@ -1,3 +1,7 @@
+use nom::bytes::complete::take_while;
+use nom::character::complete::multispace0;
+use nom::IResult;
+use nom::sequence::delimited;
 use thiserror::Error;
 
 mod instruction;
@@ -37,6 +41,35 @@ enum Symbol<'a> {
     Name(&'a str),
     Value(Value),
     Number(usize),
+}
+
+impl<'a> TryFrom<&'a str> for Symbol<'a> {
+    type Error = HdlParseError<'a>;
+
+    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+        // a valid symbol must be in only ascii characters, as well as consisting of no whitespace
+        if value.is_ascii() && value.chars().all(|c| !c.is_ascii_whitespace()) {
+            Ok(if let Ok(num) = usize::from_str_radix(value, 10) {
+                Symbol::Number(num)
+            } else {
+                match value {
+                    "true" => Symbol::Value(Value::True),
+                    "false" => Symbol::Value(Value::False),
+                    x => Symbol::Name(x),
+                }
+            })
+        } else {
+            Err(HdlParseError::BadSymbol(value))
+        }
+    }
+}
+
+fn symbol(arg: &str) -> IResult<&str, &str> {
+    delimited(
+        multispace0,
+        take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')),
+        multispace0,
+    )(arg)
 }
 
 #[derive(Debug, Eq, PartialEq)]
