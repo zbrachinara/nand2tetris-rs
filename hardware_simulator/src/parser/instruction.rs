@@ -1,4 +1,4 @@
-use nom::bytes::complete::{is_not, tag, take_till};
+use nom::bytes::complete::{is_not, tag};
 use nom::character::complete::multispace0;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
@@ -43,11 +43,12 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
         separated_pair(symbol_bus, tag("="), symbol_bus).parse(arg)?;
 
     // fast forward to next argument, if it exists
-    let (remainder, _) = opt(complete(tuple((
-        char(','),
-        take_till(|c: char| !c.is_ascii_whitespace()),
-    ))))
-    .parse(remainder)?;
+    // let (remainder, _) = opt(complete(tuple((
+    //     char(','),
+    //     take_till(|c: char| !c.is_ascii_whitespace()),
+    // ))))
+    // .parse(remainder)?;
+    let (remainder, _) = skip_comma(remainder)?;
 
     //TODO: Integrate these error types into the nom error types
     let (internal, external) = (

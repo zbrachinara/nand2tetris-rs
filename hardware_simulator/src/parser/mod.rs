@@ -1,7 +1,8 @@
-use nom::bytes::complete::take_while;
-use nom::character::complete::multispace0;
-use nom::IResult;
-use nom::sequence::delimited;
+use nom::bytes::complete::{take_till, take_while};
+use nom::character::complete::{char, multispace0};
+use nom::combinator::{complete, opt};
+use nom::sequence::{delimited, tuple};
+use nom::{IResult, Parser};
 use thiserror::Error;
 
 mod instruction;
@@ -86,6 +87,15 @@ pub enum HdlParseError<'a> {
     BadSymbol(&'a str),
 }
 
+fn skip_comma(arg: &str) -> IResult<&str, ()> {
+    opt(complete(tuple((
+        char(','),
+        take_till(|c: char| !c.is_ascii_whitespace()),
+    ))))
+    .map(|_| ())
+    .parse(arg)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -108,5 +118,4 @@ mod test {
             Err(HdlParseError::BadSymbol(_))
         ));
     }
-
 }

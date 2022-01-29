@@ -1,4 +1,4 @@
-use crate::parser::{symbol, Pin, Symbol};
+use crate::parser::{symbol, Pin, Symbol, skip_comma};
 use nom::character::complete::{char, digit1, multispace0};
 use nom::combinator::{complete, opt};
 use nom::sequence::{delimited, tuple};
@@ -16,6 +16,7 @@ fn bus_declaration(arg: &str) -> IResult<&str, u16> {
 
 fn pin_decl(arg: &str) -> IResult<&str, Pin> {
     let (remainder, (name, bus)) = tuple((symbol, opt(complete(bus_declaration))))(arg)?;
+    let (remainder, _) = skip_comma(remainder)?;
 
     use nom::error::Error;
     use nom::error::ErrorKind;
@@ -50,6 +51,25 @@ mod test {
 
     #[test]
     fn test_pin_decl() {
-        assert_eq!(pin_decl("in[5]"), Ok(("", Pin { name: Symbol::Name("in"), size: Some(5) })))
+        assert_eq!(
+            pin_decl("in[5]"),
+            Ok((
+                "",
+                Pin {
+                    name: Symbol::Name("in"),
+                    size: Some(5)
+                }
+            ))
+        );
+        assert_eq!(
+            pin_decl("in[5], out[4]"),
+            Ok((
+                "out[4]",
+                Pin {
+                    name: Symbol::Name("in"),
+                    size: Some(5)
+                }
+            ))
+        );
     }
 }
