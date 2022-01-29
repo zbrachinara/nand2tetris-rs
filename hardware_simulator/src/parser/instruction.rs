@@ -94,11 +94,14 @@ fn symbol(arg: &str) -> IResult<&str, &str> {
     )(arg)
 }
 
-// required to start on the beginning of the bus range
 fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
-    let (remainder, (start, end)) = delimited(char('['), is_not("]"), char(']'))
-        .and_then(separated_pair(symbol, tag(".."), symbol))
-        .parse(arg)?;
+    let (remainder, (start, end)) = delimited(
+        multispace0,
+        delimited(char('['), is_not("]"), char(']')),
+        multispace0,
+    )
+    .and_then(separated_pair(symbol, tag(".."), symbol))
+    .parse(arg)?;
 
     use nom::error::Error;
     use nom::Err::*;
@@ -203,11 +206,15 @@ mod test {
         );
         assert_eq!(
             bus_range("[5..10] and"),
-            Ok((" and", BusRange { start: 5, end: 10 }))
+            Ok(("and", BusRange { start: 5, end: 10 }))
         );
         assert_eq!(
             bus_range("[   5   ..  10       ] and"),
-            Ok((" and", BusRange { start: 5, end: 10 }))
+            Ok(("and", BusRange { start: 5, end: 10 }))
+        );
+        assert_eq!(
+            bus_range("[   5\n  ..  10       ] and"),
+            Ok(("and", BusRange { start: 5, end: 10 }))
         );
     }
 
@@ -340,7 +347,9 @@ mod test {
     #[test]
     fn test_parse_instruction() {
         assert_eq!(
-            parse_instruction("Nand (a[3..4]=2, b[1..10]=  \nfalse, out=foo[6  ..  9])   ;"),
+            parse_instruction(
+                "Nand (a\n[3\n..4]    =\n2, b\n[1..10]\n=  \nfalse, out=foo[6  ..  9])   ;"
+            ),
             Ok((
                 "",
                 Instruction {
