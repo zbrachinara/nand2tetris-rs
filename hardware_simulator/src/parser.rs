@@ -25,9 +25,10 @@ struct Chip {
     out_pins: Vec<String>,
 }
 
-struct Instruction {
-    chip_name: String,
-    inputs: Vec<bool>,
+#[derive(Eq, PartialEq, Debug)]
+struct Instruction<'a> {
+    chip_name: Symbol<'a>,
+    inputs: Vec<Argument<'a>>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
