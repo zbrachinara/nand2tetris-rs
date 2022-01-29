@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 
 use lazy_static::lazy_static;
 use nom::branch::alt;
-use nom::bytes::complete::{is_not, tag, take, take_till, take_until};
+use nom::bytes::complete::{is_not, tag, take, take_till, take_until, take_while};
 use nom::character::complete::multispace0;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt, rest};
@@ -89,6 +89,10 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
     }
 }
 
+fn symbol(arg: &str) -> IResult<&str, &str> {
+    take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9'))(arg)
+}
+
 // required to start on the beginning of the bus range
 fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     let (remainder, (start, end)) = delimited(char('['), is_not("]"), char(']'))
@@ -166,6 +170,14 @@ fn parse_instruction(_: &str) -> nom::IResult<&str, Instruction> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_detect_symbol() {
+        assert_eq!(symbol("abcdef ghijkl"), Ok((" ghijkl", "abcdef")));
+        assert_eq!(symbol("1234, ghijkl"), Ok((", ghijkl", "1234")));
+        assert_eq!(symbol("abcd"), Ok(("", "abcd")));
+        assert_eq!(symbol("AbCd"), Ok(("", "AbCd")));
+    }
 
     #[test]
     fn create_symbol() {
