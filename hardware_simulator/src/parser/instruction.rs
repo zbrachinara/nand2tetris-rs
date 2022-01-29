@@ -95,25 +95,6 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_detect_symbol() {
-        assert_eq!(symbol("abcdef ghijkl"), Ok(("ghijkl", "abcdef")));
-        assert_eq!(symbol("1234, ghijkl"), Ok((", ghijkl", "1234")));
-        assert_eq!(symbol("abcd"), Ok(("", "abcd")));
-        assert_eq!(symbol("AbCd"), Ok(("", "AbCd")));
-    }
-
-    #[test]
-    fn create_symbol() {
-        assert_eq!(Symbol::try_from("breh"), Ok(Symbol::Name("breh")));
-        assert_eq!(Symbol::try_from("12345"), Ok(Symbol::Number(12345)));
-        assert_eq!(Symbol::try_from("false"), Ok(Symbol::Value(Value::False)));
-        assert!(matches!(
-            Symbol::try_from("u r bad"),
-            Err(HdlParseError::BadSymbol(_))
-        ));
-    }
-
-    #[test]
     fn test_bus_range() {
         assert_eq!(bus_range("[0..1]"), Ok(("", BusRange { start: 0, end: 1 })));
         assert_eq!(
