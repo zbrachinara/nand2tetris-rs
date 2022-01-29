@@ -1,14 +1,6 @@
-use lazy_static::lazy_static;
 use thiserror::Error;
-use std::sync::{Arc, RwLock};
-use std::collections::HashMap;
 
 mod instruction;
-
-lazy_static! {
-    static ref CHIP_TABLE: Arc<RwLock<HashMap<String, Chip>>> =
-        Arc::new(RwLock::new(HashMap::new()));
-}
 
 struct Chip {
     in_pins: Vec<String>,
