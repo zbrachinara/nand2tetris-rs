@@ -5,9 +5,11 @@ use std::sync::{Arc, RwLock};
 use lazy_static::lazy_static;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take, take_till, take_until};
+use nom::character::complete::multispace0;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt, rest};
 use nom::error::ErrorKind;
+use nom::multi::{many0, many_till};
 use nom::sequence::{delimited, separated_pair, tuple};
 use nom::IResult;
 use nom::Parser;
@@ -117,19 +119,22 @@ fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
 }
 
 fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
-    let (remainder, (internal, external)) =
-        separated_pair(is_not("="), tag("="), alt((take_until(","), rest)))
-            .map(trim_pair)
-            .parse(arg)?;
+    let (remainder, (internal, external)) = separated_pair(
+        is_not("="),
+        tag("="),
+        alt((take_till(|c| matches!(c, ',' | ')')), rest)),
+    )
+    .map(trim_pair)
+    .parse(arg)?;
 
     let ((internal, internal_bus), (external, external_bus)) =
         (symbol_bus(internal)?.1, symbol_bus(external)?.1);
 
     // fast forward to next argument, if it exists
-    let (remainder, _) = opt(tuple((
-        take(1_usize),
+    let (remainder, _) = opt(complete(tuple((
+        char(','),
         take_till(|c: char| !c.is_ascii_whitespace()),
-    )))
+    ))))
     .parse(remainder)?;
 
     //TODO: Integrate these error types into the nom error types
@@ -149,7 +154,11 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     ))
 }
 
-fn parse_instruction(_: &str) -> nom::IResult<Instruction, &str> {
+fn parse_args(arg: &str) -> nom::IResult<&str, Vec<Argument>> {
+    delimited(char('('), many0(complete(parse_arg)), char(')'))(arg)
+}
+
+fn parse_instruction(_: &str) -> nom::IResult<&str, Instruction> {
     todo!()
 }
 
@@ -250,6 +259,18 @@ mod test {
             ))
         );
         assert_eq!(
+            parse_arg("in[3..4]=true)"),
+            Ok((
+                ")",
+                Argument {
+                    internal: Symbol::Name("in"),
+                    internal_bus: Some(BusRange { start: 3, end: 4 }),
+                    external: Symbol::Value(Value::True),
+                    external_bus: None,
+                }
+            ))
+        );
+        assert_eq!(
             parse_arg("in[3..4]=true, out=false"),
             Ok((
                 "out=false",
@@ -269,9 +290,33 @@ mod test {
                     internal: Symbol::Name("a"),
                     internal_bus: Some(BusRange { start: 9, end: 10 }),
                     external: Symbol::Name("b"),
-                    external_bus: Some(BusRange { start: 5, end: 10 })
+                    external_bus: Some(BusRange { start: 5, end: 10 }),
                 }
             ))
         )
+    }
+
+    #[test]
+    fn test_parse_args() {
+        assert_eq!(
+            parse_args("(in=ax, out=bruh)"),
+            Ok((
+                "",
+                vec![
+                    Argument {
+                        internal: Symbol::Name("in"),
+                        internal_bus: None,
+                        external: Symbol::Name("ax"),
+                        external_bus: None,
+                    },
+                    Argument {
+                        internal: Symbol::Name("out"),
+                        internal_bus: None,
+                        external: Symbol::Name("bruh"),
+                        external_bus: None,
+                    }
+                ]
+            ))
+        );
     }
 }
