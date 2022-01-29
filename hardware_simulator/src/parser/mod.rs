@@ -7,6 +7,11 @@ struct Chip {
     out_pins: Vec<String>,
 }
 
+struct Pin<'a> {
+    name: Symbol<'a>,
+    size: u16,
+}
+
 #[derive(Eq, PartialEq, Debug)]
 struct Instruction<'a> {
     chip_name: Symbol<'a>,
