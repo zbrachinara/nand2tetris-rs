@@ -5,6 +5,7 @@ use nom::sequence::delimited;
 use thiserror::Error;
 
 mod instruction;
+mod pin_decl;
 
 struct Chip {
     in_pins: Vec<String>,
