@@ -1,20 +1,12 @@
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::sync::{Arc, RwLock};
-
-use lazy_static::lazy_static;
-use nom::branch::alt;
-use nom::bytes::complete::{is_not, tag, take, take_till, take_until, take_while};
+use nom::bytes::complete::{is_not, tag, take_till, take_while};
 use nom::character::complete::multispace0;
 use nom::character::streaming::char;
-use nom::combinator::{complete, opt, rest};
+use nom::combinator::{complete, opt};
 use nom::error::ErrorKind;
-use nom::multi::{many0, many_till};
+use nom::multi::many0;
 use nom::sequence::{delimited, separated_pair, tuple};
-use nom::Err::Error;
+use nom::IResult;
 use nom::Parser;
-use nom::{Err, IResult};
-use thiserror::Error;
 
 use super::*;
 
