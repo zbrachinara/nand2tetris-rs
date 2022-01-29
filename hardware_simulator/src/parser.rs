@@ -64,10 +64,6 @@ pub enum HdlParseError<'a> {
     BadSymbol(&'a str),
 }
 
-fn trim_pair<'a, 'b>((x, y): (&'a str, &'b str)) -> (&'a str, &'b str) {
-    (x.trim(), y.trim())
-}
-
 impl<'a> TryFrom<&'a str> for Symbol<'a> {
     type Error = HdlParseError<'a>;
 
