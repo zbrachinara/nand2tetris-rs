@@ -90,7 +90,7 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
 }
 
 fn symbol(arg: &str) -> IResult<&str, &str> {
-    take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9'))(arg)
+    delimited(multispace0, take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')), multispace0)(arg)
 }
 
 // required to start on the beginning of the bus range
@@ -173,7 +173,7 @@ mod test {
 
     #[test]
     fn test_detect_symbol() {
-        assert_eq!(symbol("abcdef ghijkl"), Ok((" ghijkl", "abcdef")));
+        assert_eq!(symbol("abcdef ghijkl"), Ok(("ghijkl", "abcdef")));
         assert_eq!(symbol("1234, ghijkl"), Ok((", ghijkl", "1234")));
         assert_eq!(symbol("abcd"), Ok(("", "abcd")));
         assert_eq!(symbol("AbCd"), Ok(("", "AbCd")));
