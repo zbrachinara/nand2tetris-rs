@@ -9,6 +9,7 @@ use thiserror::Error;
 
 mod connection;
 mod pin_decl;
+mod chip;
 
 pub struct Chip<'a> {
     in_pins: Vec<Pin<'a>>,
@@ -19,7 +20,12 @@ pub struct Chip<'a> {
 #[derive(Eq, PartialEq, Debug)]
 pub enum Implementation<'a> {
     Builtin(Symbol<'a>),
-    Native(Vec<Connection<'a>>)
+    Native(Vec<Connection<'a>>),
+}
+
+pub struct Builtin<'a> {
+    name: Symbol<'a>,
+    clocked: bool,
 }
 
 #[derive(Eq, PartialEq, Debug)]
