@@ -10,9 +10,16 @@ use thiserror::Error;
 mod connection;
 mod pin_decl;
 
-struct Chip {
-    in_pins: Vec<String>,
-    out_pins: Vec<String>,
+struct Chip<'a> {
+    in_pins: Vec<Pin<'a>>,
+    out_pins: Vec<Pin<'a>>,
+    logic: Implementation<'a>,
+}
+
+#[derive(Eq, PartialEq, Debug)]
+enum Implementation<'a> {
+    Builtin(Symbol<'a>),
+    Native(Vec<Connection<'a>>)
 }
 
 #[derive(Eq, PartialEq, Debug)]
