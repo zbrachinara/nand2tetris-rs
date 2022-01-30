@@ -1,5 +1,5 @@
 use nom::bytes::complete::is_not;
-use nom::character::complete::digit1;
+use nom::character::complete::{alphanumeric1, digit1};
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
 use nom::error::ErrorKind;
@@ -13,14 +13,12 @@ use nom_supreme::tag::complete::tag;
 use super::*;
 
 fn bus_range(arg: Span) -> PResult<BusRange> {
-    let (remainder, (start, end)) = spaced(
-        delimited(char('['), is_not("]"), char(']')),
-    )
-    .and_then(alt((
-        separated_pair(spaced(digit1), tag(".."), spaced(digit1)),
-        digit1.map(|x| (x, x)),
-    )))
-    .parse(arg)?;
+    let (remainder, (start, end)) = spaced(delimited(char('['), is_not("]"), char(']')))
+        .and_then(alt((
+            separated_pair(spaced(digit1), tag(".."), spaced(digit1)),
+            digit1.map(|x| (x, x)),
+        )))
+        .parse(arg)?;
 
     match (
         u16::from_str_radix(*start, 10),
@@ -51,10 +49,7 @@ fn parse_arg(arg: Span) -> PResult<Argument> {
     let (remainder, _) = skip_comma(remainder)?;
 
     //TODO: Integrate these error types into the nom error types
-    let (internal, external) = (
-        Symbol::try_from(internal).unwrap(),
-        Symbol::try_from(external).unwrap(),
-    );
+    let external = Symbol::try_from(external).unwrap();
 
     IResult::Ok((
         remainder,
@@ -73,28 +68,19 @@ fn parse_args(arg: Span) -> PResult<Vec<Argument>> {
 
 pub fn parse_connection(arg: Span) -> PResult<Connection> {
     let (remainder, (name, args, ..)) = tuple((
-        symbol,
+        name,
         parse_args,
-        generic_space0,
-        char(';'),
-        generic_space0,
+        spaced(char(';')),
     ))
     .parse(arg)?;
 
-    if let Ok(Symbol::Name(x)) = Symbol::try_from(name) {
-        Ok((
-            remainder,
-            Connection {
-                chip_name: Symbol::Name(x),
-                inputs: args,
-            },
-        ))
-    } else {
-        Err(nom::Err::Error(ErrorTree::Base {
-            location: name,
-            kind: BaseErrorKind::Kind(ErrorKind::Alpha),
-        }))
-    }
+    Ok((
+        remainder,
+        Connection {
+            chip_name: name,
+            inputs: args,
+        },
+    ))
 }
 
 #[cfg(test)]
@@ -169,10 +155,7 @@ mod test {
             assert_eq!(internal_bus, None);
             assert_eq!(external_bus, None);
 
-            assert!(matches!(internal, Symbol::Name(_)));
-            if let Symbol::Name(x) = internal {
-                assert_eq!(*x, "in");
-            }
+            assert_eq!(*internal, "in");
 
             assert!(matches!(external, Symbol::Value(_)));
             if let Symbol::Value(x) = external {
@@ -196,10 +179,7 @@ mod test {
             assert_eq!(internal_bus, in_bus);
             assert_eq!(external_bus, None);
 
-            assert!(matches!(internal, Symbol::Name(_)));
-            if let Symbol::Name(x) = internal {
-                assert_eq!(*x, "in");
-            }
+            assert_eq!(*internal, "in");
 
             assert!(matches!(external, Symbol::Value(_)));
             if let Symbol::Value(x) = external {
@@ -235,10 +215,7 @@ mod test {
             assert_eq!(internal_bus, in_bus);
             assert_eq!(external_bus, ex_bus);
 
-            assert!(matches!(internal, Symbol::Name(_)));
-            if let Symbol::Name(x) = internal {
-                assert_eq!(*x, int);
-            }
+            assert_eq!(*internal, int);
 
             assert!(matches!(external, Symbol::Name(_)));
             if let Symbol::Name(x) = external {
@@ -276,10 +253,7 @@ mod test {
             assert_eq!(internal_bus, Some(BusRange { start: 3, end: 4 }));
             assert_eq!(external_bus, None);
 
-            assert!(matches!(internal, Symbol::Name(_)));
-            if let Symbol::Name(x) = internal {
-                assert_eq!(*x, "in");
-            }
+            assert_eq!(*internal, "in");
 
             assert!(matches!(external, Symbol::Value(_)));
             if let Symbol::Value(x) = external {
@@ -302,10 +276,7 @@ mod test {
         assert_eq!(internal_bus, &None);
         assert_eq!(external_bus, &None);
 
-        assert!(matches!(internal, &Symbol::Name(_)));
-        if let &Symbol::Name(x) = internal {
-            assert_eq!(*x, "in");
-        }
+        assert_eq!(**internal, "in");
 
         assert!(matches!(external, &Symbol::Name(_)));
         if let &Symbol::Name(x) = external {
@@ -321,10 +292,7 @@ mod test {
         assert_eq!(internal_bus, &None);
         assert_eq!(external_bus, &None);
 
-        assert!(matches!(internal, &Symbol::Name(_)));
-        if let &Symbol::Name(x) = internal {
-            assert_eq!(*x, "out");
-        }
+        assert_eq!(**internal, "out");
 
         assert!(matches!(external, &Symbol::Name(_)));
         if let &Symbol::Name(x) = external {
@@ -343,10 +311,7 @@ mod test {
 
         let Connection { chip_name, inputs } = res.1;
 
-        assert!(matches!(chip_name, Symbol::Name(_)));
-        if let Symbol::Name(x) = chip_name {
-            assert_eq!(*x, "Nand");
-        }
+        assert_eq!(*chip_name, "Nand");
 
         let Argument {
             internal,
@@ -357,10 +322,7 @@ mod test {
         assert_eq!(internal_bus, &Some(BusRange { start: 3, end: 4 }));
         assert_eq!(external_bus, &None);
 
-        assert!(matches!(internal, &Symbol::Name(_)));
-        if let &Symbol::Name(x) = internal {
-            assert_eq!(*x, "a");
-        }
+        assert_eq!(**internal, "a");
 
         assert!(matches!(external, &Symbol::Number(_)));
         if let &Symbol::Number(x) = external {
@@ -376,10 +338,7 @@ mod test {
         assert_eq!(internal_bus, &Some(BusRange { start: 1, end: 10 }));
         assert_eq!(external_bus, &None);
 
-        assert!(matches!(internal, &Symbol::Name(_)));
-        if let &Symbol::Name(x) = internal {
-            assert_eq!(*x, "b");
-        }
+        assert_eq!(**internal, "b");
 
         assert!(matches!(external, &Symbol::Value(_)));
         if let Symbol::Value(x) = external {
@@ -395,10 +354,7 @@ mod test {
         assert_eq!(internal_bus, &None);
         assert_eq!(external_bus, &Some(BusRange { start: 6, end: 9 }));
 
-        assert!(matches!(internal, &Symbol::Name(_)));
-        if let &Symbol::Name(x) = internal {
-            assert_eq!(*x, "out");
-        }
+        assert_eq!(**internal, "out");
 
         assert!(matches!(external, &Symbol::Name(_)));
         if let &Symbol::Name(x) = external {

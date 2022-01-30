@@ -1,42 +1,22 @@
 use crate::parser::*;
-use nom_supreme::tag::complete::tag;
 use nom::character::complete::{char, digit1, multispace0};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
 use nom::Parser;
+use nom_supreme::tag::complete::tag;
 
 fn bus_declaration(arg: Span) -> PResult<u16> {
-    let (remainder, size) = delimited(
-        spaced(char('[')),
-        digit1,
-        spaced(char(']')),
-    )(arg)?;
+    let (remainder, size) = delimited(spaced(char('[')), digit1, spaced(char(']')))(arg)?;
 
     Ok((remainder, u16::from_str_radix(*size, 10).unwrap()))
 }
 
 fn pin_decl(arg: Span) -> PResult<Pin> {
-    let (remainder, (name, bus)) = tuple((symbol, opt(complete(bus_declaration))))(arg)?;
+    let (remainder, (name, bus)) = tuple((name, opt(complete(bus_declaration))))(arg)?;
     let (remainder, _) = skip_comma(remainder)?;
 
-    match Symbol::try_from(name) {
-        Ok(Symbol::Name(x)) => Ok((
-            remainder,
-            Pin {
-                name: Symbol::Name(x),
-                size: bus,
-            },
-        )),
-        _ =>
-        /*Err(Failure(Error {
-            input: name,
-            code: ErrorKind::Tag,
-        })),*/
-        {
-            panic!()
-        }
-    }
+    Ok((remainder, Pin { name, size: bus }))
 }
 
 fn headed_pin_decl<'a>(header: &'static str) -> impl FnMut(Span<'a>) -> PResult<Vec<Pin<'a>>> {
@@ -58,7 +38,6 @@ fn out_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    // use crate::parser::test_tools::cmp_symbols;
 
     #[test]
     fn test_bus_declaration() {
@@ -86,12 +65,7 @@ mod test {
     }
 
     fn check_pin_decl(test: Pin, (name, size): (&str, Option<u16>)) {
-        assert!(matches!(test.name, Symbol::Name(_)));
-        if let Symbol::Name(test_name) = test.name {
-            assert_eq!(*test_name, name)
-        } else {
-            unreachable!()
-        }
+        assert_eq!(*test.name, name);
         assert_eq!(test.size, size);
     }
 

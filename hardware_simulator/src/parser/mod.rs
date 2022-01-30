@@ -25,31 +25,31 @@ pub struct Chip<'a> {
 
 #[derive(Eq, PartialEq, Debug)]
 pub enum Implementation<'a> {
-    Builtin(Symbol<'a>),
+    Builtin(Span<'a>),
     Native(Vec<Connection<'a>>),
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Builtin<'a> {
-    name: Symbol<'a>,
-    clocked: Option<Vec<Symbol<'a>>>,
+    name: Span<'a>,
+    clocked: Option<Vec<Span<'a>>>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Pin<'a> {
-    name: Symbol<'a>,
+    name: Span<'a>,
     size: Option<u16>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Connection<'a> {
-    chip_name: Symbol<'a>,
+    chip_name: Span<'a>,
     inputs: Vec<Argument<'a>>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Argument<'a> {
-    internal: Symbol<'a>,
+    internal: Span<'a>,
     internal_bus: Option<BusRange>,
     external: Symbol<'a>,
     external_bus: Option<BusRange>,
