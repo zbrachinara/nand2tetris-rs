@@ -2,7 +2,6 @@ use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take_till, take_until, take_while};
 use nom::character::complete::{char, multispace0, multispace1};
 use nom::combinator::{complete, opt};
-use nom::error::ParseError;
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded, tuple};
 use nom::{IResult, Parser};

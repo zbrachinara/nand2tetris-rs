@@ -1,5 +1,4 @@
 use nom::bytes::complete::{is_not, tag};
-use nom::character::complete::multispace0;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
 use nom::error::ErrorKind;
