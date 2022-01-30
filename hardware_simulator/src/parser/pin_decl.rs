@@ -1,4 +1,4 @@
-use crate::parser::{generic_space0, skip_comma, symbol, Pin, Symbol};
+use crate::parser::{generic_space0, skip_comma, symbol, Pin, Symbol, Span};
 use nom::bytes::complete::tag;
 use nom::character::complete::{char, digit1, multispace0};
 use nom::combinator::{complete, opt};
@@ -6,17 +6,17 @@ use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
 use nom::{IResult, Parser};
 
-fn bus_declaration(arg: &str) -> IResult<&str, u16> {
+fn bus_declaration(arg: Span) -> IResult<Span, u16> {
     let (remainder, size) = delimited(
         tuple((multispace0, char('['), multispace0)),
         digit1,
         tuple((multispace0, char(']'), multispace0)),
     )(arg)?;
 
-    Ok((remainder, u16::from_str_radix(size, 10).unwrap()))
+    Ok((remainder, u16::from_str_radix(*size, 10).unwrap()))
 }
 
-fn pin_decl(arg: &str) -> IResult<&str, Pin> {
+fn pin_decl(arg: Span) -> IResult<Span, Pin> {
     let (remainder, (name, bus)) = tuple((symbol, opt(complete(bus_declaration))))(arg)?;
     let (remainder, _) = skip_comma(remainder)?;
 
@@ -38,7 +38,7 @@ fn pin_decl(arg: &str) -> IResult<&str, Pin> {
     }
 }
 
-fn headed_pin_decl(header: &str) -> impl Parser<&str, Vec<Pin>, nom::error::Error<&str>> {
+fn headed_pin_decl(header: &str) -> impl Parser<Span, Vec<Pin>, nom::error::Error<Span>> {
     delimited(
         tuple((generic_space0, tag(header), generic_space0)),
         many0(complete(pin_decl)),
@@ -46,11 +46,11 @@ fn headed_pin_decl(header: &str) -> impl Parser<&str, Vec<Pin>, nom::error::Erro
     )
 }
 
-fn in_pin_decl(arg: &str) -> IResult<&str, Vec<Pin>> {
+fn in_pin_decl(arg: Span) -> IResult<Span, Vec<Pin>> {
     headed_pin_decl("IN").parse(arg)
 }
 
-fn out_pin_decl(arg: &str) -> IResult<&str, Vec<Pin>> {
+fn out_pin_decl(arg: Span) -> IResult<Span, Vec<Pin>> {
     headed_pin_decl("OUT").parse(arg)
 }
 

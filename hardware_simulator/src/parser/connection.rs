@@ -10,7 +10,7 @@ use nom::Parser;
 
 use super::*;
 
-fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
+fn bus_range(arg: Span) -> nom::IResult<Span, BusRange> {
     let (remainder, (start, end)) = delimited(
         generic_space0,
         delimited(char('['), is_not("]"), char(']')),
@@ -37,11 +37,11 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     }
 }
 
-fn symbol_bus(arg: &str) -> nom::IResult<&str, (&str, Option<BusRange>)> {
+fn symbol_bus(arg: Span) -> nom::IResult<Span, (Span, Option<BusRange>)> {
     tuple((symbol, opt(complete(bus_range)))).parse(arg)
 }
 
-fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
+fn parse_arg(arg: Span) -> nom::IResult<Span, Argument> {
     let (remainder, ((internal, internal_bus), (external, external_bus))) =
         separated_pair(symbol_bus, tag("="), symbol_bus).parse(arg)?;
 
@@ -64,18 +64,18 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     ))
 }
 
-fn parse_args(arg: &str) -> nom::IResult<&str, Vec<Argument>> {
+fn parse_args(arg: Span) -> nom::IResult<Span, Vec<Argument>> {
     delimited(char('('), many0(complete(parse_arg)), char(')'))(arg)
 }
 
-pub fn parse_connection(arg: &str) -> nom::IResult<&str, Connection> {
+pub fn parse_connection(arg: Span) -> nom::IResult<Span, Connection> {
     let (remainder, (name, args, ..)) = tuple((
         symbol,
         parse_args,
         generic_space0,
         char(';'),
         generic_space0,
-    ))(arg)?;
+    )).parse(arg)?;
 
     if let Ok(Symbol::Name(x)) = Symbol::try_from(name) {
         Ok((

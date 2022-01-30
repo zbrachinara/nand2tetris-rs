@@ -1,3 +1,4 @@
+use derive_more::Deref;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag, take_till, take_until, take_while1};
 use nom::character::complete::{char, multispace0, multispace1};
@@ -5,12 +6,14 @@ use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded, tuple};
 use nom::{IResult, Parser};
+use nom_locate::LocatedSpan;
 use thiserror::Error;
-use derive_more::Deref;
 
+mod chip;
 mod connection;
 mod pin_decl;
-mod chip;
+
+type Span<'a> = nom_locate::LocatedSpan<&'a str>;
 
 pub struct Chip<'a> {
     in_pins: Vec<Pin<'a>>,
@@ -58,7 +61,7 @@ pub enum Value {
 
 #[derive(Eq, PartialEq, Debug)]
 pub enum Symbol<'a> {
-    Name(&'a str),
+    Name(Span<'a>),
     Value(Value),
     Number(usize),
 }
@@ -66,18 +69,22 @@ pub enum Symbol<'a> {
 #[derive(Deref, Eq, PartialEq, Debug)]
 struct Name<'a>(&'a str);
 
-impl<'a> TryFrom<&'a str> for Symbol<'a> {
+impl<'a> TryFrom<Span<'a>> for Symbol<'a> {
     type Error = HdlParseError<'a>;
 
-    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+    fn try_from(value: Span<'a>) -> Result<Self, Self::Error> {
         // a valid symbol must be in only ascii characters, as well as consisting of no whitespace
         if value.is_ascii() && value.chars().all(|c| !c.is_ascii_whitespace()) {
-            Ok(if let Ok(num) = usize::from_str_radix(value, 10) {
+            Ok(if let Ok(num) = usize::from_str_radix(*value, 10) {
                 Symbol::Number(num)
             } else {
                 match value {
-                    "true" => Symbol::Value(Value::True),
-                    "false" => Symbol::Value(Value::False),
+                    Span {
+                        fragment: "true", ..
+                    } => Symbol::Value(Value::True),
+                    Span {
+                        fragment: "false", ..
+                    } => Symbol::Value(Value::False),
                     x => Symbol::Name(x),
                 }
             })
@@ -87,7 +94,7 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
     }
 }
 
-fn symbol(arg: &str) -> IResult<&str, &str> {
+fn symbol(arg: Span) -> IResult<Span, Span> {
     delimited(
         multispace0,
         take_while1(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')),
@@ -104,10 +111,10 @@ struct BusRange {
 #[derive(Error, Debug, PartialEq)]
 pub enum HdlParseError<'a> {
     #[error("Symbol `{0}` is not a valid symbol")]
-    BadSymbol(&'a str),
+    BadSymbol(Span<'a>),
 }
 
-fn skip_comma(arg: &str) -> IResult<&str, ()> {
+fn skip_comma(arg: Span) -> IResult<Span, ()> {
     opt(complete(tuple((
         char(','),
         take_till(|c: char| !c.is_ascii_whitespace()),
@@ -116,7 +123,7 @@ fn skip_comma(arg: &str) -> IResult<&str, ()> {
     .parse(arg)
 }
 
-fn generic_space1(arg: &str) -> IResult<&str, ()> {
+fn generic_space1(arg: Span) -> IResult<Span, ()> {
     many0(alt((
         multispace1,
         complete(delimited(tag("/*"), take_until("*/"), tag("*/"))),
@@ -126,7 +133,7 @@ fn generic_space1(arg: &str) -> IResult<&str, ()> {
     .parse(arg)
 }
 
-fn generic_space0(arg: &str) -> IResult<&str, ()> {
+fn generic_space0(arg: Span) -> IResult<Span, ()> {
     opt(generic_space1).map(|_| ()).parse(arg)
 }
 
