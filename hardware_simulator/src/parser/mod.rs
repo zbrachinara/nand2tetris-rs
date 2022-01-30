@@ -1,5 +1,5 @@
 use nom::branch::alt;
-use nom::bytes::complete::{is_not, tag, take_till, take_until, take_while};
+use nom::bytes::complete::{is_not, tag, take_till, take_until, take_while, take_while1};
 use nom::character::complete::{char, multispace0, multispace1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
@@ -72,7 +72,7 @@ impl<'a> TryFrom<&'a str> for Symbol<'a> {
 fn symbol(arg: &str) -> IResult<&str, &str> {
     delimited(
         multispace0,
-        take_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')),
+        take_while1(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')),
         multispace0,
     )(arg)
 }
@@ -122,6 +122,7 @@ mod test {
         assert_eq!(symbol("1234, ghijkl"), Ok((", ghijkl", "1234")));
         assert_eq!(symbol("abcd"), Ok(("", "abcd")));
         assert_eq!(symbol("AbCd"), Ok(("", "AbCd")));
+        assert!(matches!(symbol(""), Err(_)))
     }
 
     #[test]
