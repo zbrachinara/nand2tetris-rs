@@ -5,8 +5,8 @@ use nom::character::complete::{char, multispace0, multispace1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded, tuple};
-use nom::Parser;
-use nom_supreme::error::ErrorTree;
+use nom::{IResult, Parser};
+use nom_supreme::error::{BaseErrorKind, ErrorTree};
 use nom_supreme::tag::complete::tag;
 use thiserror::Error;
 
@@ -98,6 +98,22 @@ fn symbol(arg: Span) -> PResult<Span> {
     ))(arg)
 }
 
+fn name(arg: Span) -> PResult<Span> {
+    let (remainder, name) = symbol(arg)?;
+
+    if matches!(
+        Symbol::try_from(name),
+        Ok(Symbol::Value(_) | Symbol::Number(_)) | Err(_)
+    ) {
+        Err(nom::Err::Error(ErrorTree::Base {
+            location: arg,
+            kind: BaseErrorKind::External(Box::new(HdlParseError::BadName)),
+        }))
+    } else {
+        Ok((remainder, name))
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 struct BusRange {
     start: u16,
@@ -108,6 +124,8 @@ struct BusRange {
 pub enum HdlParseError<'a> {
     #[error("Symbol `{0}` is not a valid symbol")]
     BadSymbol(Span<'a>),
+    #[error("Name is not correct (Must not be a number or literal)")]
+    BadName,
 }
 
 fn skip_comma(arg: Span) -> PResult<()> {
@@ -167,6 +185,12 @@ mod test {
             assert_eq!(*(res.1), "AbCd");
         }
         assert!(matches!(symbol(Span::new("")), Err(_)))
+    }
+
+    #[test]
+    fn test_detect_name() {
+        assert!(matches!(name(Span::new("1234")), Err(_)));
+        assert!(matches!(name(Span::new("false")), Err(_)));
     }
 
     #[test]
