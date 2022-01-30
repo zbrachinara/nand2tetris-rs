@@ -1,5 +1,4 @@
-use nom::bytes::complete::{is_not};
-use nom_supreme::tag::complete::tag;
+use nom::bytes::complete::is_not;
 use nom::character::complete::digit1;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
@@ -9,14 +8,13 @@ use nom::sequence::{delimited, separated_pair, tuple};
 use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
+use nom_supreme::tag::complete::tag;
 
 use super::*;
 
 fn bus_range(arg: Span) -> PResult<BusRange> {
-    let (remainder, (start, end)) = delimited(
-        generic_space0,
+    let (remainder, (start, end)) = spaced(
         delimited(char('['), is_not("]"), char(']')),
-        generic_space0,
     )
     .and_then(alt((
         separated_pair(symbol, tag(".."), symbol),
@@ -110,8 +108,16 @@ mod test {
             assert_eq!(res.1, bus);
         };
 
-        test(bus_range(Span::from("[0..1]")).unwrap(), "", BusRange { start: 0, end: 1 });
-        test(bus_range(Span::from("[5..10]")).unwrap(), "", BusRange { start: 5, end: 10 });
+        test(
+            bus_range(Span::from("[0..1]")).unwrap(),
+            "",
+            BusRange { start: 0, end: 1 },
+        );
+        test(
+            bus_range(Span::from("[5..10]")).unwrap(),
+            "",
+            BusRange { start: 5, end: 10 },
+        );
         test(
             bus_range(Span::from("[5..10] and")).unwrap(),
             "and",
@@ -133,8 +139,8 @@ mod test {
     fn test_symbol_bus() {
         let test = |res: (Span, (Span, Option<BusRange>)), bus| {
             assert_eq!(*res.0, "");
-            assert_eq!(*res.1.0, "limo");
-            assert_eq!(res.1.1, bus);
+            assert_eq!(*res.1 .0, "limo");
+            assert_eq!(res.1 .1, bus);
         };
 
         test(
@@ -153,38 +159,48 @@ mod test {
     fn test_parse_arg() {
         let test_1 = |res: (Span, Argument)| {
             assert_eq!(*res.0, "");
-    
-            let Argument { internal, internal_bus, external, external_bus } = res.1;
+
+            let Argument {
+                internal,
+                internal_bus,
+                external,
+                external_bus,
+            } = res.1;
             assert_eq!(internal_bus, None);
             assert_eq!(external_bus, None);
-    
+
             assert!(matches!(internal, Symbol::Name(_)));
             if let Symbol::Name(x) = internal {
                 assert_eq!(*x, "in");
             }
-            
+
             assert!(matches!(external, Symbol::Value(_)));
             if let Symbol::Value(x) = external {
                 assert_eq!(x, Value::True);
             }
         };
 
-        test_1(parse_arg(Span::from("in = true")).unwrap()); 
-        test_1(parse_arg(Span::from("in\n=\ntrue")).unwrap()); 
+        test_1(parse_arg(Span::from("in = true")).unwrap());
+        test_1(parse_arg(Span::from("in\n=\ntrue")).unwrap());
         test_1(parse_arg(Span::from("in=true")).unwrap());
 
         let test_2 = |res: (Span, Argument), excess, in_bus| {
             assert_eq!(*res.0, excess);
-    
-            let Argument { internal, internal_bus, external, external_bus } = res.1;
+
+            let Argument {
+                internal,
+                internal_bus,
+                external,
+                external_bus,
+            } = res.1;
             assert_eq!(internal_bus, in_bus);
             assert_eq!(external_bus, None);
-    
+
             assert!(matches!(internal, Symbol::Name(_)));
             if let Symbol::Name(x) = internal {
                 assert_eq!(*x, "in");
             }
-            
+
             assert!(matches!(external, Symbol::Value(_)));
             if let Symbol::Value(x) = external {
                 assert_eq!(x, Value::True);
@@ -209,16 +225,21 @@ mod test {
 
         let test_3 = |res: (Span, Argument), excess, in_bus, ex_bus, int, ext| {
             assert_eq!(*res.0, excess);
-    
-            let Argument { internal, internal_bus, external, external_bus } = res.1;
+
+            let Argument {
+                internal,
+                internal_bus,
+                external,
+                external_bus,
+            } = res.1;
             assert_eq!(internal_bus, in_bus);
             assert_eq!(external_bus, ex_bus);
-    
+
             assert!(matches!(internal, Symbol::Name(_)));
             if let Symbol::Name(x) = internal {
                 assert_eq!(*x, int);
             }
-            
+
             assert!(matches!(external, Symbol::Name(_)));
             if let Symbol::Name(x) = external {
                 assert_eq!(*x, ext);
@@ -226,7 +247,7 @@ mod test {
         };
 
         test_3(
-            parse_arg(Span::from("in[3]=out[4])")).unwrap(), 
+            parse_arg(Span::from("in[3]=out[4])")).unwrap(),
             ")",
             Some(BusRange { start: 3, end: 3 }),
             Some(BusRange { start: 4, end: 4 }),
@@ -234,7 +255,7 @@ mod test {
             "out",
         );
         test_3(
-            parse_arg(Span::from("a[9..10]=b[5..10]")).unwrap(), 
+            parse_arg(Span::from("a[9..10]=b[5..10]")).unwrap(),
             "",
             Some(BusRange { start: 9, end: 10 }),
             Some(BusRange { start: 5, end: 10 }),
@@ -245,16 +266,21 @@ mod test {
         {
             let res = parse_arg(Span::from("in[3..4]=true, out=false")).unwrap();
             assert_eq!(*res.0, "out=false");
-    
-            let Argument { internal, internal_bus, external, external_bus } = res.1;
+
+            let Argument {
+                internal,
+                internal_bus,
+                external,
+                external_bus,
+            } = res.1;
             assert_eq!(internal_bus, Some(BusRange { start: 3, end: 4 }));
             assert_eq!(external_bus, None);
-    
+
             assert!(matches!(internal, Symbol::Name(_)));
             if let Symbol::Name(x) = internal {
                 assert_eq!(*x, "in");
             }
-            
+
             assert!(matches!(external, Symbol::Value(_)));
             if let Symbol::Value(x) = external {
                 assert_eq!(x, Value::True);
@@ -267,8 +293,12 @@ mod test {
         let res = parse_args(Span::from("(in=ax, out=bruh)")).unwrap();
         assert_eq!(*res.0, "");
 
-
-        let Argument { internal, internal_bus, external, external_bus } = &res.1[0];
+        let Argument {
+            internal,
+            internal_bus,
+            external,
+            external_bus,
+        } = &res.1[0];
         assert_eq!(internal_bus, &None);
         assert_eq!(external_bus, &None);
 
@@ -282,8 +312,12 @@ mod test {
             assert_eq!(*x, "ax");
         }
 
-
-        let Argument { internal, internal_bus, external, external_bus } = &res.1[1];
+        let Argument {
+            internal,
+            internal_bus,
+            external,
+            external_bus,
+        } = &res.1[1];
         assert_eq!(internal_bus, &None);
         assert_eq!(external_bus, &None);
 
@@ -291,7 +325,7 @@ mod test {
         if let &Symbol::Name(x) = internal {
             assert_eq!(*x, "out");
         }
-        
+
         assert!(matches!(external, &Symbol::Name(_)));
         if let &Symbol::Name(x) = external {
             assert_eq!(*x, "bruh");
@@ -302,7 +336,8 @@ mod test {
     fn test_parse_connection() {
         let res = parse_connection(Span::from(
             "  \n Nand (a\n[3\n..4]    =\n2, b\n[1..10]\n=  \nfalse, out=foo[6  .. 9]) ;\n  \n ",
-        )).unwrap();
+        ))
+        .unwrap();
 
         assert_eq!(*res.0, "");
 
@@ -313,7 +348,12 @@ mod test {
             assert_eq!(*x, "Nand");
         }
 
-        let Argument { internal, internal_bus, external, external_bus } = &inputs[0];
+        let Argument {
+            internal,
+            internal_bus,
+            external,
+            external_bus,
+        } = &inputs[0];
         assert_eq!(internal_bus, &Some(BusRange { start: 3, end: 4 }));
         assert_eq!(external_bus, &None);
 
@@ -327,8 +367,12 @@ mod test {
             assert_eq!(x, 2);
         }
 
-
-        let Argument { internal, internal_bus, external, external_bus } = &inputs[1];
+        let Argument {
+            internal,
+            internal_bus,
+            external,
+            external_bus,
+        } = &inputs[1];
         assert_eq!(internal_bus, &Some(BusRange { start: 1, end: 10 }));
         assert_eq!(external_bus, &None);
 
@@ -336,14 +380,18 @@ mod test {
         if let &Symbol::Name(x) = internal {
             assert_eq!(*x, "b");
         }
-        
+
         assert!(matches!(external, &Symbol::Value(_)));
         if let Symbol::Value(x) = external {
             assert_eq!(x, &Value::False);
         }
 
-
-        let Argument { internal, internal_bus, external, external_bus } = &inputs[2];
+        let Argument {
+            internal,
+            internal_bus,
+            external,
+            external_bus,
+        } = &inputs[2];
         assert_eq!(internal_bus, &None);
         assert_eq!(external_bus, &Some(BusRange { start: 6, end: 9 }));
 
@@ -351,7 +399,7 @@ mod test {
         if let &Symbol::Name(x) = internal {
             assert_eq!(*x, "out");
         }
-        
+
         assert!(matches!(external, &Symbol::Name(_)));
         if let &Symbol::Name(x) = external {
             assert_eq!(*x, "foo");

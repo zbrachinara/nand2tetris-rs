@@ -1,4 +1,4 @@
-use crate::parser::{generic_space0, skip_comma, symbol, PResult, Pin, Span, Symbol};
+use crate::parser::*;
 use nom_supreme::tag::complete::tag;
 use nom::character::complete::{char, digit1, multispace0};
 use nom::combinator::{complete, opt};
@@ -8,9 +8,9 @@ use nom::Parser;
 
 fn bus_declaration(arg: Span) -> PResult<u16> {
     let (remainder, size) = delimited(
-        tuple((multispace0, char('['), multispace0)),
+        spaced(char('[')),
         digit1,
-        tuple((multispace0, char(']'), multispace0)),
+        spaced(char(']')),
     )(arg)?;
 
     Ok((remainder, u16::from_str_radix(*size, 10).unwrap()))
@@ -41,7 +41,7 @@ fn pin_decl(arg: Span) -> PResult<Pin> {
 
 fn headed_pin_decl<'a>(header: &'static str) -> impl FnMut(Span<'a>) -> PResult<Vec<Pin<'a>>> {
     delimited(
-        tuple((generic_space0, tag(header), generic_space0)),
+        spaced(tag(header)),
         many0(complete(pin_decl)),
         tuple((generic_space0, tag(";"))),
     )

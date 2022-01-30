@@ -1,13 +1,13 @@
 use derive_more::Deref;
 use nom::branch::alt;
-use nom::bytes::complete::{is_not,take_till, take_until, take_while1};
-use nom_supreme::tag::complete::tag;
+use nom::bytes::complete::{is_not, take_till, take_until, take_while1};
 use nom::character::complete::{char, multispace0, multispace1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded, tuple};
 use nom::Parser;
 use nom_supreme::error::ErrorTree;
+use nom_supreme::tag::complete::tag;
 use thiserror::Error;
 
 mod chip;
@@ -93,11 +93,9 @@ impl<'a> TryFrom<Span<'a>> for Symbol<'a> {
 }
 
 fn symbol(arg: Span) -> PResult<Span> {
-    delimited(
-        multispace0,
-        take_while1(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9')),
-        multispace0,
-    )(arg)
+    spaced(take_while1(
+        |c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9'),
+    ))(arg)
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -133,6 +131,13 @@ fn generic_space1(arg: Span) -> PResult<()> {
 
 fn generic_space0(arg: Span) -> PResult<()> {
     opt(generic_space1).map(|_| ()).parse(arg)
+}
+
+fn spaced<'a, F: 'a, O>(inner: F) -> impl FnMut(Span<'a>) -> PResult<O>
+where
+    F: FnMut(Span<'a>) -> PResult<O>,
+{
+    delimited(generic_space0, inner, generic_space0)
 }
 
 #[cfg(test)]
