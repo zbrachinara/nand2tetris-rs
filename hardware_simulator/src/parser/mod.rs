@@ -26,7 +26,7 @@ pub enum Implementation<'a> {
 #[derive(Eq, PartialEq, Debug)]
 pub struct Builtin<'a> {
     name: Symbol<'a>,
-    clocked: bool,
+    clocked: Option<Vec<Symbol<'a>>>,
 }
 
 #[derive(Eq, PartialEq, Debug)]

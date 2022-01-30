@@ -26,7 +26,7 @@ mod test {
                 "",
                 Builtin {
                     name: Symbol::Name("Foo"),
-                    clocked: true
+                    clocked: Some(vec![]),
                 }
             ))
         );
@@ -36,7 +36,7 @@ mod test {
                 "",
                 Builtin {
                     name: Symbol::Name("Foo"),
-                    clocked: true
+                    clocked: Some(vec![]),
                 }
             ))
         );
@@ -46,7 +46,21 @@ mod test {
                 "",
                 Builtin {
                     name: Symbol::Name("Foo"),
-                    clocked: false
+                    clocked: None
+                }
+            ))
+        );
+        assert_eq!(
+            builtin("BUILTIN Foo; CLOCKED a, b, c"),
+            Ok((
+                "",
+                Builtin {
+                    name: Symbol::Name("Foo"),
+                    clocked: Some(vec![
+                        Symbol::Name("a"),
+                        Symbol::Name("b"),
+                        Symbol::Name("c"),
+                    ])
                 }
             ))
         );
