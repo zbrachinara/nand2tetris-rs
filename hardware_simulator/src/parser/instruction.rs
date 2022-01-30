@@ -12,9 +12,9 @@ use super::*;
 
 fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
     let (remainder, (start, end)) = delimited(
-        multispace0,
+        generic_space0,
         delimited(char('['), is_not("]"), char(']')),
-        multispace0,
+        generic_space0,
     )
     .and_then(separated_pair(symbol, tag(".."), symbol))
     .parse(arg)?;
@@ -73,7 +73,7 @@ fn parse_args(arg: &str) -> nom::IResult<&str, Vec<Argument>> {
 
 fn parse_instruction(arg: &str) -> nom::IResult<&str, Instruction> {
     let (remainder, (name, args, ..)) =
-        tuple((symbol, parse_args, multispace0, char(';'), multispace0))(arg)?;
+        tuple((symbol, parse_args, generic_space0, char(';'), generic_space0))(arg)?;
 
     if let Ok(Symbol::Name(x)) = Symbol::try_from(name) {
         Ok((
