@@ -12,8 +12,6 @@ use thiserror::Error;
 mod chip;
 mod connection;
 mod pin_decl;
-#[cfg(test)]
-mod test_tools;
 
 type Span<'a> = nom_locate::LocatedSpan<&'a str>;
 type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;
