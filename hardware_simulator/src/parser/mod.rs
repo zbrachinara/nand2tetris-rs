@@ -7,7 +7,7 @@ use nom::sequence::{delimited, preceded, tuple};
 use nom::{IResult, Parser};
 use thiserror::Error;
 
-mod instruction;
+mod connection;
 mod pin_decl;
 
 struct Chip {
@@ -22,7 +22,7 @@ struct Pin<'a> {
 }
 
 #[derive(Eq, PartialEq, Debug)]
-struct Instruction<'a> {
+struct Connection<'a> {
     chip_name: Symbol<'a>,
     inputs: Vec<Argument<'a>>,
 }

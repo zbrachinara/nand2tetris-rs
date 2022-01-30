@@ -68,7 +68,7 @@ fn parse_args(arg: &str) -> nom::IResult<&str, Vec<Argument>> {
     delimited(char('('), many0(complete(parse_arg)), char(')'))(arg)
 }
 
-fn parse_instruction(arg: &str) -> nom::IResult<&str, Instruction> {
+fn parse_connection(arg: &str) -> nom::IResult<&str, Connection> {
     let (remainder, (name, args, ..)) = tuple((
         symbol,
         parse_args,
@@ -80,7 +80,7 @@ fn parse_instruction(arg: &str) -> nom::IResult<&str, Instruction> {
     if let Ok(Symbol::Name(x)) = Symbol::try_from(name) {
         Ok((
             remainder,
-            Instruction {
+            Connection {
                 chip_name: Symbol::Name(x),
                 inputs: args,
             },
@@ -269,14 +269,14 @@ mod test {
     }
 
     #[test]
-    fn test_parse_instruction() {
+    fn test_parse_connection() {
         assert_eq!(
-            parse_instruction(
+            parse_connection(
                 "Nand (a\n[3\n..4]    =\n2, b\n[1..10]\n=  \nfalse, out=foo[6  ..  9])   ;"
             ),
             Ok((
                 "",
-                Instruction {
+                Connection {
                     chip_name: Symbol::Name("Nand"),
                     inputs: vec![
                         Argument {
