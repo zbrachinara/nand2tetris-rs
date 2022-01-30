@@ -1,4 +1,5 @@
 use nom::bytes::complete::{is_not, tag};
+use nom::character::complete::digit1;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
 use nom::error::ErrorKind;
@@ -15,7 +16,10 @@ fn bus_range(arg: &str) -> nom::IResult<&str, BusRange> {
         delimited(char('['), is_not("]"), char(']')),
         generic_space0,
     )
-    .and_then(separated_pair(symbol, tag(".."), symbol))
+    .and_then(alt((
+        separated_pair(symbol, tag(".."), symbol),
+        digit1.map(|x| (x, x)),
+    )))
     .parse(arg)?;
 
     use nom::error::Error;
@@ -65,8 +69,13 @@ fn parse_args(arg: &str) -> nom::IResult<&str, Vec<Argument>> {
 }
 
 fn parse_instruction(arg: &str) -> nom::IResult<&str, Instruction> {
-    let (remainder, (name, args, ..)) =
-        tuple((symbol, parse_args, generic_space0, char(';'), generic_space0))(arg)?;
+    let (remainder, (name, args, ..)) = tuple((
+        symbol,
+        parse_args,
+        generic_space0,
+        char(';'),
+        generic_space0,
+    ))(arg)?;
 
     if let Ok(Symbol::Name(x)) = Symbol::try_from(name) {
         Ok((
@@ -182,6 +191,30 @@ mod test {
                     internal_bus: Some(BusRange { start: 3, end: 4 }),
                     external: Symbol::Value(Value::True),
                     external_bus: None,
+                }
+            ))
+        );
+        assert_eq!(
+            parse_arg("in[3]=true)"),
+            Ok((
+                ")",
+                Argument {
+                    internal: Symbol::Name("in"),
+                    internal_bus: Some(BusRange { start: 3, end: 3 }),
+                    external: Symbol::Value(Value::True),
+                    external_bus: None,
+                }
+            ))
+        );
+        assert_eq!(
+            parse_arg("in[3]=out[4])"),
+            Ok((
+                ")",
+                Argument {
+                    internal: Symbol::Name("in"),
+                    internal_bus: Some(BusRange { start: 3, end: 3 }),
+                    external: Symbol::Name("out"),
+                    external_bus: Some(BusRange { start: 4, end: 4 }),
                 }
             ))
         );
