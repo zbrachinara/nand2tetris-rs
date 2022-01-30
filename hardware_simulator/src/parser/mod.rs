@@ -10,32 +10,32 @@ use thiserror::Error;
 mod connection;
 mod pin_decl;
 
-struct Chip<'a> {
+pub struct Chip<'a> {
     in_pins: Vec<Pin<'a>>,
     out_pins: Vec<Pin<'a>>,
     logic: Implementation<'a>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
-enum Implementation<'a> {
+pub enum Implementation<'a> {
     Builtin(Symbol<'a>),
     Native(Vec<Connection<'a>>)
 }
 
 #[derive(Eq, PartialEq, Debug)]
-struct Pin<'a> {
+pub struct Pin<'a> {
     name: Symbol<'a>,
     size: Option<u16>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
-struct Connection<'a> {
+pub struct Connection<'a> {
     chip_name: Symbol<'a>,
     inputs: Vec<Argument<'a>>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
-struct Argument<'a> {
+pub struct Argument<'a> {
     internal: Symbol<'a>,
     internal_bus: Option<BusRange>,
     external: Symbol<'a>,
@@ -43,13 +43,13 @@ struct Argument<'a> {
 }
 
 #[derive(Eq, PartialEq, Debug)]
-enum Value {
+pub enum Value {
     True,
     False,
 }
 
 #[derive(Eq, PartialEq, Debug)]
-enum Symbol<'a> {
+pub enum Symbol<'a> {
     Name(&'a str),
     Value(Value),
     Number(usize),
