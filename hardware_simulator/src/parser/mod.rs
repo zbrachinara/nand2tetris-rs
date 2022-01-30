@@ -23,6 +23,7 @@ pub enum Implementation<'a> {
     Native(Vec<Connection<'a>>),
 }
 
+#[derive(Eq, PartialEq, Debug)]
 pub struct Builtin<'a> {
     name: Symbol<'a>,
     clocked: bool,
