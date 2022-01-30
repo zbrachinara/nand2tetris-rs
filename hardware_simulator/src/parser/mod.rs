@@ -1,6 +1,7 @@
 use derive_more::Deref;
 use nom::branch::alt;
-use nom::bytes::complete::{is_not, tag, take_till, take_until, take_while1};
+use nom::bytes::complete::{is_not,take_till, take_until, take_while1};
+use nom_supreme::tag::complete::tag;
 use nom::character::complete::{char, multispace0, multispace1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;

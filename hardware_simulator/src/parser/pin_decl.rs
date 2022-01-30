@@ -1,5 +1,5 @@
 use crate::parser::{generic_space0, skip_comma, symbol, PResult, Pin, Span, Symbol};
-use nom::bytes::complete::tag;
+use nom_supreme::tag::complete::tag;
 use nom::character::complete::{char, digit1, multispace0};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
@@ -39,7 +39,7 @@ fn pin_decl(arg: Span) -> PResult<Pin> {
     }
 }
 
-fn headed_pin_decl<'a>(header: &'a str) -> impl FnMut(Span<'a>) -> PResult<Vec<Pin<'a>>> {
+fn headed_pin_decl<'a>(header: &'static str) -> impl FnMut(Span<'a>) -> PResult<Vec<Pin<'a>>> {
     delimited(
         tuple((generic_space0, tag(header), generic_space0)),
         many0(complete(pin_decl)),

@@ -1,4 +1,5 @@
-use nom::bytes::complete::{is_not, tag};
+use nom::bytes::complete::{is_not};
+use nom_supreme::tag::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
