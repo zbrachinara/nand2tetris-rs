@@ -2,25 +2,25 @@ use crate::parser::{Span, Symbol};
 use nom::IResult;
 use std::fmt::Debug;
 
-pub fn cmp_symbols(test: Symbol, exp: Symbol) {
-    match exp {
-        Symbol::Name(sp) => {
-            matches!(test, Symbol::Name(_));
-            if let Symbol::Name(sp_test) = test {
-                cmp_spans(sp_test, sp)
-            } else {
-                unreachable!()
-            }
-        }
-        _ => {
-            assert_eq!(test, exp)
-        }
-    }
-}
+// pub fn cmp_symbols(test: Symbol, exp: Symbol) {
+//     match exp {
+//         Symbol::Name(sp) => {
+//             matches!(test, Symbol::Name(_));
+//             if let Symbol::Name(sp_test) = test {
+//                 cmp_spans(sp_test, sp)
+//             } else {
+//                 unreachable!()
+//             }
+//         }
+//         _ => {
+//             assert_eq!(test, exp)
+//         }
+//     }
+// }
 
-pub fn cmp_spans(test: Span, exp: Span) {
-    assert_eq!(*test, *exp)
-}
+// pub fn cmp_spans(test: Span, exp: Span) {
+//     assert_eq!(*test, *exp)
+// }
 
 // pub fn check<T: PartialEq + Debug, E: PartialEq + Debug>(
 //     test: IResult<Span, T, E>,

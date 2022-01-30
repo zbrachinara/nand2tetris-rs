@@ -57,8 +57,8 @@ fn out_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
 
 #[cfg(test)]
 mod test {
-    use crate::parser::test_tools::cmp_symbols;
     use super::*;
+    // use crate::parser::test_tools::cmp_symbols;
 
     #[test]
     fn test_bus_declaration() {
@@ -85,65 +85,49 @@ mod test {
         );
     }
 
+    fn check_pin_decl(test: Pin, (name, size): (&str, Option<u16>)) {
+        assert!(matches!(test.name, Symbol::Name(_)));
+        if let Symbol::Name(test_name) = test.name {
+            assert_eq!(*test_name, name)
+        } else {
+            unreachable!()
+        }
+        assert_eq!(test.size, size);
+    }
+
     #[test]
     fn test_pin_decl() {
         {
             let res = pin_decl(Span::from("in[5]")).unwrap();
             assert_eq!(*(res.0), "");
-            {
-                let Pin { name, size } = res.1;
-                assert_eq!(size, Some(5));
-                cmp_symbols(name, Symbol::Name(Span::from("in")))
-            }
+            check_pin_decl(res.1, ("in", Some(5)));
         }
         {
             let res = pin_decl(Span::from("in[5], out[4]")).unwrap();
             assert_eq!(*(res.0), "out[4]");
-            {
-                let Pin { name, size } = res.1;
-                assert_eq!(size, Some(5));
-                cmp_symbols(name, Symbol::Name(Span::from("in")))
-            }
+            check_pin_decl(res.1, ("in", Some(5)));
         }
     }
 
-    // #[test]
-    // fn test_in_pin_decl() {
-    //     check(
-    //         in_pin_decl(Span::from("IN a[1], b, c[32];")),
-    //         Ok((
-    //             "",
-    //             vec![
-    //                 Pin {
-    //                     name: Symbol::Name(Span::from("a")),
-    //                     size: Some(1),
-    //                 },
-    //                 Pin {
-    //                     name: Symbol::Name(Span::from("b")),
-    //                     size: None,
-    //                 },
-    //                 Pin {
-    //                     name: Symbol::Name(Span::from("c")),
-    //                     size: Some(32),
-    //                 }
-    //             ]
-    //         ))
-    //     );
-    //     check(
-    //         in_pin_decl(Span::from("    IN a[16], b[16];")),
-    //         Ok((
-    //             "",
-    //             vec![
-    //                 Pin {
-    //                     name: Symbol::Name(Span::from("a")),
-    //                     size: Some(16),
-    //                 },
-    //                 Pin {
-    //                     name: Symbol::Name(Span::from("b")),
-    //                     size: Some(16),
-    //                 }
-    //             ]
-    //         ))
-    //     )
-    // }
+    #[test]
+    fn test_in_pin_decl() {
+        {
+            let res = in_pin_decl(Span::from("IN a[1], b, c[32];")).unwrap();
+            assert_eq!(*(res.0), "");
+            let exp = [("a", Some(1)), ("b", None), ("c", Some(32))];
+            res.1
+                .into_iter()
+                .zip(exp.into_iter())
+                .for_each(|(test, exp)| check_pin_decl(test, exp))
+        }
+        {
+            let res = in_pin_decl(Span::from("    IN a[16], b[16];")).unwrap();
+            assert_eq!(*(res.0), "");
+            let exp = [("a", Some(16)), ("b", Some(16))];
+            res.1
+                .into_iter()
+                .zip(exp.into_iter())
+                .for_each(|(test, exp)| check_pin_decl(test, exp))
+        }
+    }
 }
