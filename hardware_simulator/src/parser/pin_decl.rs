@@ -1,8 +1,10 @@
-use crate::parser::{symbol, Pin, Symbol, skip_comma};
+use crate::parser::{generic_space0, skip_comma, symbol, Pin, Symbol};
+use nom::bytes::complete::tag;
 use nom::character::complete::{char, digit1, multispace0};
 use nom::combinator::{complete, opt};
+use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
-use nom::IResult;
+use nom::{IResult, Parser};
 
 fn bus_declaration(arg: &str) -> IResult<&str, u16> {
     let (remainder, size) = delimited(
@@ -34,6 +36,22 @@ fn pin_decl(arg: &str) -> IResult<&str, Pin> {
             code: ErrorKind::Tag,
         })),
     }
+}
+
+fn headed_pin_decl(header: &str) -> impl Parser<&str, Vec<Pin>, nom::error::Error<&str>> {
+    delimited(
+        tuple((generic_space0, tag(header), generic_space0)),
+        many0(complete(pin_decl)),
+        tuple((generic_space0, tag(";"))),
+    )
+}
+
+fn in_pin_decl(arg: &str) -> IResult<&str, Vec<Pin>> {
+    headed_pin_decl("IN").parse(arg)
+}
+
+fn out_pin_decl(arg: &str) -> IResult<&str, Vec<Pin>> {
+    headed_pin_decl("OUT").parse(arg)
 }
 
 #[cfg(test)]
@@ -71,5 +89,45 @@ mod test {
                 }
             ))
         );
+    }
+
+    #[test]
+    fn test_in_pin_decl() {
+        assert_eq!(
+            in_pin_decl("IN a[1], b, c[32];"),
+            Ok((
+                "",
+                vec![
+                    Pin {
+                        name: Symbol::Name("a"),
+                        size: Some(1),
+                    },
+                    Pin {
+                        name: Symbol::Name("b"),
+                        size: None,
+                    },
+                    Pin {
+                        name: Symbol::Name("c"),
+                        size: Some(32),
+                    }
+                ]
+            ))
+        );
+        assert_eq!(
+            in_pin_decl("    IN a[16], b[16];"),
+            Ok((
+                "",
+                vec![
+                    Pin {
+                        name: Symbol::Name("a"),
+                        size: Some(16),
+                    },
+                    Pin {
+                        name: Symbol::Name("b"),
+                        size: Some(16),
+                    }
+                ]
+            ))
+        )
     }
 }
