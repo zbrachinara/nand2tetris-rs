@@ -41,12 +41,6 @@ fn parse_arg(arg: &str) -> nom::IResult<&str, Argument> {
     let (remainder, ((internal, internal_bus), (external, external_bus))) =
         separated_pair(symbol_bus, tag("="), symbol_bus).parse(arg)?;
 
-    // fast forward to next argument, if it exists
-    // let (remainder, _) = opt(complete(tuple((
-    //     char(','),
-    //     take_till(|c: char| !c.is_ascii_whitespace()),
-    // ))))
-    // .parse(remainder)?;
     let (remainder, _) = skip_comma(remainder)?;
 
     //TODO: Integrate these error types into the nom error types
