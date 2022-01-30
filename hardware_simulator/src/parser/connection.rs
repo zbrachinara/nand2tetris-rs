@@ -8,7 +8,6 @@ use nom::sequence::{delimited, separated_pair, tuple};
 use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
-use ErrorTree::Base;
 
 use super::*;
 

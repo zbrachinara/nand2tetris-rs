@@ -1,4 +1,4 @@
-use crate::parser::{generic_space0, skip_comma, symbol, Pin, Span, Symbol, PResult};
+use crate::parser::{generic_space0, skip_comma, symbol, PResult, Pin, Span, Symbol};
 use nom::bytes::complete::tag;
 use nom::character::complete::{char, digit1, multispace0};
 use nom::combinator::{complete, opt};
@@ -28,10 +28,14 @@ fn pin_decl(arg: Span) -> PResult<Pin> {
                 size: bus,
             },
         )),
-        _ => /*Err(Failure(Error {
+        _ =>
+        /*Err(Failure(Error {
             input: name,
             code: ErrorKind::Tag,
-        })),*/ panic!()
+        })),*/
+        {
+            panic!()
+        }
     }
 }
 
@@ -51,81 +55,95 @@ fn out_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
     headed_pin_decl("OUT").parse(arg)
 }
 
-// #[cfg(test)]
-// mod test {
-//     use super::*;
-//     use crate::parser::test_tools::check;
-//
-//     // #[test]
-//     fn test_bus_declaration() {
-//         check(bus_declaration(Span::from("[1]")), Ok(("", 1)));
-//         check(bus_declaration(Span::from("[5]")), Ok(("", 5)));
-//         check(bus_declaration(Span::from("[25]")), Ok(("", 25)));
-//         check(bus_declaration(Span::from("\n[\n25\n]\n")), Ok(("", 25)));
-//         check(bus_declaration(Span::from("\n[\n25\n]\nbruh")), Ok(("bruh", 25)));
-//     }
-//
-//     // #[test]
-//     fn test_pin_decl() {
-//         check(
-//             pin_decl(Span::from("in[5]")),
-//             Ok((
-//                 "",
-//                 Pin {
-//                     name: Symbol::Name(Span::from("in")),
-//                     size: Some(5)
-//                 }
-//             ))
-//         );
-//         check(
-//             pin_decl(Span::from("in[5], out[4]")),
-//             Ok((
-//                 "out[4]",
-//                 Pin {
-//                     name: Symbol::Name(Span::from("in")),
-//                     size: Some(5)
-//                 }
-//             ))
-//         );
-//     }
-//
-//     #[test]
-//     fn test_in_pin_decl() {
-//         check(
-//             in_pin_decl(Span::from("IN a[1], b, c[32];")),
-//             Ok((
-//                 "",
-//                 vec![
-//                     Pin {
-//                         name: Symbol::Name(Span::from("a")),
-//                         size: Some(1),
-//                     },
-//                     Pin {
-//                         name: Symbol::Name(Span::from("b")),
-//                         size: None,
-//                     },
-//                     Pin {
-//                         name: Symbol::Name(Span::from("c")),
-//                         size: Some(32),
-//                     }
-//                 ]
-//             ))
-//         );
-//         check(
-//             in_pin_decl(Span::from("    IN a[16], b[16];")),
-//             Ok((
-//                 "",
-//                 vec![
-//                     Pin {
-//                         name: Symbol::Name(Span::from("a")),
-//                         size: Some(16),
-//                     },
-//                     Pin {
-//                         name: Symbol::Name(Span::from("b")),
-//                         size: Some(16),
-//                     }
-//                 ]
-//             ))
-//         )
-//     }
-// }
+#[cfg(test)]
+mod test {
+    use crate::parser::test_tools::cmp_symbols;
+    use super::*;
+
+    #[test]
+    fn test_bus_declaration() {
+        fn check(test: PResult<u16>, exp: Result<(&str, u16), ()>) {
+            match exp {
+                Ok((str, num)) => match test {
+                    Ok((str_test, num_test)) => {
+                        assert_eq!(*str_test, str);
+                        assert_eq!(num_test, num);
+                    }
+                    _ => panic!("{test:?}"),
+                },
+                Err(_) => assert!(matches!(test, Err(_))),
+            }
+        }
+
+        check(bus_declaration(Span::from("[1]")), Ok(("", 1)));
+        check(bus_declaration(Span::from("[5]")), Ok(("", 5)));
+        check(bus_declaration(Span::from("[25]")), Ok(("", 25)));
+        check(bus_declaration(Span::from("\n[\n25\n]\n")), Ok(("", 25)));
+        check(
+            bus_declaration(Span::from("\n[\n25\n]\nbruh")),
+            Ok(("bruh", 25)),
+        );
+    }
+
+    #[test]
+    fn test_pin_decl() {
+        {
+            let res = pin_decl(Span::from("in[5]")).unwrap();
+            assert_eq!(*(res.0), "");
+            {
+                let Pin { name, size } = res.1;
+                assert_eq!(size, Some(5));
+                cmp_symbols(name, Symbol::Name(Span::from("in")))
+            }
+        }
+        {
+            let res = pin_decl(Span::from("in[5], out[4]")).unwrap();
+            assert_eq!(*(res.0), "out[4]");
+            {
+                let Pin { name, size } = res.1;
+                assert_eq!(size, Some(5));
+                cmp_symbols(name, Symbol::Name(Span::from("in")))
+            }
+        }
+    }
+
+    // #[test]
+    // fn test_in_pin_decl() {
+    //     check(
+    //         in_pin_decl(Span::from("IN a[1], b, c[32];")),
+    //         Ok((
+    //             "",
+    //             vec![
+    //                 Pin {
+    //                     name: Symbol::Name(Span::from("a")),
+    //                     size: Some(1),
+    //                 },
+    //                 Pin {
+    //                     name: Symbol::Name(Span::from("b")),
+    //                     size: None,
+    //                 },
+    //                 Pin {
+    //                     name: Symbol::Name(Span::from("c")),
+    //                     size: Some(32),
+    //                 }
+    //             ]
+    //         ))
+    //     );
+    //     check(
+    //         in_pin_decl(Span::from("    IN a[16], b[16];")),
+    //         Ok((
+    //             "",
+    //             vec![
+    //                 Pin {
+    //                     name: Symbol::Name(Span::from("a")),
+    //                     size: Some(16),
+    //                 },
+    //                 Pin {
+    //                     name: Symbol::Name(Span::from("b")),
+    //                     size: Some(16),
+    //                 }
+    //             ]
+    //         ))
+    //     )
+    // }
+}

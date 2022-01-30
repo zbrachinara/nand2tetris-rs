@@ -191,7 +191,7 @@ mod test {
             match exp {
                 Ok(str) => match test {
                     Ok((rem, _)) => assert_eq!(*rem, str),
-                    Err(_) => panic!(),
+                    Err(_) => panic!("{test:?}"),
                 },
                 Err(_) => assert!(matches!(test, Err(_))),
             }
