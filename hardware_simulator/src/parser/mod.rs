@@ -136,39 +136,73 @@ fn generic_space0(arg: Span) -> PResult<()> {
     opt(generic_space1).map(|_| ()).parse(arg)
 }
 
-// #[cfg(test)]
-// mod test {
-//     use super::*;
-//
-//     #[test]
-//     fn test_detect_symbol() {
-//         assert_eq!(symbol(Span::new("abcdef ghijkl")), Ok((Span::new("ghijkl"), Span::new("abcdef"))));
-//         assert_eq!(symbol(Span::new("1234, ghijkl")), Ok((Span::new(", ghijkl"), Span::new("1234"))));
-//         assert_eq!(symbol(Span::new("abcd")), Ok((Span::new(""), Span::new("abcd"))));
-//         assert_eq!(symbol(Span::new("AbCd")), Ok((Span::new(""), Span::new("AbCd"))));
-//         assert!(matches!(symbol(Span::new("")), Err(_)))
-//     }
-//
-//     #[test]
-//     fn create_symbol() {
-//         assert_eq!(Symbol::try_from(Span::new("breh")), Ok(Symbol::Name(Span::new("breh"))));
-//         assert_eq!(Symbol::try_from(Span::new("12345")), Ok(Symbol::Number(12345)));
-//         assert_eq!(Symbol::try_from(Span::new("false")), Ok(Symbol::Value(Value::False)));
-//         assert!(matches!(
-//             Symbol::try_from(Span::new("u r bad")),
-//             Err(HdlParseError::BadSymbol(_))
-//         ));
-//     }
-//
-//     #[test]
-//     fn test_generic_space0() {
-//         assert_eq!(generic_space0(Span::new("/* // bruh */  abc")), Ok((Span::new("abc"), ())));
-//         assert_eq!(generic_space0(Span::new("//abc\ndef")), Ok((Span::new("def"), ())));
-//         assert_eq!(generic_space0(Span::new("/* word */")), Ok((Span::new(""), ())));
-//         assert_eq!(generic_space0(Span::new("/* // word */")), Ok((Span::new(""), ())));
-//         assert_eq!(generic_space0(Span::new("// /* word */")), Ok((Span::new(""), ())));
-//         assert_eq!(generic_space0(Span::new("// word")), Ok((Span::new(""), ())));
-//         assert_eq!(generic_space0(Span::new("// word\na")), Ok((Span::new("a"), ())));
-//         assert_eq!(generic_space0(Span::new("//*")), Ok((Span::new(""), ())));
-//     }
-// }
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_detect_symbol() {
+        {
+            let res = symbol(Span::new("abcdef ghijkl")).unwrap();
+            assert_eq!(*(res.0), "ghijkl");
+            assert_eq!(*(res.1), "abcdef");
+        }
+        {
+            let res = symbol(Span::new("1234, ghijkl")).unwrap();
+            assert_eq!(*(res.0), ", ghijkl");
+            assert_eq!(*(res.1), "1234");
+        }
+        {
+            let res = symbol(Span::new("abcd")).unwrap();
+            assert_eq!(*(res.0), "");
+            assert_eq!(*(res.1), "abcd");
+        }
+        {
+            let res = symbol(Span::new("AbCd")).unwrap();
+            assert_eq!(*(res.0), "");
+            assert_eq!(*(res.1), "AbCd");
+        }
+        assert!(matches!(symbol(Span::new("")), Err(_)))
+    }
+
+    #[test]
+    fn create_symbol() {
+        assert_eq!(
+            Symbol::try_from(Span::new("breh")),
+            Ok(Symbol::Name(Span::new("breh")))
+        );
+        assert_eq!(
+            Symbol::try_from(Span::new("12345")),
+            Ok(Symbol::Number(12345))
+        );
+        assert_eq!(
+            Symbol::try_from(Span::new("false")),
+            Ok(Symbol::Value(Value::False))
+        );
+        assert!(matches!(
+            Symbol::try_from(Span::new("u r bad")),
+            Err(HdlParseError::BadSymbol(_))
+        ));
+    }
+
+    #[test]
+    fn test_generic_space0() {
+        fn check(test: PResult<()>, exp: Result<&str, ()>) {
+            match exp {
+                Ok(str) => match test {
+                    Ok((rem, _)) => assert_eq!(*rem, str),
+                    Err(_) => panic!(),
+                },
+                Err(_) => assert!(matches!(test, Err(_))),
+            }
+        }
+
+        check(generic_space0(Span::new("/* // bruh */  abc")), Ok("abc"));
+        check(generic_space0(Span::new("//abc\ndef")), Ok("def"));
+        check(generic_space0(Span::new("/* // word */")), Ok(""));
+        check(generic_space0(Span::new("// /* word */")), Ok(""));
+        check(generic_space0(Span::new("// word")), Ok(""));
+        check(generic_space0(Span::new("// word\na")), Ok("a"));
+        check(generic_space0(Span::new("//*")), Ok(""));
+    }
+}
