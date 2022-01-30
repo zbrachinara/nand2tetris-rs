@@ -6,6 +6,7 @@ use nom::multi::many0;
 use nom::sequence::{delimited, preceded, tuple};
 use nom::{IResult, Parser};
 use thiserror::Error;
+use derive_more::Deref;
 
 mod connection;
 mod pin_decl;
@@ -61,6 +62,9 @@ pub enum Symbol<'a> {
     Value(Value),
     Number(usize),
 }
+
+#[derive(Deref, Eq, PartialEq, Debug)]
+struct Name<'a>(&'a str);
 
 impl<'a> TryFrom<&'a str> for Symbol<'a> {
     type Error = HdlParseError<'a>;

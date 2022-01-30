@@ -2,6 +2,7 @@ use crate::parser::{Builtin, Connection, Implementation};
 use nom::IResult;
 
 fn builtin(_: &str) -> IResult<&str, Builtin> {
+
     todo!()
 }
 
