@@ -9,8 +9,27 @@ use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
 use nom_supreme::tag::complete::tag;
+use std::num::{IntErrorKind, ParseIntError};
 
 use super::*;
+
+fn convert_num(span: Span) -> Result<u16, nom::Err<ErrorTree<Span>>> {
+    match u16::from_str_radix(*span, 10) {
+        Ok(n) => Ok(n),
+        Err(e) => match e.kind() {
+            IntErrorKind::PosOverflow | IntErrorKind::NegOverflow => {
+                Err(nom::Err::Error(ErrorTree::Base {
+                    location: span,
+                    kind: BaseErrorKind::External(Box::new(HdlParseError::NumberOverflow)),
+                }))
+            }
+            _ => Err(nom::Err::Error(ErrorTree::Base {
+                location: span,
+                kind: BaseErrorKind::External(Box::new(HdlParseError::NumberError)),
+            })),
+        },
+    }
+}
 
 fn bus_range(arg: Span) -> PResult<BusRange> {
     let (remainder, (start, end)) = spaced(delimited(char('['), is_not("]"), char(']')))
@@ -20,20 +39,9 @@ fn bus_range(arg: Span) -> PResult<BusRange> {
         )))
         .parse(arg)?;
 
-    match (
-        u16::from_str_radix(*start, 10),
-        u16::from_str_radix(*end, 10),
-    ) {
-        (Ok(start), Ok(end)) => Ok((remainder, BusRange { start, end })),
-        (Err(e), _) => Err(nom::Err::Error(ErrorTree::Base {
-            location: start,
-            kind: BaseErrorKind::External(Box::new(e)),
-        })),
-        (_, Err(e)) => Err(nom::Err::Error(ErrorTree::Base {
-            location: end,
-            kind: BaseErrorKind::External(Box::new(e)),
-        })),
-    }
+    let (start, end) = (convert_num(start)?, convert_num(end)?);
+
+    Ok((remainder, BusRange {start, end}))
 }
 
 fn symbol_bus(arg: Span) -> PResult<(Span, Option<BusRange>)> {
@@ -67,12 +75,7 @@ fn parse_args(arg: Span) -> PResult<Vec<Argument>> {
 }
 
 pub fn parse_connection(arg: Span) -> PResult<Connection> {
-    let (remainder, (name, args, ..)) = tuple((
-        name,
-        parse_args,
-        spaced(char(';')),
-    ))
-    .parse(arg)?;
+    let (remainder, (name, args, ..)) = tuple((name, parse_args, spaced(char(';')))).parse(arg)?;
 
     Ok((
         remainder,
@@ -119,6 +122,7 @@ mod test {
             "and",
             BusRange { start: 5, end: 10 },
         );
+        assert!(matches!(bus_range(Span::from("[ a..b]")), Err(_)));
     }
 
     #[test]
