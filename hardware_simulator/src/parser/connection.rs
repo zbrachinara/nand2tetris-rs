@@ -2,10 +2,13 @@ use nom::bytes::complete::{is_not, tag};
 use nom::character::complete::digit1;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
+use nom::error::ErrorKind;
 use nom::multi::many0;
 use nom::sequence::{delimited, separated_pair, tuple};
 use nom::IResult;
 use nom::Parser;
+use nom_supreme::error::BaseErrorKind;
+use ErrorTree::Base;
 
 use super::*;
 
@@ -26,14 +29,14 @@ fn bus_range(arg: Span) -> PResult<BusRange> {
         u16::from_str_radix(*end, 10),
     ) {
         (Ok(start), Ok(end)) => Ok((remainder, BusRange { start, end })),
-        (Err(_), _) => /*Err(Failure(Error {
-            input: start,
-            code: ErrorKind::Tag,
-        })) */ panic!(),
-        (_, Err(_)) => /*Err(Failure(Error {
-            input: end,
-            code: ErrorKind::Tag,
-        })) */ panic!(),
+        (Err(e), _) => Err(nom::Err::Error(ErrorTree::Base {
+            location: start,
+            kind: BaseErrorKind::External(Box::new(e)),
+        })),
+        (_, Err(e)) => Err(nom::Err::Error(ErrorTree::Base {
+            location: end,
+            kind: BaseErrorKind::External(Box::new(e)),
+        })),
     }
 }
 
@@ -89,11 +92,10 @@ pub fn parse_connection(arg: Span) -> PResult<Connection> {
             },
         ))
     } else {
-        // Err(nom::Err::Failure(nom::error::Error {
-        //     input: name,
-        //     code: ErrorKind::Alpha,
-        // }))
-        panic!()
+        Err(nom::Err::Error(ErrorTree::Base {
+            location: name,
+            kind: BaseErrorKind::Kind(ErrorKind::Alpha),
+        }))
     }
 }
 
