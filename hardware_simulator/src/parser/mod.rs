@@ -4,7 +4,7 @@ use nom::character::complete::{char, multispace0, multispace1};
 use nom::combinator::{complete, opt};
 use nom::error::ParseError;
 use nom::multi::many0;
-use nom::sequence::{delimited, tuple};
+use nom::sequence::{delimited, preceded, tuple};
 use nom::{IResult, Parser};
 use thiserror::Error;
 
@@ -103,7 +103,7 @@ fn generic_space1(arg: &str) -> IResult<&str, ()> {
     many0(alt((
         multispace1,
         complete(delimited(tag("/*"), take_until("*/"), tag("*/"))),
-        complete(delimited(tag("//"), is_not("\n"), tag("\n"))),
+        complete(preceded(tag("//"), is_not("\n"))),
     )))
     .map(|_| ())
     .parse(arg)
@@ -140,5 +140,11 @@ mod test {
     fn test_generic_space0() {
         assert_eq!(generic_space0("/* // bruh */  abc"), Ok(("abc", ())));
         assert_eq!(generic_space0("//abc\ndef"), Ok(("def", ())));
+        assert_eq!(generic_space0("/* word */"), Ok(("", ())));
+        assert_eq!(generic_space0("/* // word */"), Ok(("", ())));
+        assert_eq!(generic_space0("// /* word */"), Ok(("", ())));
+        assert_eq!(generic_space0("// word"), Ok(("", ())));
+        assert_eq!(generic_space0("// word\na"), Ok(("a", ())));
+        assert_eq!(generic_space0("//*"), Ok(("", ())));
     }
 }
