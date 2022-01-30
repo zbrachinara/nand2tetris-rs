@@ -6,7 +6,6 @@ use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded, tuple};
 use nom::{IResult, Parser};
-use nom_locate::LocatedSpan;
 use thiserror::Error;
 
 mod chip;
@@ -78,14 +77,10 @@ impl<'a> TryFrom<Span<'a>> for Symbol<'a> {
             Ok(if let Ok(num) = usize::from_str_radix(*value, 10) {
                 Symbol::Number(num)
             } else {
-                match value {
-                    Span {
-                        fragment: "true", ..
-                    } => Symbol::Value(Value::True),
-                    Span {
-                        fragment: "false", ..
-                    } => Symbol::Value(Value::False),
-                    x => Symbol::Name(x),
+                match *value {
+                    "true" => Symbol::Value(Value::True),
+                    "false" => Symbol::Value(Value::False),
+                    _ => Symbol::Name(value),
                 }
             })
         } else {
@@ -143,33 +138,33 @@ mod test {
 
     #[test]
     fn test_detect_symbol() {
-        assert_eq!(symbol("abcdef ghijkl"), Ok(("ghijkl", "abcdef")));
-        assert_eq!(symbol("1234, ghijkl"), Ok((", ghijkl", "1234")));
-        assert_eq!(symbol("abcd"), Ok(("", "abcd")));
-        assert_eq!(symbol("AbCd"), Ok(("", "AbCd")));
-        assert!(matches!(symbol(""), Err(_)))
+        assert_eq!(symbol(Span::new("abcdef ghijkl")), Ok((Span::new("ghijkl"), Span::new("abcdef"))));
+        assert_eq!(symbol(Span::new("1234, ghijkl")), Ok((Span::new(", ghijkl"), Span::new("1234"))));
+        assert_eq!(symbol(Span::new("abcd")), Ok((Span::new(""), Span::new("abcd"))));
+        assert_eq!(symbol(Span::new("AbCd")), Ok((Span::new(""), Span::new("AbCd"))));
+        assert!(matches!(symbol(Span::new("")), Err(_)))
     }
 
     #[test]
     fn create_symbol() {
-        assert_eq!(Symbol::try_from("breh"), Ok(Symbol::Name("breh")));
-        assert_eq!(Symbol::try_from("12345"), Ok(Symbol::Number(12345)));
-        assert_eq!(Symbol::try_from("false"), Ok(Symbol::Value(Value::False)));
+        assert_eq!(Symbol::try_from(Span::new("breh")), Ok(Symbol::Name(Span::new("breh"))));
+        assert_eq!(Symbol::try_from(Span::new("12345")), Ok(Symbol::Number(12345)));
+        assert_eq!(Symbol::try_from(Span::new("false")), Ok(Symbol::Value(Value::False)));
         assert!(matches!(
-            Symbol::try_from("u r bad"),
+            Symbol::try_from(Span::new("u r bad")),
             Err(HdlParseError::BadSymbol(_))
         ));
     }
 
     #[test]
     fn test_generic_space0() {
-        assert_eq!(generic_space0("/* // bruh */  abc"), Ok(("abc", ())));
-        assert_eq!(generic_space0("//abc\ndef"), Ok(("def", ())));
-        assert_eq!(generic_space0("/* word */"), Ok(("", ())));
-        assert_eq!(generic_space0("/* // word */"), Ok(("", ())));
-        assert_eq!(generic_space0("// /* word */"), Ok(("", ())));
-        assert_eq!(generic_space0("// word"), Ok(("", ())));
-        assert_eq!(generic_space0("// word\na"), Ok(("a", ())));
-        assert_eq!(generic_space0("//*"), Ok(("", ())));
+        assert_eq!(generic_space0(Span::new("/* // bruh */  abc")), Ok((Span::new("abc"), ())));
+        assert_eq!(generic_space0(Span::new("//abc\ndef")), Ok((Span::new("def"), ())));
+        assert_eq!(generic_space0(Span::new("/* word */")), Ok((Span::new(""), ())));
+        assert_eq!(generic_space0(Span::new("/* // word */")), Ok((Span::new(""), ())));
+        assert_eq!(generic_space0(Span::new("// /* word */")), Ok((Span::new(""), ())));
+        assert_eq!(generic_space0(Span::new("// word")), Ok((Span::new(""), ())));
+        assert_eq!(generic_space0(Span::new("// word\na")), Ok((Span::new("a"), ())));
+        assert_eq!(generic_space0(Span::new("//*")), Ok((Span::new(""), ())));
     }
 }

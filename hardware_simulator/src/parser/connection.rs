@@ -24,7 +24,10 @@ fn bus_range(arg: Span) -> nom::IResult<Span, BusRange> {
 
     use nom::error::Error;
     use nom::Err::*;
-    match (u16::from_str_radix(start, 10), u16::from_str_radix(end, 10)) {
+    match (
+        u16::from_str_radix(*start, 10),
+        u16::from_str_radix(*end, 10),
+    ) {
         (Ok(start), Ok(end)) => Ok((remainder, BusRange { start, end })),
         (Err(_), _) => Err(Failure(Error {
             input: start,
@@ -42,8 +45,10 @@ fn symbol_bus(arg: Span) -> nom::IResult<Span, (Span, Option<BusRange>)> {
 }
 
 fn parse_arg(arg: Span) -> nom::IResult<Span, Argument> {
-    let (remainder, ((internal, internal_bus), (external, external_bus))) =
-        separated_pair(symbol_bus, tag("="), symbol_bus).parse(arg)?;
+    let (remainder, (((internal, internal_bus), (external, external_bus)), _)) =
+        separated_pair(symbol_bus, tag("="), symbol_bus)
+            .and(generic_space0)
+            .parse(arg)?;
 
     let (remainder, _) = skip_comma(remainder)?;
 
@@ -54,7 +59,7 @@ fn parse_arg(arg: Span) -> nom::IResult<Span, Argument> {
     );
 
     IResult::Ok((
-        remainder.trim_start(),
+        remainder,
         Argument {
             internal,
             internal_bus,
@@ -75,7 +80,8 @@ pub fn parse_connection(arg: Span) -> nom::IResult<Span, Connection> {
         generic_space0,
         char(';'),
         generic_space0,
-    )).parse(arg)?;
+    ))
+    .parse(arg)?;
 
     if let Ok(Symbol::Name(x)) = Symbol::try_from(name) {
         Ok((
@@ -99,47 +105,66 @@ mod test {
 
     #[test]
     fn test_bus_range() {
-        assert_eq!(bus_range("[0..1]"), Ok(("", BusRange { start: 0, end: 1 })));
+        {
+            let res = bus_range(Span::from("[0..1]"));
+            assert_eq!(
+                bus_range(Span::from("[0..1]")),
+                Ok((Span::from(""), BusRange { start: 0, end: 1 }))
+            );
+        }
+
         assert_eq!(
-            bus_range("[5..10]"),
-            Ok(("", BusRange { start: 5, end: 10 }))
+            bus_range(Span::from("[5..10]")),
+            Ok((Span::from(""), BusRange { start: 5, end: 10 }))
         );
         assert_eq!(
-            bus_range("[5..10] and"),
-            Ok(("and", BusRange { start: 5, end: 10 }))
+            bus_range(Span::from("[5..10] and")),
+            Ok((Span::from("and"), BusRange { start: 5, end: 10 }))
         );
         assert_eq!(
-            bus_range("[   5   ..  10       ] and"),
-            Ok(("and", BusRange { start: 5, end: 10 }))
+            bus_range(Span::from("[   5   ..  10       ] and")),
+            Ok((Span::from("and"), BusRange { start: 5, end: 10 }))
         );
         assert_eq!(
-            bus_range("[   5\n  ..  10       ] and"),
-            Ok(("and", BusRange { start: 5, end: 10 }))
+            bus_range(Span::from("[   5\n  ..  10       ] and")),
+            Ok((Span::from("and"), BusRange { start: 5, end: 10 }))
         );
     }
 
     #[test]
     fn test_symbol_bus() {
         assert_eq!(
-            symbol_bus("limo[1..10]"),
-            Ok(("", ("limo", Some(BusRange { start: 1, end: 10 }))))
+            symbol_bus(Span::from("limo[1..10]")),
+            Ok((
+                Span::from(""),
+                (Span::from("limo"), Some(BusRange { start: 1, end: 10 }))
+            ))
         );
         assert_eq!(
-            symbol_bus("limo   [  1  .. 10  ]"),
-            Ok(("", ("limo", Some(BusRange { start: 1, end: 10 }))))
+            symbol_bus(Span::from("limo   [  1  .. 10  ]")),
+            Ok((
+                Span::from(""),
+                (Span::from("limo"), Some(BusRange { start: 1, end: 10 }))
+            ))
         );
-        assert_eq!(symbol_bus("limo   "), Ok(("", ("limo", None))));
-        assert_eq!(symbol_bus("limo"), Ok(("", ("limo", None))))
+        assert_eq!(
+            symbol_bus(Span::from("limo   ")),
+            Ok((Span::from(""), (Span::from("limo"), None)))
+        );
+        assert_eq!(
+            symbol_bus(Span::from("limo")),
+            Ok((Span::from(""), (Span::from("limo"), None)))
+        )
     }
 
     #[test]
     fn test_parse_arg() {
         assert_eq!(
-            parse_arg("in = true"),
+            parse_arg(Span::from("in = true")),
             Ok((
-                "",
+                Span::from(""),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: None,
                     external: Symbol::Value(Value::True),
                     external_bus: None,
@@ -147,11 +172,11 @@ mod test {
             ))
         );
         assert_eq!(
-            parse_arg("in\n=\ntrue"),
+            parse_arg(Span::from("in\n=\ntrue")),
             Ok((
-                "",
+                Span::from(""),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: None,
                     external: Symbol::Value(Value::True),
                     external_bus: None,
@@ -159,11 +184,11 @@ mod test {
             ))
         );
         assert_eq!(
-            parse_arg("in=true"),
+            parse_arg(Span::from("in=true")),
             Ok((
-                "",
+                Span::from(""),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: None,
                     external: Symbol::Value(Value::True),
                     external_bus: None,
@@ -171,11 +196,11 @@ mod test {
             ))
         );
         assert_eq!(
-            parse_arg("in=true, out=false"),
+            parse_arg(Span::from("in=true, out=false")),
             Ok((
-                "out=false",
+                Span::from("out=false"),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: None,
                     external: Symbol::Value(Value::True),
                     external_bus: None,
@@ -183,11 +208,11 @@ mod test {
             ))
         );
         assert_eq!(
-            parse_arg("in[3..4]=true)"),
+            parse_arg(Span::from("in[3..4]=true)")),
             Ok((
-                ")",
+                Span::from(")"),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: Some(BusRange { start: 3, end: 4 }),
                     external: Symbol::Value(Value::True),
                     external_bus: None,
@@ -195,11 +220,11 @@ mod test {
             ))
         );
         assert_eq!(
-            parse_arg("in[3]=true)"),
+            parse_arg(Span::from("in[3]=true)")),
             Ok((
-                ")",
+                Span::from(")"),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: Some(BusRange { start: 3, end: 3 }),
                     external: Symbol::Value(Value::True),
                     external_bus: None,
@@ -207,23 +232,23 @@ mod test {
             ))
         );
         assert_eq!(
-            parse_arg("in[3]=out[4])"),
+            parse_arg(Span::from("in[3]=out[4])")),
             Ok((
-                ")",
+                Span::from(")"),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: Some(BusRange { start: 3, end: 3 }),
-                    external: Symbol::Name("out"),
+                    external: Symbol::Name(Span::from("out")),
                     external_bus: Some(BusRange { start: 4, end: 4 }),
                 }
             ))
         );
         assert_eq!(
-            parse_arg("in[3..4]=true, out=false"),
+            parse_arg(Span::from("in[3..4]=true, out=false")),
             Ok((
-                "out=false",
+                Span::from("out=false"),
                 Argument {
-                    internal: Symbol::Name("in"),
+                    internal: Symbol::Name(Span::from("in")),
                     internal_bus: Some(BusRange { start: 3, end: 4 }),
                     external: Symbol::Value(Value::True),
                     external_bus: None,
@@ -231,13 +256,13 @@ mod test {
             ))
         );
         assert_eq!(
-            parse_arg("a[9..10]=b[5..10]"),
+            parse_arg(Span::from("a[9..10]=b[5..10]")),
             Ok((
-                "",
+                Span::from(""),
                 Argument {
-                    internal: Symbol::Name("a"),
+                    internal: Symbol::Name(Span::from("a")),
                     internal_bus: Some(BusRange { start: 9, end: 10 }),
-                    external: Symbol::Name("b"),
+                    external: Symbol::Name(Span::from("b")),
                     external_bus: Some(BusRange { start: 5, end: 10 }),
                 }
             ))
@@ -247,20 +272,20 @@ mod test {
     #[test]
     fn test_parse_args() {
         assert_eq!(
-            parse_args("(in=ax, out=bruh)"),
+            parse_args(Span::from("(in=ax, out=bruh)")),
             Ok((
-                "",
+                Span::from(""),
                 vec![
                     Argument {
-                        internal: Symbol::Name("in"),
+                        internal: Symbol::Name(Span::from("in")),
                         internal_bus: None,
-                        external: Symbol::Name("ax"),
+                        external: Symbol::Name(Span::from("ax")),
                         external_bus: None,
                     },
                     Argument {
-                        internal: Symbol::Name("out"),
+                        internal: Symbol::Name(Span::from("out")),
                         internal_bus: None,
-                        external: Symbol::Name("bruh"),
+                        external: Symbol::Name(Span::from("bruh")),
                         external_bus: None,
                     }
                 ]
@@ -272,29 +297,29 @@ mod test {
     fn test_parse_connection() {
         assert_eq!(
             parse_connection(
-                "  \n Nand (a\n[3\n..4]    =\n2, b\n[1..10]\n=  \nfalse, out=foo[6  .. 9]) ;\n  \n "
+                Span::from("  \n Nand (a\n[3\n..4]    =\n2, b\n[1..10]\n=  \nfalse, out=foo[6  .. 9]) ;\n  \n ")
             ),
             Ok((
-                "",
+                Span::from(""),
                 Connection {
-                    chip_name: Symbol::Name("Nand"),
+                    chip_name: Symbol::Name(Span::from("Nand")),
                     inputs: vec![
                         Argument {
-                            internal: Symbol::Name("a"),
+                            internal: Symbol::Name(Span::from("a")),
                             internal_bus: Some(BusRange { start: 3, end: 4 }),
                             external: Symbol::Number(2),
                             external_bus: None,
                         },
                         Argument {
-                            internal: Symbol::Name("b"),
+                            internal: Symbol::Name(Span::from("b")),
                             internal_bus: Some(BusRange { start: 1, end: 10 }),
                             external: Symbol::Value(Value::False),
                             external_bus: None,
                         },
                         Argument {
-                            internal: Symbol::Name("out"),
+                            internal: Symbol::Name(Span::from("out")),
                             internal_bus: None,
-                            external: Symbol::Name("foo"),
+                            external: Symbol::Name(Span::from("foo")),
                             external_bus: Some(BusRange { start: 6, end: 9 }),
                         }
                     ]

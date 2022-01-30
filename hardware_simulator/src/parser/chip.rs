@@ -1,16 +1,16 @@
-use crate::parser::{Builtin, Connection, Implementation};
+use crate::parser::{Builtin, Connection, Implementation, Span};
 use nom::IResult;
 
-fn builtin(_: &str) -> IResult<&str, Builtin> {
+fn builtin(_: Span) -> IResult<Span, Builtin> {
 
     todo!()
 }
 
-fn native(_: &str) -> IResult<&str, Vec<Connection>> {
+fn native(_: Span) -> IResult<Span, Vec<Connection>> {
     todo!()
 }
 
-fn implementation(_: &str) -> IResult<&str, Implementation> {
+fn implementation(_: Span) -> IResult<Span, Implementation> {
     todo!()
 }
 
@@ -22,101 +22,101 @@ mod test {
     #[test]
     fn test_builtin() {
         assert_eq!(
-            builtin("BUILTIN Foo; CLOCKED;"),
+            builtin(Span::new("BUILTIN Foo; CLOCKED;")),
             Ok((
-                "",
+                Span::new(""),
                 Builtin {
-                    name: Symbol::Name("Foo"),
+                    name: Symbol::Name(Span::new("Foo")),
                     clocked: Some(vec![]),
                 }
             ))
         );
         assert_eq!(
-            builtin("BUILTIN Foo;\nCLOCKED;"),
+            builtin(Span::new("BUILTIN Foo;\nCLOCKED;")),
             Ok((
-                "",
+                Span::new(""),
                 Builtin {
-                    name: Symbol::Name("Foo"),
+                    name: Symbol::Name(Span::new("Foo")),
                     clocked: Some(vec![]),
                 }
             ))
         );
         assert_eq!(
-            builtin("BUILTIN Foo;"),
+            builtin(Span::new("BUILTIN Foo;")),
             Ok((
-                "",
+                Span::new(""),
                 Builtin {
-                    name: Symbol::Name("Foo"),
+                    name: Symbol::Name(Span::new("Foo")),
                     clocked: None
                 }
             ))
         );
         assert_eq!(
-            builtin("BUILTIN Foo; CLOCKED a, b, c"),
+            builtin(Span::new("BUILTIN Foo; CLOCKED a, b, c")),
             Ok((
-                "",
+                Span::new(""),
                 Builtin {
-                    name: Symbol::Name("Foo"),
+                    name: Symbol::Name(Span::new("Foo")),
                     clocked: Some(vec![
-                        Symbol::Name("a"),
-                        Symbol::Name("b"),
-                        Symbol::Name("c"),
+                        Symbol::Name(Span::new("a")),
+                        Symbol::Name(Span::new("b")),
+                        Symbol::Name(Span::new("c")),
                     ])
                 }
             ))
         );
-        assert!(matches!(builtin("BUILTIN Foo"), Err(_)));
+        assert!(matches!(builtin(Span::new("BUILTIN Foo")), Err(_)));
     }
 
     #[test]
     fn test_native() {
         assert_eq!(
-            native("PARTS:\nNand (a=a, b=b, out=n1out);\n Nand (a=n1out, b=n1out, out=out);"),
+            native(Span::new("PARTS:\nNand (a=a, b=b, out=n1out);\n Nand (a=n1out, b=n1out, out=out);")),
             Ok((
-                "",
+                Span::new(""),
                 vec![
                     Connection {
-                        chip_name: Symbol::Name("Nand"),
+                        chip_name: Symbol::Name(Span::new("Nand")),
                         inputs: vec![
                             Argument {
-                                internal: Symbol::Name("a"),
+                                internal: Symbol::Name(Span::new("a")),
                                 internal_bus: None,
-                                external: Symbol::Name("b"),
+                                external: Symbol::Name(Span::new("b")),
                                 external_bus: None,
                             },
                             Argument {
-                                internal: Symbol::Name("b"),
+                                internal: Symbol::Name(Span::new("b")),
                                 internal_bus: None,
-                                external: Symbol::Name("b"),
+                                external: Symbol::Name(Span::new("b")),
                                 external_bus: None,
                             },
                             Argument {
-                                internal: Symbol::Name("out"),
+                                internal: Symbol::Name(Span::new("out")),
                                 internal_bus: None,
-                                external: Symbol::Name("n1out"),
+                                external: Symbol::Name(Span::new("n1out")),
                                 external_bus: None,
                             },
                         ]
                     },
                     Connection {
-                        chip_name: Symbol::Name("Nand"),
+                        chip_name: Symbol::Name(Span::new("Nand")),
                         inputs: vec![
                             Argument {
-                                internal: Symbol::Name("a"),
+                                internal: Symbol::Name(Span::new("a")),
                                 internal_bus: None,
-                                external: Symbol::Name("n1out"),
+                                external: Symbol::Name(Span::new("n1out")),
                                 external_bus: None,
                             },
                             Argument {
-                                internal: Symbol::Name("b"),
+                                internal: Symbol::Name(Span::new("b")),
                                 internal_bus: None,
-                                external: Symbol::Name("n1out"),
+                                external: Symbol::Name(Span::new("n1out")),
                                 external_bus: None,
                             },
                             Argument {
-                                internal: Symbol::Name("out"),
+                                internal: Symbol::Name(Span::new("out")),
                                 internal_bus: None,
-                                external: Symbol::Name("out"),
+                                external: Symbol::Name(Span::new("out")),
                                 external_bus: None
                             },
                         ]

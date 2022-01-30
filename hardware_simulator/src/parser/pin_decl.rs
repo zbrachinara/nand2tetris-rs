@@ -60,31 +60,31 @@ mod test {
 
     #[test]
     fn test_bus_declaration() {
-        assert_eq!(bus_declaration("[1]"), Ok(("", 1)));
-        assert_eq!(bus_declaration("[5]"), Ok(("", 5)));
-        assert_eq!(bus_declaration("[25]"), Ok(("", 25)));
-        assert_eq!(bus_declaration("\n[\n25\n]\n"), Ok(("", 25)));
-        assert_eq!(bus_declaration("\n[\n25\n]\nbruh"), Ok(("bruh", 25)));
+        assert_eq!(bus_declaration(Span::from("[1]")), Ok((Span::from(""), 1)));
+        assert_eq!(bus_declaration(Span::from("[5]")), Ok((Span::from(""), 5)));
+        assert_eq!(bus_declaration(Span::from("[25]")), Ok((Span::from(""), 25)));
+        assert_eq!(bus_declaration(Span::from("\n[\n25\n]\n")), Ok((Span::from(""), 25)));
+        assert_eq!(bus_declaration(Span::from("\n[\n25\n]\nbruh")), Ok((Span::from("bruh"), 25)));
     }
 
     #[test]
     fn test_pin_decl() {
         assert_eq!(
-            pin_decl("in[5]"),
+            pin_decl(Span::from("in[5]")),
             Ok((
-                "",
+                Span::from(""),
                 Pin {
-                    name: Symbol::Name("in"),
+                    name: Symbol::Name(Span::from("in")),
                     size: Some(5)
                 }
             ))
         );
         assert_eq!(
-            pin_decl("in[5], out[4]"),
+            pin_decl(Span::from("in[5], out[4]")),
             Ok((
-                "out[4]",
+                Span::from("out[4]"),
                 Pin {
-                    name: Symbol::Name("in"),
+                    name: Symbol::Name(Span::from("in")),
                     size: Some(5)
                 }
             ))
@@ -94,36 +94,36 @@ mod test {
     #[test]
     fn test_in_pin_decl() {
         assert_eq!(
-            in_pin_decl("IN a[1], b, c[32];"),
+            in_pin_decl(Span::from("IN a[1], b, c[32];")),
             Ok((
-                "",
+                Span::from(""),
                 vec![
                     Pin {
-                        name: Symbol::Name("a"),
+                        name: Symbol::Name(Span::from("a")),
                         size: Some(1),
                     },
                     Pin {
-                        name: Symbol::Name("b"),
+                        name: Symbol::Name(Span::from("b")),
                         size: None,
                     },
                     Pin {
-                        name: Symbol::Name("c"),
+                        name: Symbol::Name(Span::from("c")),
                         size: Some(32),
                     }
                 ]
             ))
         );
         assert_eq!(
-            in_pin_decl("    IN a[16], b[16];"),
+            in_pin_decl(Span::from("    IN a[16], b[16];")),
             Ok((
-                "",
+                Span::from(""),
                 vec![
                     Pin {
-                        name: Symbol::Name("a"),
+                        name: Symbol::Name(Span::from("a")),
                         size: Some(16),
                     },
                     Pin {
-                        name: Symbol::Name("b"),
+                        name: Symbol::Name(Span::from("b")),
                         size: Some(16),
                     }
                 ]
