@@ -11,6 +11,7 @@ fn bus_declaration(arg: Span) -> PResult<u16> {
     Ok((remainder, convert_num(size)?))
 }
 
+//TODO: Bug | bus_declaration could be something other than a number, must return error
 fn pin_decl(arg: Span) -> PResult<Pin> {
     let (remainder, (name, bus)) = tuple((name, opt(complete(bus_declaration))))(arg)?;
     let (remainder, _) = skip_comma(remainder)?;
