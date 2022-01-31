@@ -15,7 +15,7 @@ fn bus_range(arg: Span) -> PResult<BusRange> {
     let (remainder, (start, end)) = spaced(delimited(char('['), is_not("]"), char(']')))
         .and_then(alt((
             separated_pair(spaced(digit1), tag(".."), spaced(digit1)),
-            digit1.map(|x| (x, x)),
+            spaced(digit1).map(|x| (x, x)),
         )))
         .parse(arg)?;
 
