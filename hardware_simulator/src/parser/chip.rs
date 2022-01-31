@@ -33,9 +33,9 @@ mod test {
     #[test]
     fn test_builtin() {
         {
-            let res = builtin(Span::new("BUILTIN DFF;\n     CLOCKED in;")).unwrap();
+            let res = builtin(Span::new("BUILTIN DFF;\n     CLOCKED in;}")).unwrap();
             let (remainder, Builtin {name, clocked}) = res;
-            assert_eq!(*remainder, "");
+            assert_eq!(*remainder, "}");
             assert_eq!(*name, "DFF");
 
             assert!(matches!(clocked, Some(_)));
@@ -56,9 +56,9 @@ mod test {
             }
         }
         {
-            let res = builtin(Span::new("BUILTIN DFF;\n     // CLOCKED in;")).unwrap();
+            let res = builtin(Span::new("BUILTIN DFF;\n     // CLOCKED in;\n}")).unwrap();
             let (remainder, Builtin {name, clocked}) = res;
-            assert_eq!(*remainder, "");
+            assert_eq!(*remainder, "}");
             assert_eq!(*name, "DFF");
 
             assert!(matches!(clocked, None));
