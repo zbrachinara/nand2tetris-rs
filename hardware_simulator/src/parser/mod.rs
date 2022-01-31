@@ -25,7 +25,7 @@ pub struct Chip<'a> {
 
 #[derive(Eq, PartialEq, Debug)]
 pub enum Implementation<'a> {
-    Builtin(Span<'a>),
+    Builtin(Builtin<'a>),
     Native(Vec<Connection<'a>>),
 }
 
@@ -145,6 +145,8 @@ pub enum HdlParseError {
     NumberOverflow,
     #[error("A problem occurred when trying to parse this number")]
     NumberError,
+    #[error("Could not deduce a given implementation")]
+    BadImplementation,
 }
 
 fn skip_comma(arg: Span) -> PResult<()> {

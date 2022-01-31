@@ -1,9 +1,13 @@
 use crate::parser::connection::connection;
-use crate::parser::{name, spaced, Builtin, Connection, Implementation, PResult, Span};
+use crate::parser::{
+    name, spaced, Builtin, Connection, HdlParseError, Implementation, PResult, Span,
+};
 use nom::character::complete::char;
 use nom::combinator::opt;
 use nom::multi::{many1, separated_list0, separated_list1};
 use nom::sequence::{delimited, preceded, tuple};
+use nom::IResult;
+use nom_supreme::error::{BaseErrorKind, ErrorTree};
 use nom_supreme::tag::complete::tag;
 
 fn builtin(arg: Span) -> PResult<Builtin> {
@@ -23,8 +27,20 @@ fn native(arg: Span) -> PResult<Vec<Connection>> {
     spaced(preceded(tag("PARTS:"), many1(connection)))(arg)
 }
 
-fn implementation(_: Span) -> PResult<Implementation> {
-    todo!()
+fn implementation(arg: Span) -> PResult<Implementation> {
+    let builtin = builtin(arg);
+    let native = native(arg);
+
+    if let Ok((remainder, answer)) = builtin {
+        Ok((remainder, Implementation::Builtin(answer)))
+    } else if let Ok((remainder, answer)) = native {
+        Ok((remainder, Implementation::Native(answer)))
+    } else {
+        Err(nom::Err::Error(ErrorTree::Base {
+            location: arg,
+            kind: BaseErrorKind::External(Box::new(HdlParseError::BadImplementation)),
+        }))
+    }
 }
 
 #[cfg(test)]
