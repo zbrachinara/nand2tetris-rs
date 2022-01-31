@@ -55,8 +55,13 @@ fn parse_arg(arg: Span) -> PResult<Argument> {
 
     let (remainder, _) = skip_comma(remainder)?;
 
-    //TODO: Integrate these error types into the nom error types
-    let external = Symbol::try_from(external).unwrap();
+    let external = match Symbol::try_from(external) {
+        Ok(sym) => Ok(sym),
+        Err(sp) => Err(nom::Err::Error(ErrorTree::Base {
+            location: sp,
+            kind: BaseErrorKind::External(Box::new(HdlParseError::BadSymbol)),
+        })),
+    }?;
 
     IResult::Ok((
         remainder,

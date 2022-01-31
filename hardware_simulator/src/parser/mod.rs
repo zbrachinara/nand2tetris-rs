@@ -69,7 +69,7 @@ pub enum Symbol<'a> {
 }
 
 impl<'a> TryFrom<Span<'a>> for Symbol<'a> {
-    type Error = HdlParseError<'a>;
+    type Error = Span<'a>;
 
     fn try_from(value: Span<'a>) -> Result<Self, Self::Error> {
         // a valid symbol must be in only ascii characters, as well as consisting of no whitespace
@@ -84,7 +84,7 @@ impl<'a> TryFrom<Span<'a>> for Symbol<'a> {
                 }
             })
         } else {
-            Err(HdlParseError::BadSymbol(value))
+            Err(value)
         }
     }
 }
@@ -118,9 +118,9 @@ struct BusRange {
 }
 
 #[derive(Error, Debug, PartialEq)]
-pub enum HdlParseError<'a> {
-    #[error("Symbol `{0}` is not a valid symbol")]
-    BadSymbol(Span<'a>),
+pub enum HdlParseError {
+    #[error("Not a valid symbol")]
+    BadSymbol,
     #[error("Name is not correct (Must not be a number or literal)")]
     BadName,
     #[error("Number is too large")]
@@ -210,7 +210,7 @@ mod test {
         );
         assert!(matches!(
             Symbol::try_from(Span::new("u r bad")),
-            Err(HdlParseError::BadSymbol(_))
+            Err(_)
         ));
     }
 
