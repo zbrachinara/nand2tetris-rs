@@ -1,12 +1,13 @@
 use crate::parser::connection::connection;
+use crate::parser::pin_decl::{in_pin_decl, out_pin_decl};
 use crate::parser::{
-    name, spaced, Builtin, Connection, HdlParseError, Implementation, PResult, Span,
+    name, spaced, Builtin, Chip, Connection, HdlParseError, Implementation, PResult, Span,
 };
 use nom::character::complete::char;
 use nom::combinator::opt;
-use nom::multi::{many1, separated_list0, separated_list1};
-use nom::sequence::{delimited, preceded, tuple};
-use nom::IResult;
+use nom::multi::{many1, separated_list0};
+use nom::sequence::{delimited, preceded, terminated, tuple};
+use nom::{IResult, Parser};
 use nom_supreme::error::{BaseErrorKind, ErrorTree};
 use nom_supreme::tag::complete::tag;
 
@@ -41,6 +42,28 @@ fn implementation(arg: Span) -> PResult<Implementation> {
             kind: BaseErrorKind::External(Box::new(HdlParseError::BadImplementation)),
         }))
     }
+}
+
+fn chip(arg: Span) -> PResult<Chip> {
+    // let (remainder, (in_pins, out_pins, logic)) = delimited(
+    //     tuple((spaced(tag("CHIP")), spaced(tag("{")))),
+    //     tuple((in_pin_decl, out_pin_decl, implementation)),
+    //     spaced(tag(";")),
+    // )(arg)?;
+    let (remainder, (name, (in_pins, out_pins, logic))) = delimited(spaced(tag("CHIP")), name, spaced(tag("{"))).and(terminated(
+        tuple((in_pin_decl, out_pin_decl, implementation)),
+        spaced(tag("}")),
+    )).parse(arg)?;
+
+    Ok((
+        remainder,
+        Chip {
+            name,
+            in_pins,
+            out_pins,
+            logic,
+        },
+    ))
 }
 
 #[cfg(test)]
@@ -328,5 +351,12 @@ mod test {
                 .zip(connections.into_iter())
                 .for_each(|(check, connection)| check(connection));
         }
+    }
+
+    #[test]
+    fn test_chip_parser_success() {
+        let res = chip(Span::new(include_str!("And16.hdl")));
+        println!("{res:#?}");
+        assert!(matches!(res, Ok(_)))
     }
 }

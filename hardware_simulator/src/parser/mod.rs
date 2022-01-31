@@ -17,7 +17,9 @@ mod pin_decl;
 type Span<'a> = nom_locate::LocatedSpan<&'a str>;
 type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;
 
+#[derive(Debug)]
 pub struct Chip<'a> {
+    name: Span<'a>,
     in_pins: Vec<Pin<'a>>,
     out_pins: Vec<Pin<'a>>,
     logic: Implementation<'a>,
