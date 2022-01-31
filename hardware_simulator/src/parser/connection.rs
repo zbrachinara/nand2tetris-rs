@@ -1,15 +1,14 @@
 use nom::bytes::complete::is_not;
-use nom::character::complete::{alphanumeric1, digit1};
+use nom::character::complete::digit1;
 use nom::character::streaming::char;
 use nom::combinator::{complete, opt};
-use nom::error::ErrorKind;
 use nom::multi::many0;
 use nom::sequence::{delimited, separated_pair, tuple};
 use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
 use nom_supreme::tag::complete::tag;
-use std::num::{IntErrorKind, ParseIntError};
+use std::num::IntErrorKind;
 
 use super::*;
 
@@ -41,7 +40,7 @@ fn bus_range(arg: Span) -> PResult<BusRange> {
 
     let (start, end) = (convert_num(start)?, convert_num(end)?);
 
-    Ok((remainder, BusRange {start, end}))
+    Ok((remainder, BusRange { start, end }))
 }
 
 fn symbol_bus(arg: Span) -> PResult<(Span, Option<BusRange>)> {
