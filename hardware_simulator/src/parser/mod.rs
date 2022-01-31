@@ -21,10 +21,10 @@ pub use chip::chip;
 
 #[derive(Debug)]
 pub struct Chip<'a> {
-    name: Span<'a>,
-    in_pins: Vec<Pin<'a>>,
-    out_pins: Vec<Pin<'a>>,
-    logic: Implementation<'a>,
+    pub name: Span<'a>,
+    pub in_pins: Vec<Pin<'a>>,
+    pub out_pins: Vec<Pin<'a>>,
+    pub logic: Implementation<'a>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -35,28 +35,34 @@ pub enum Implementation<'a> {
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Builtin<'a> {
-    name: Span<'a>,
-    clocked: Option<Vec<Span<'a>>>,
+    pub name: Span<'a>,
+    pub clocked: Option<Vec<Span<'a>>>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Pin<'a> {
-    name: Span<'a>,
-    size: Option<u16>,
+    pub name: Span<'a>,
+    pub size: Option<u16>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Connection<'a> {
-    chip_name: Span<'a>,
-    inputs: Vec<Argument<'a>>,
+    pub chip_name: Span<'a>,
+    pub inputs: Vec<Argument<'a>>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Argument<'a> {
-    internal: Span<'a>,
-    internal_bus: Option<BusRange>,
-    external: Symbol<'a>,
-    external_bus: Option<BusRange>,
+    pub internal: Span<'a>,
+    pub internal_bus: Option<BusRange>,
+    pub external: Symbol<'a>,
+    pub external_bus: Option<BusRange>,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct BusRange {
+    pub start: u16,
+    pub end: u16,
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -131,12 +137,6 @@ fn convert_num(span: Span) -> Result<u16, nom::Err<ErrorTree<Span>>> {
             })),
         },
     }
-}
-
-#[derive(Debug, Eq, PartialEq)]
-struct BusRange {
-    start: u16,
-    end: u16,
 }
 
 #[derive(Error, Debug, PartialEq)]
