@@ -8,27 +8,8 @@ use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
 use nom_supreme::tag::complete::tag;
-use std::num::IntErrorKind;
 
 use super::*;
-
-fn convert_num(span: Span) -> Result<u16, nom::Err<ErrorTree<Span>>> {
-    match u16::from_str_radix(*span, 10) {
-        Ok(n) => Ok(n),
-        Err(e) => match e.kind() {
-            IntErrorKind::PosOverflow | IntErrorKind::NegOverflow => {
-                Err(nom::Err::Error(ErrorTree::Base {
-                    location: span,
-                    kind: BaseErrorKind::External(Box::new(HdlParseError::NumberOverflow)),
-                }))
-            }
-            _ => Err(nom::Err::Error(ErrorTree::Base {
-                location: span,
-                kind: BaseErrorKind::External(Box::new(HdlParseError::NumberError)),
-            })),
-        },
-    }
-}
 
 fn bus_range(arg: Span) -> PResult<BusRange> {
     let (remainder, (start, end)) = spaced(delimited(char('['), is_not("]"), char(']')))

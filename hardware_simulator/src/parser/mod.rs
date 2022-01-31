@@ -1,3 +1,4 @@
+use std::num::IntErrorKind;
 use derive_more::Deref;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take_till, take_until, take_while1};
@@ -108,6 +109,24 @@ fn name(arg: Span) -> PResult<Span> {
         }))
     } else {
         Ok((remainder, name))
+    }
+}
+
+fn convert_num(span: Span) -> Result<u16, nom::Err<ErrorTree<Span>>> {
+    match u16::from_str_radix(*span, 10) {
+        Ok(n) => Ok(n),
+        Err(e) => match e.kind() {
+            IntErrorKind::PosOverflow | IntErrorKind::NegOverflow => {
+                Err(nom::Err::Error(ErrorTree::Base {
+                    location: span,
+                    kind: BaseErrorKind::External(Box::new(HdlParseError::NumberOverflow)),
+                }))
+            }
+            _ => Err(nom::Err::Error(ErrorTree::Base {
+                location: span,
+                kind: BaseErrorKind::External(Box::new(HdlParseError::NumberError)),
+            })),
+        },
     }
 }
 
