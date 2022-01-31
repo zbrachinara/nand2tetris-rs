@@ -7,7 +7,7 @@ use nom::character::complete::char;
 use nom::combinator::opt;
 use nom::multi::{many1, separated_list0};
 use nom::sequence::{delimited, preceded, terminated, tuple};
-use nom::{IResult, Parser};
+use nom::Parser;
 use nom_supreme::error::{BaseErrorKind, ErrorTree};
 use nom_supreme::tag::complete::tag;
 
@@ -44,16 +44,14 @@ fn implementation(arg: Span) -> PResult<Implementation> {
     }
 }
 
-fn chip(arg: Span) -> PResult<Chip> {
-    // let (remainder, (in_pins, out_pins, logic)) = delimited(
-    //     tuple((spaced(tag("CHIP")), spaced(tag("{")))),
-    //     tuple((in_pin_decl, out_pin_decl, implementation)),
-    //     spaced(tag(";")),
-    // )(arg)?;
-    let (remainder, (name, (in_pins, out_pins, logic))) = delimited(spaced(tag("CHIP")), name, spaced(tag("{"))).and(terminated(
-        tuple((in_pin_decl, out_pin_decl, implementation)),
-        spaced(tag("}")),
-    )).parse(arg)?;
+pub fn chip(arg: Span) -> PResult<Chip> {
+    let (remainder, (name, (in_pins, out_pins, logic))) =
+        delimited(spaced(tag("CHIP")), name, spaced(tag("{")))
+            .and(terminated(
+                tuple((in_pin_decl, out_pin_decl, implementation)),
+                spaced(tag("}")),
+            ))
+            .parse(arg)?;
 
     Ok((
         remainder,
