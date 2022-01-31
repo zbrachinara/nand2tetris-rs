@@ -26,11 +26,11 @@ fn headed_pin_decl<'a>(header: &'static str) -> impl FnMut(Span<'a>) -> PResult<
     )
 }
 
-fn in_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
+pub fn in_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
     headed_pin_decl("IN").parse(arg)
 }
 
-fn out_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
+pub fn out_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
     headed_pin_decl("OUT").parse(arg)
 }
 
