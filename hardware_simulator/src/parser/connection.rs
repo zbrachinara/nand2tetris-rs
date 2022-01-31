@@ -28,7 +28,7 @@ fn symbol_bus(arg: Span) -> PResult<(Span, Option<BusRange>)> {
     tuple((symbol, opt(complete(bus_range)))).parse(arg)
 }
 
-fn parse_arg(arg: Span) -> PResult<Argument> {
+fn single_arg(arg: Span) -> PResult<Argument> {
     let (remainder, (((internal, internal_bus), (external, external_bus)), _)) =
         separated_pair(symbol_bus, tag("="), symbol_bus)
             .and(generic_space0)
@@ -55,12 +55,12 @@ fn parse_arg(arg: Span) -> PResult<Argument> {
     ))
 }
 
-fn parse_args(arg: Span) -> PResult<Vec<Argument>> {
-    delimited(char('('), many0(complete(parse_arg)), char(')'))(arg)
+fn args(arg: Span) -> PResult<Vec<Argument>> {
+    delimited(char('('), many0(complete(single_arg)), char(')'))(arg)
 }
 
-pub fn parse_connection(arg: Span) -> PResult<Connection> {
-    let (remainder, (name, args, ..)) = tuple((name, parse_args, spaced(char(';')))).parse(arg)?;
+pub fn connection(arg: Span) -> PResult<Connection> {
+    let (remainder, (name, args, ..)) = tuple((name, args, spaced(char(';')))).parse(arg)?;
 
     Ok((
         remainder,
@@ -152,9 +152,9 @@ mod test {
             }
         };
 
-        test_1(parse_arg(Span::from("in = true")).unwrap());
-        test_1(parse_arg(Span::from("in\n=\ntrue")).unwrap());
-        test_1(parse_arg(Span::from("in=true")).unwrap());
+        test_1(single_arg(Span::from("in = true")).unwrap());
+        test_1(single_arg(Span::from("in\n=\ntrue")).unwrap());
+        test_1(single_arg(Span::from("in=true")).unwrap());
 
         let test_2 = |res: (Span, Argument), excess, in_bus| {
             assert_eq!(*res.0, excess);
@@ -177,17 +177,17 @@ mod test {
         };
 
         test_2(
-            parse_arg(Span::from("in=true, out=false")).unwrap(),
+            single_arg(Span::from("in=true, out=false")).unwrap(),
             "out=false",
             None,
         );
         test_2(
-            parse_arg(Span::from("in[3..4]=true)")).unwrap(),
+            single_arg(Span::from("in[3..4]=true)")).unwrap(),
             ")",
             Some(BusRange { start: 3, end: 4 }),
         );
         test_2(
-            parse_arg(Span::from("in[3]=true)")).unwrap(),
+            single_arg(Span::from("in[3]=true)")).unwrap(),
             ")",
             Some(BusRange { start: 3, end: 3 }),
         );
@@ -213,7 +213,7 @@ mod test {
         };
 
         test_3(
-            parse_arg(Span::from("in[3]=out[4])")).unwrap(),
+            single_arg(Span::from("in[3]=out[4])")).unwrap(),
             ")",
             Some(BusRange { start: 3, end: 3 }),
             Some(BusRange { start: 4, end: 4 }),
@@ -221,7 +221,7 @@ mod test {
             "out",
         );
         test_3(
-            parse_arg(Span::from("a[9..10]=b[5..10]")).unwrap(),
+            single_arg(Span::from("a[9..10]=b[5..10]")).unwrap(),
             "",
             Some(BusRange { start: 9, end: 10 }),
             Some(BusRange { start: 5, end: 10 }),
@@ -230,7 +230,7 @@ mod test {
         );
 
         {
-            let res = parse_arg(Span::from("in[3..4]=true, out=false")).unwrap();
+            let res = single_arg(Span::from("in[3..4]=true, out=false")).unwrap();
             assert_eq!(*res.0, "out=false");
 
             let Argument {
@@ -253,7 +253,7 @@ mod test {
 
     #[test]
     fn test_parse_args() {
-        let res = parse_args(Span::from("(in=ax, out=bruh)")).unwrap();
+        let res = args(Span::from("(in=ax, out=bruh)")).unwrap();
         assert_eq!(*res.0, "");
 
         let Argument {
@@ -291,7 +291,7 @@ mod test {
 
     #[test]
     fn test_parse_connection() {
-        let res = parse_connection(Span::from(
+        let res = connection(Span::from(
             "  \n Nand (a\n[3\n..4]    =\n2, b\n[1..10]\n=  \nfalse, out=foo[6  .. 9]) ;\n  \n ",
         ))
         .unwrap();
