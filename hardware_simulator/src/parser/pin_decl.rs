@@ -8,8 +8,7 @@ use nom_supreme::tag::complete::tag;
 
 fn bus_declaration(arg: Span) -> PResult<u16> {
     let (remainder, size) = delimited(spaced(char('[')), digit1, spaced(char(']')))(arg)?;
-
-    Ok((remainder, u16::from_str_radix(*size, 10).unwrap()))
+    Ok((remainder, convert_num(size)?))
 }
 
 fn pin_decl(arg: Span) -> PResult<Pin> {

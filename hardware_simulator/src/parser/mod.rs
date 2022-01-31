@@ -1,5 +1,4 @@
 use std::num::IntErrorKind;
-use derive_more::Deref;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take_till, take_until, take_while1};
 use nom::character::complete::{char, multispace1};
