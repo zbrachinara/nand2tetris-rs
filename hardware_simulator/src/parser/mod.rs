@@ -68,9 +68,6 @@ pub enum Symbol<'a> {
     Number(usize),
 }
 
-#[derive(Deref, Eq, PartialEq, Debug)]
-struct Name<'a>(&'a str);
-
 impl<'a> TryFrom<Span<'a>> for Symbol<'a> {
     type Error = HdlParseError<'a>;
 
