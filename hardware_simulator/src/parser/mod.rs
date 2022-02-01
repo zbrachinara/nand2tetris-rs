@@ -40,7 +40,7 @@ pub struct Builtin<'a> {
     pub clocked: Option<Vec<Span<'a>>>,
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub struct Pin<'a> {
     pub name: Span<'a>,
     pub size: Option<u16>,

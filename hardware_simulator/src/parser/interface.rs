@@ -1,17 +1,76 @@
+use crate::parser::{Builtin, Chip, Implementation, Pin};
+use crate::{BusRange, Span};
 use std::collections::HashMap;
-use crate::BusRange;
-use crate::parser::{Chip, Implementation, Pin};
+
+type PinMap = HashMap<String, BusRange>;
 
 pub struct Interface {
-    pub com_in: HashMap<String, BusRange>,
-    pub com_out: HashMap<String, BusRange>,
-    pub seq_in: HashMap<String, BusRange>,
-    pub seq_out: HashMap<String, BusRange>,
+    pub com_in: PinMap,
+    pub com_out: PinMap,
+    pub seq_in: PinMap,
+    pub seq_out: PinMap,
+}
+
+fn to_map(pins: Vec<Pin>, mut next: u16) -> (PinMap, u16) {
+    let map = pins
+        .into_iter()
+        .map(|Pin { name, size }| {
+            let size = if let Some(n) = size { n } else { 1 };
+            let range = BusRange {
+                start: next,
+                end: next + size - 1,
+            };
+            next += size;
+            ((*name).to_string(), range)
+        })
+        .collect();
+
+    (map, next)
+}
+
+fn split_seq_com(pins: &Vec<Pin>, seq_names: &Vec<Span>) -> (PinMap, PinMap) {
+    let (in_seq, in_com) = pins
+        .iter()
+        .cloned()
+        .partition(|pin| seq_names.iter().find(|name| ***name == *(pin.name)).is_some());
+    let (seq_in, next) = to_map(in_seq, 0);
+    let (com_in, _) = to_map(in_com, next);
+
+    (seq_in, com_in)
 }
 
 impl<'a> Chip<'a> {
     // defines the rules for interacting with the chip using Vec
     pub fn interface(&self) -> Interface {
-        todo!()
+        if let Implementation::Builtin(Builtin { ref clocked, .. }) = self.logic {
+            let empty = vec![];
+            let clocked = if let Some(x) = clocked { x } else { &empty };
+            let (seq_in, com_in) = split_seq_com(&self.in_pins, clocked);
+            let (seq_out, com_out) = split_seq_com(&self.out_pins, clocked);
+
+            Interface {
+                seq_in,
+                com_in,
+                seq_out,
+                com_out,
+            }
+        } else {
+            Interface {
+                com_in: to_map(self.in_pins.clone(), 0).0,
+                com_out: to_map(self.out_pins.clone(), 0).0,
+                seq_in: HashMap::with_capacity(0),
+                seq_out: HashMap::with_capacity(0),
+            }
+        }
     }
+}
+
+#[cfg(test)]
+mod test {
+
+    #[test]
+    fn test_gen_interface() {
+
+    }
+
 }
