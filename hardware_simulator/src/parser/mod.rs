@@ -14,6 +14,7 @@ use thiserror::Error;
 mod chip;
 mod connection;
 mod pin_decl;
+mod interface;
 
 pub use chip::chip;
 
