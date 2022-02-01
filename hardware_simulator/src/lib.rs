@@ -1,3 +1,5 @@
+#![allow(dead_code)] // TODO: remove
+
 mod parser;
 mod model;
 mod ir;
