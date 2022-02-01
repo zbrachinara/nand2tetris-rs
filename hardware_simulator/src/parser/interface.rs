@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 type PinMap = HashMap<String, BusRange>;
 
+#[derive(PartialEq, Debug)]
 pub struct Interface {
     pub com_in: PinMap,
     pub com_out: PinMap,
@@ -29,10 +30,12 @@ fn to_map(pins: Vec<Pin>, mut next: u16) -> (PinMap, u16) {
 }
 
 fn split_seq_com(pins: &Vec<Pin>, seq_names: &Vec<Span>) -> (PinMap, PinMap) {
-    let (in_seq, in_com) = pins
-        .iter()
-        .cloned()
-        .partition(|pin| seq_names.iter().find(|name| ***name == *(pin.name)).is_some());
+    let (in_seq, in_com) = pins.iter().cloned().partition(|pin| {
+        seq_names
+            .iter()
+            .find(|name| ***name == *(pin.name))
+            .is_some()
+    });
     let (seq_in, next) = to_map(in_seq, 0);
     let (com_in, _) = to_map(in_com, next);
 
@@ -67,10 +70,27 @@ impl<'a> Chip<'a> {
 
 #[cfg(test)]
 mod test {
+    use super::*;
+    use crate::parser::chip;
 
     #[test]
     fn test_gen_interface() {
-
+        let (_, com_chip) = chip(Span::from(include_str!("And16.hdl"))).unwrap();
+        assert_eq!(
+            com_chip.interface(),
+            Interface {
+                com_in: [
+                    ("a".to_string(), BusRange { start: 0, end: 15 }),
+                    ("b".to_string(), BusRange { start: 16, end: 31 })
+                ]
+                .into_iter()
+                .collect(),
+                com_out: [("out".to_string(), BusRange { start: 0, end: 15 })]
+                    .into_iter()
+                    .collect(),
+                seq_in: Default::default(),
+                seq_out: Default::default()
+            }
+        )
     }
-
 }
