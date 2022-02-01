@@ -70,6 +70,7 @@ impl<'a> Chip<'a> {
 
 #[cfg(test)]
 mod test {
+    use std::iter::once;
     use super::*;
     use crate::parser::chip;
 
@@ -89,6 +90,17 @@ mod test {
                     .into_iter()
                     .collect(),
                 seq_in: Default::default(),
+                seq_out: Default::default()
+            }
+        );
+
+        let (_, seq_chip) = chip(Span::from(include_str!("DFF.hdl"))).unwrap();
+        assert_eq!(
+            seq_chip.interface(),
+            Interface {
+                com_in: Default::default(),
+                com_out: once(("out".to_string(), BusRange { start: 0, end: 0 })).collect(),
+                seq_in: once(("in".to_string(), BusRange { start: 0, end: 0 })).collect(),
                 seq_out: Default::default()
             }
         )
