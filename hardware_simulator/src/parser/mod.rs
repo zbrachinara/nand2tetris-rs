@@ -1,4 +1,4 @@
-use std::num::IntErrorKind;
+use crate::Span;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take_till, take_until, take_while1};
 use nom::character::complete::{char, multispace1};
@@ -8,16 +8,16 @@ use nom::sequence::{delimited, preceded, tuple};
 use nom::Parser;
 use nom_supreme::error::{BaseErrorKind, ErrorTree};
 use nom_supreme::tag::complete::tag;
+use std::num::IntErrorKind;
 use thiserror::Error;
 
 mod chip;
 mod connection;
 mod pin_decl;
 
-type Span<'a> = nom_locate::LocatedSpan<&'a str>;
-type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;
-
 pub use chip::chip;
+
+type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;
 
 #[derive(Debug)]
 pub struct Chip<'a> {
@@ -232,10 +232,7 @@ mod test {
             Symbol::try_from(Span::new("false")),
             Ok(Symbol::Value(Value::False))
         );
-        assert!(matches!(
-            Symbol::try_from(Span::new("u r bad")),
-            Err(_)
-        ));
+        assert!(matches!(Symbol::try_from(Span::new("u r bad")), Err(_)));
     }
 
     #[test]
