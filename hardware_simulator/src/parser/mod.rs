@@ -17,6 +17,7 @@ mod pin_decl;
 mod interface;
 
 pub use chip::chip;
+pub use interface::Interface;
 
 type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;
 
