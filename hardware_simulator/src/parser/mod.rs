@@ -1,4 +1,4 @@
-use crate::Span;
+use crate::{BusRange, Span};
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take_till, take_until, take_while1};
 use nom::character::complete::{char, multispace1};
@@ -58,12 +58,6 @@ pub struct Argument<'a> {
     pub internal_bus: Option<BusRange>,
     pub external: Symbol<'a>,
     pub external_bus: Option<BusRange>,
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct BusRange {
-    pub start: u16,
-    pub end: u16,
 }
 
 #[derive(Eq, PartialEq, Debug)]

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use crate::parser::{BusRange, Chip};
+use crate::BusRange;
+use crate::parser::{Chip, Implementation, Pin};
 
 pub struct Interface {
     pub com_in: HashMap<String, BusRange>,
