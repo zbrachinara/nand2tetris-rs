@@ -1,6 +1,11 @@
-mod build_ctx;
+use crate::parser::Interface;
 
-trait Chip {
+mod build_ctx;
+mod builtin;
+
+pub trait Chip {
+    fn interface(&self) -> Interface;
+
     fn clock(&mut self);
-    fn eval(&mut self, _: Vec<bool>) -> Vec<bool>;
+    fn eval(&mut self, _: &[bool]) -> Vec<bool>;
 }
