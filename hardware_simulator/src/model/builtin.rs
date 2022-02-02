@@ -1,16 +1,16 @@
 use crate::model::Chip;
 use crate::parser::Interface;
 use crate::BusRange;
-use std::collections::HashMap;
 use std::iter::once;
-use lazy_static::lazy_static;
 
-lazy_static! {
-    pub static ref BUILTIN: HashMap<&'static str, Box<dyn Chip + Send + Sync>> = [
-        ("Nand", Box::new(Nand) as Box<dyn Chip + Send + Sync>),
-    ].into_iter().collect();
+pub fn get_builtin(name: &str) -> Option<Box<dyn Chip>> {
+    match name {
+        "Nand" => Some(Box::new(Nand)),
+        _ => None,
+    }
 }
 
+#[derive(Clone)]
 struct Nand;
 impl Chip for Nand {
     fn interface(&self) -> Interface {
@@ -21,7 +21,7 @@ impl Chip for Nand {
             ]
             .into_iter()
             .collect(),
-            com_out: once(("out".to_string(), BusRange {start: 1, end: 1})).collect(),
+            com_out: once(("out".to_string(), BusRange { start: 1, end: 1 })).collect(),
             seq_in: Default::default(),
             seq_out: Default::default(),
         }
