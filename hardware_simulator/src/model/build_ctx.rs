@@ -14,7 +14,7 @@ struct Context {
 #[cached(
     key = "(String, PathBuf)",
     convert = "{(target.to_string(), path.to_path_buf())}",
-    option = true,
+    option = true
 )]
 fn resolve_hdl_file(target: &str, path: &Path) -> Option<PathBuf> {
     if path.is_dir() {
@@ -44,11 +44,11 @@ impl Context {
             let path = resolve_hdl_file(target, &self.root)?;
             let str = fs::read_to_string(path).ok()?;
             let buf = Span::from(str.as_str());
-            Some(self.add_hdl(chip(buf).ok()?.1))
+            Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
         }
     }
 
-    pub fn add_hdl(&self, chip_repr: ChipRepr) -> Box<dyn Chip> {
+    pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
         todo!()
     }
 }
