@@ -31,6 +31,6 @@ impl Chip for Nand {
         // nothing
     }
     fn eval(&mut self, pins: &[bool]) -> Vec<bool> {
-        vec![(!pins[0]) && (!pins[1])]
+        vec![!(pins[0] && pins[1])]
     }
 }
