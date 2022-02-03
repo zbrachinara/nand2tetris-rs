@@ -12,7 +12,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-struct Context {
+pub struct Context {
     root: PathBuf,
 }
 
@@ -42,6 +42,13 @@ fn resolve_hdl_file(target: &str, path: &Path) -> Option<PathBuf> {
 }
 
 impl Context {
+
+    pub fn new(path: impl AsRef<Path>) -> Self {
+        Self {
+            root: path.as_ref().to_path_buf(),
+        }
+    }
+
     pub fn resolve_chip(&self, target: &str) -> Option<Box<dyn Chip>> {
         let path = resolve_hdl_file(target, &self.root)?;
         let str = fs::read_to_string(path).ok()?;
