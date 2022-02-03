@@ -17,7 +17,6 @@ pub struct Context {
 }
 
 fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<PathBuf> {
-
     #[cached(
         key = "(String, PathBuf)",
         convert = "{(target.to_string(), path.to_path_buf())}",
@@ -75,6 +74,7 @@ impl Context {
         match &chip_repr.logic {
             Implementation::Native(connections) => {
                 // instantiate all chips this chip depends on
+                dbg!(connections);
 
                 // get list of all pins and their connections
                 // This is done by checking in which `Connection` the name of the pin appears
@@ -96,26 +96,26 @@ impl Context {
                                         .or_insert(vec![v]);
                                 };
 
-                                insert(
-                                    internal.to_string(),
-                                    (index, interface.real_range(internal, internal_bus.clone())?),
-                                );
-
+                                // TODO: Handle output pin indexing
                                 if let Symbol::Name(external) = external {
                                     insert(
                                         external.to_string(),
                                         (
                                             index,
-                                            interface.real_range(external, external_bus.clone())?,
+                                            interface.real_range(internal, internal_bus.clone())?,
                                         ),
                                     )
                                 }
+
+                                println!("On chip decl {index}, state of pin map is {pins:?}");
 
                                 Ok(())
                             },
                         );
                     },
                 );
+
+                println!("{pins:?}");
 
                 // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
 
