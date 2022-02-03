@@ -1,7 +1,7 @@
+use crate::bus_range::BusRange;
 use crate::parser::{Builtin, Chip, Implementation, Pin};
 use crate::Span;
 use std::collections::HashMap;
-use crate::bus_range::BusRange;
 
 type PinMap = HashMap<String, BusRange>;
 
@@ -69,15 +69,49 @@ impl<'a> Chip<'a> {
     }
 }
 
+impl Interface {
+    fn real_range(&self, name: &str, relative: BusRange) -> Result<BusRange, ()> {
+        let mut all = self
+            .com_in
+            .iter()
+            .chain(self.com_out.iter())
+            .chain(self.seq_in.iter())
+            .chain(self.seq_out.iter());
+        let raw = all
+            .find(|(n, range)| n.as_str() == name)
+            .map(|(_, range)| range)
+            .ok_or(())?;
+        if raw.size() < relative.size() {
+            return Err(());
+        }
+        // offset the provided relative range
+        Ok(BusRange {
+            start: raw.start + relative.start,
+            end: raw.start + relative.end,
+        })
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::parser::chip;
     use std::iter::once;
 
+    const COM_CHIP: &'static str = include_str!("And16.hdl");
+    const SEQ_CHIP: &'static str = include_str!("DFF.hdl");
+    const EXAMPLE_CHIP: &'static str = "\
+CHIP test {
+    IN a[2], b[2], c[3];
+    OUT d;
+    BUILTIN bruh;
+    CLOCKED b, c;
+}
+        ";
+
     #[test]
     fn test_gen_interface() {
-        let (_, com_chip) = chip(Span::from(include_str!("And16.hdl"))).unwrap();
+        let (_, com_chip) = chip(Span::from(COM_CHIP)).unwrap();
         assert_eq!(
             com_chip.interface(),
             Interface {
@@ -95,7 +129,7 @@ mod test {
             }
         );
 
-        let (_, seq_chip) = chip(Span::from(include_str!("DFF.hdl"))).unwrap();
+        let (_, seq_chip) = chip(Span::from(SEQ_CHIP)).unwrap();
         assert_eq!(
             seq_chip.interface(),
             Interface {
@@ -106,17 +140,7 @@ mod test {
             }
         );
 
-        let (_, example_chip) = chip(Span::from(
-            "\
-CHIP test {
-    IN a[2], b[2], c[3];
-    OUT d;
-    BUILTIN bruh;
-    CLOCKED b, c;
-}
-        ",
-        ))
-        .unwrap();
+        let (_, example_chip) = chip(Span::from(EXAMPLE_CHIP)).unwrap();
         assert_eq!(
             example_chip.interface(),
             Interface {
@@ -131,5 +155,16 @@ CHIP test {
                 seq_out: Default::default()
             }
         )
+    }
+
+    #[test]
+    fn test_real_range() {
+        let (_, com_chip) = chip(Span::from(COM_CHIP)).unwrap();
+        assert_eq!(
+            com_chip
+                .interface()
+                .real_range("b", BusRange { start: 0, end: 7 }),
+            Ok(BusRange { start: 16, end: 23 })
+        );
     }
 }
