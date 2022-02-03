@@ -1,6 +1,7 @@
 
 use petgraph::Graph;
 use crate::model::Chip;
+use crate::parser::Interface;
 
 pub enum Conn {
     Combinatorial {
@@ -14,4 +15,18 @@ pub enum Conn {
 
 pub struct NativeChip {
     conn_graph: Graph<Box<dyn Chip>, Conn>,
+}
+
+impl Chip for NativeChip {
+    fn interface(&self) -> Interface {
+        todo!()
+    }
+
+    fn clock(&mut self) {
+        todo!()
+    }
+
+    fn eval(&mut self, _: &[bool]) -> Vec<bool> {
+        todo!()
+    }
 }
