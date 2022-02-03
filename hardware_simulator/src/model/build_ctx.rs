@@ -16,29 +16,34 @@ pub struct Context {
     root: PathBuf,
 }
 
-#[cached(
-    key = "(String, PathBuf)",
-    convert = "{(target.to_string(), path.to_path_buf())}",
-    option = true
-)]
-fn resolve_hdl_file(target: &str, path: &Path) -> Option<PathBuf> {
-    if path.is_dir() {
-        path.read_dir()
-            .ok()?
-            .filter_map(|res| res.ok())
-            .filter_map(|dir_entry| resolve_hdl_file(target, &dir_entry.path()))
-            .next()
-    } else if path.is_file() {
-        if path.extension() == Some(OsStr::new("hdl"))
-            && path.file_name() == Some(OsStr::new(target))
-        {
-            Some(path.to_path_buf())
+fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<PathBuf> {
+
+    #[cached(
+        key = "(String, PathBuf)",
+        convert = "{(target.to_string(), path.to_path_buf())}",
+        option = true
+    )]
+    fn inner(target: &str, path: &Path) -> Option<PathBuf> {
+        if path.is_dir() {
+            path.read_dir()
+                .ok()?
+                .filter_map(|res| res.ok())
+                .filter_map(|dir_entry| resolve_hdl_file(target, &dir_entry.path()))
+                .next()
+        } else if path.is_file() {
+            if path.extension() == Some(OsStr::new("hdl"))
+                && path.file_name() == Some(OsStr::new(target))
+            {
+                Some(path.to_path_buf())
+            } else {
+                None
+            }
         } else {
             None
         }
-    } else {
-        None
     }
+
+    inner(target, path.as_ref())
 }
 
 impl Context {
