@@ -52,6 +52,10 @@ impl Context {
         }
     }
 
+    fn resolve_chip_maybe_builtin(&self, target: &str) -> Option<Box<dyn Chip>> {
+        get_builtin(target).or_else(|| self.resolve_chip(target))
+    }
+
     pub fn resolve_chip(&self, target: &str) -> Option<Box<dyn Chip>> {
         let path = resolve_hdl_file(target, &self.root)?;
         let str = fs::read_to_string(path).ok()?;
@@ -59,22 +63,16 @@ impl Context {
         Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
     }
 
-    pub fn resolve_interface(&self, target: &str) -> Option<Interface> {
-        if let Some(chip) = get_builtin(target) {
-            Some(chip.interface())
-        } else {
-            let path = resolve_hdl_file(target, &self.root)?;
-            let str = fs::read_to_string(path).ok()?;
-            let buf = Span::from(str.as_str());
-            Some(chip(buf).ok()?.1.interface())
-        }
-    }
-
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
         match &chip_repr.logic {
             Implementation::Native(connections) => {
                 // instantiate all chips this chip depends on
-                dbg!(connections);
+                let dependents = connections
+                    .iter()
+                    .filter_map(|Connection { chip_name, .. }| {
+                        self.resolve_chip_maybe_builtin(**chip_name)
+                    })
+                    .collect_vec();
 
                 // get list of all pins and their connections
                 // This is done by checking in which `Connection` the name of the pin appears
@@ -88,7 +86,7 @@ impl Context {
                                  external,
                                  external_bus,
                              }| {
-                                let interface = self.resolve_interface(chip_name).ok_or(())?;
+                                let interface = dependents[index].interface();
 
                                 let mut insert = |k: String, v: (usize, BusRange)| {
                                     pins.entry(k)
@@ -106,8 +104,6 @@ impl Context {
                                         ),
                                     )
                                 }
-
-                                println!("On chip decl {index}, state of pin map is {pins:?}");
 
                                 Ok(())
                             },
