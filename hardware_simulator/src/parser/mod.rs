@@ -10,7 +10,7 @@ mod symbols;
 
 pub use chip::chip;
 pub use interface::Interface;
-use symbols::Symbol;
+pub use symbols::Symbol;
 use crate::bus_range::BusRange;
 
 type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;

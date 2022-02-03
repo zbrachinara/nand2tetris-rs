@@ -70,7 +70,7 @@ impl<'a> Chip<'a> {
 }
 
 impl Interface {
-    fn real_range(&self, name: &str, relative: Option<BusRange>) -> Result<BusRange, ()> {
+    pub fn real_range(&self, name: &str, relative: Option<BusRange>) -> Result<BusRange, ()> {
         let mut all = self
             .com_in
             .iter()
@@ -78,7 +78,7 @@ impl Interface {
             .chain(self.seq_in.iter())
             .chain(self.seq_out.iter());
         let raw = all
-            .find(|(n, range)| n.as_str() == name)
+            .find(|(n, _)| n.as_str() == name)
             .map(|(_, range)| range)
             .ok_or(())?;
         if let Some(relative) = relative {
