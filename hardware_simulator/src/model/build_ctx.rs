@@ -32,7 +32,7 @@ fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<PathBuf> {
                 .next()
         } else if path.is_file() {
             if path.extension() == Some(OsStr::new("hdl"))
-                && path.file_name() == Some(OsStr::new(target))
+                && path.file_stem() == Some(OsStr::new(target))
             {
                 Some(path.to_path_buf())
             } else {
