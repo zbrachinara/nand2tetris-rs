@@ -70,7 +70,7 @@ impl<'a> Chip<'a> {
 }
 
 impl Interface {
-    fn real_range(&self, name: &str, relative: BusRange) -> Result<BusRange, ()> {
+    fn real_range(&self, name: &str, relative: Option<BusRange>) -> Result<BusRange, ()> {
         let mut all = self
             .com_in
             .iter()
@@ -81,14 +81,18 @@ impl Interface {
             .find(|(n, range)| n.as_str() == name)
             .map(|(_, range)| range)
             .ok_or(())?;
-        if raw.size() < relative.size() {
-            return Err(());
+        if let Some(relative) = relative {
+            if raw.size() < relative.size() {
+                return Err(());
+            }
+            // offset the provided relative range
+            Ok(BusRange {
+                start: raw.start + relative.start,
+                end: raw.start + relative.end,
+            })
+        } else {
+            Ok(raw.clone())
         }
-        // offset the provided relative range
-        Ok(BusRange {
-            start: raw.start + relative.start,
-            end: raw.start + relative.end,
-        })
     }
 }
 
@@ -163,8 +167,12 @@ CHIP test {
         assert_eq!(
             com_chip
                 .interface()
-                .real_range("b", BusRange { start: 0, end: 7 }),
+                .real_range("b", Some(BusRange { start: 0, end: 7 })),
             Ok(BusRange { start: 16, end: 23 })
         );
+        assert_eq!(
+            com_chip.interface().real_range("b", None),
+            Ok(BusRange { start: 16, end: 31 })
+        )
     }
 }
