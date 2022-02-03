@@ -1,6 +1,6 @@
 use crate::model::builtin::get_builtin;
 use crate::model::Chip;
-use crate::parser::{chip, Chip as ChipRepr};
+use crate::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::Span;
 use cached::proc_macro::cached;
 use std::ffi::OsStr;
@@ -49,6 +49,20 @@ impl Context {
     }
 
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
-        todo!()
+        match &chip_repr.logic {
+            Implementation::Native(_connections) => {
+                // get all chip names this chip depends on, and assign unique names (probably a u32)
+
+                // get list of all pins and their connections
+
+                // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
+
+                // starting from the output pins, build a graph of all connections between chips
+                // should work recursively, but also be aware of chips which were already found
+
+                todo!()
+            }
+            Implementation::Builtin(Builtin { name, .. }) => get_builtin(**name).ok_or(()),
+        }
     }
 }
