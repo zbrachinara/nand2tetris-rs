@@ -70,9 +70,9 @@ impl<'a> Chip<'a> {
 
 #[cfg(test)]
 mod test {
-    use std::iter::once;
     use super::*;
     use crate::parser::chip;
+    use std::iter::once;
 
     #[test]
     fn test_gen_interface() {
@@ -101,6 +101,32 @@ mod test {
                 com_in: Default::default(),
                 com_out: once(("out".to_string(), BusRange { start: 0, end: 0 })).collect(),
                 seq_in: once(("in".to_string(), BusRange { start: 0, end: 0 })).collect(),
+                seq_out: Default::default()
+            }
+        );
+
+        let (_, example_chip) = chip(Span::from(
+            "\
+CHIP test {
+    IN a[2], b[2], c[3];
+    OUT d;
+    BUILTIN bruh;
+    CLOCKED b, c;
+}
+        ",
+        ))
+        .unwrap();
+        assert_eq!(
+            example_chip.interface(),
+            Interface {
+                com_in: once(("a".to_string(), BusRange { start: 5, end: 6 })).collect(),
+                com_out: once(("d".to_string(), BusRange { start: 0, end: 0 })).collect(),
+                seq_in: [
+                    ("b".to_string(), BusRange { start: 0, end: 1 }),
+                    ("c".to_string(), BusRange { start: 2, end: 4 }),
+                ]
+                .into_iter()
+                .collect(),
                 seq_out: Default::default()
             }
         )
