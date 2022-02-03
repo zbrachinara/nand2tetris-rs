@@ -1,8 +1,13 @@
+use crate::bus_range::BusRange;
 use crate::model::builtin::get_builtin;
 use crate::model::Chip;
-use crate::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
+use crate::parser::{
+    chip, Argument, Builtin, Chip as ChipRepr, Connection, Implementation, Interface, Symbol,
+};
 use crate::Span;
 use cached::proc_macro::cached;
+use itertools::Itertools;
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -44,12 +49,58 @@ impl Context {
         Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
     }
 
+    pub fn resolve_interface(&self, target: &str) -> Option<Interface> {
+        let path = resolve_hdl_file(target, &self.root)?;
+        let str = fs::read_to_string(path).ok()?;
+        let buf = Span::from(str.as_str());
+        Some(chip(buf).ok()?.1.interface())
+    }
+
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
         match &chip_repr.logic {
-            Implementation::Native(_connections) => {
-                // get all chip names this chip depends on, and assign unique names (probably a u32)
+            Implementation::Native(connections) => {
+                // instantiate all chips this chip depends on
 
                 // get list of all pins and their connections
+                // This is done by checking in which `Connection` the name of the pin appears
+                let mut pins: HashMap<String, Vec<(usize, BusRange)>> = HashMap::new();
+                connections.iter().enumerate().for_each(
+                    |(index, Connection { inputs, chip_name })| {
+                        let _ = inputs.iter().try_for_each::<_, Result<(), ()>>(
+                            |Argument {
+                                 internal,
+                                 internal_bus,
+                                 external,
+                                 external_bus,
+                             }| {
+                                let interface = self.resolve_interface(chip_name).ok_or(())?;
+
+                                let mut insert = |k: String, v: (usize, BusRange)| {
+                                    pins.entry(k)
+                                        .and_modify(|e| e.push(v.clone()))
+                                        .or_insert(vec![v]);
+                                };
+
+                                insert(
+                                    internal.to_string(),
+                                    (index, interface.real_range(internal, internal_bus.clone())?),
+                                );
+
+                                if let Symbol::Name(external) = external {
+                                    insert(
+                                        external.to_string(),
+                                        (
+                                            index,
+                                            interface.real_range(external, external_bus.clone())?,
+                                        ),
+                                    )
+                                }
+
+                                Ok(())
+                            },
+                        );
+                    },
+                );
 
                 // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
 
