@@ -1,6 +1,7 @@
 use crate::parser::{Builtin, Chip, Implementation, Pin};
-use crate::{BusRange, Span};
+use crate::Span;
 use std::collections::HashMap;
+use crate::bus_range::BusRange;
 
 type PinMap = HashMap<String, BusRange>;
 

@@ -1,13 +1,8 @@
 #![allow(dead_code)] // TODO: remove
 
-mod parser;
-mod model;
 mod ir;
+mod model;
+mod parser;
+mod bus_range;
 
 type Span<'a> = nom_locate::LocatedSpan<&'a str>;
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct BusRange {
-    pub start: u16,
-    pub end: u16,
-}

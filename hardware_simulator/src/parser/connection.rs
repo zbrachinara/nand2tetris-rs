@@ -1,5 +1,5 @@
 use crate::parser::symbols::{convert_num, generic_space0, name, skip_comma, spaced, symbol};
-use crate::BusRange;
+use crate::bus_range::BusRange;
 use nom::branch::alt;
 use nom::bytes::complete::is_not;
 use nom::character::complete::digit1;

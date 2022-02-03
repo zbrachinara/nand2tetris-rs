@@ -1,4 +1,4 @@
-use crate::{BusRange, Span};
+use crate::Span;
 use nom_supreme::error::ErrorTree;
 use thiserror::Error;
 
@@ -11,6 +11,7 @@ mod symbols;
 pub use chip::chip;
 pub use interface::Interface;
 use symbols::Symbol;
+use crate::bus_range::BusRange;
 
 type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;
 
