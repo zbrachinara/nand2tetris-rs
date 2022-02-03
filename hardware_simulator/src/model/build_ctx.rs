@@ -128,3 +128,18 @@ impl Context {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn general() {
+        let mut dir = std::env::current_dir().unwrap();
+        println!("{dir:?}");
+        dir.push("../test_files");
+
+        let ctx = Context::new(dir);
+        assert!(matches!(ctx.resolve_chip("And"), Some(_)));
+    }
+}
