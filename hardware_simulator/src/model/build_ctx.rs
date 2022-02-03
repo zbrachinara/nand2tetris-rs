@@ -38,14 +38,10 @@ fn resolve_hdl_file(target: &str, path: &Path) -> Option<PathBuf> {
 
 impl Context {
     pub fn resolve_chip(&self, target: &str) -> Option<Box<dyn Chip>> {
-        if let Some(chip) = get_builtin(target) {
-            Some(chip)
-        } else {
-            let path = resolve_hdl_file(target, &self.root)?;
-            let str = fs::read_to_string(path).ok()?;
-            let buf = Span::from(str.as_str());
-            Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
-        }
+        let path = resolve_hdl_file(target, &self.root)?;
+        let str = fs::read_to_string(path).ok()?;
+        let buf = Span::from(str.as_str());
+        Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
     }
 
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
