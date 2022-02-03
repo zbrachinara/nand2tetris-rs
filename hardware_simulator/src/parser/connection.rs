@@ -1,3 +1,6 @@
+use crate::parser::symbols::{convert_num, generic_space0, name, skip_comma, spaced, symbol};
+use crate::BusRange;
+use nom::branch::alt;
 use nom::bytes::complete::is_not;
 use nom::character::complete::digit1;
 use nom::character::streaming::char;
@@ -8,7 +11,6 @@ use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
 use nom_supreme::tag::complete::tag;
-use crate::BusRange;
 
 use super::*;
 
