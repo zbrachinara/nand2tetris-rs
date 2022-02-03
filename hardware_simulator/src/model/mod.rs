@@ -2,6 +2,7 @@ use crate::parser::Interface;
 
 mod build_ctx;
 mod builtin;
+mod native;
 
 pub trait Chip {
     fn interface(&self) -> Interface;
