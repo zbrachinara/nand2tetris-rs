@@ -2,7 +2,7 @@
 use petgraph::Graph;
 use crate::model::Chip;
 
-enum Conn {
+pub enum Conn {
     Combinatorial {
         buf: Vec<bool>,
     },
@@ -12,6 +12,6 @@ enum Conn {
     },
 }
 
-struct NativeChip {
+pub struct NativeChip {
     conn_graph: Graph<Box<dyn Chip>, Conn>,
 }
