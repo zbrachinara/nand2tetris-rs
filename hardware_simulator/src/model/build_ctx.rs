@@ -16,13 +16,9 @@ pub struct Context {
     root: PathBuf,
 }
 
-fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<PathBuf> {
-    #[cached(
-        key = "String",
-        convert = "{target.to_string()}",
-        option = true
-    )]
-    fn inner(target: &str, path: &Path) -> Option<PathBuf> {
+fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<String> {
+    #[cached(key = "String", convert = "{target.to_string()}", option = true)]
+    fn inner(target: &str, path: &Path) -> Option<String> {
         if path.is_dir() {
             path.read_dir()
                 .ok()?
@@ -33,7 +29,7 @@ fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<PathBuf> {
             if path.extension() == Some(OsStr::new("hdl"))
                 && path.file_stem() == Some(OsStr::new(target))
             {
-                Some(path.to_path_buf())
+                Some(fs::read_to_string(path).unwrap())
             } else {
                 None
             }
@@ -98,8 +94,8 @@ impl Context {
     }
 
     pub fn resolve_chip(&self, target: &str) -> Option<Box<dyn Chip>> {
-        let path = resolve_hdl_file(target, &self.root)?;
-        let str = fs::read_to_string(path).ok()?;
+        let str = resolve_hdl_file(target, &self.root)?;
+        // let str = fs::read_to_string(path).ok()?;
         let buf = Span::from(str.as_str());
         Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
     }
