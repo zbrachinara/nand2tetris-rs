@@ -71,13 +71,12 @@ impl<'a> Chip<'a> {
 
 impl Interface {
     pub fn real_range(&self, name: &str, relative: Option<BusRange>) -> Result<BusRange, ()> {
-        let mut all = self
+        let raw = self
             .com_in
             .iter()
             .chain(self.com_out.iter())
             .chain(self.seq_in.iter())
-            .chain(self.seq_out.iter());
-        let raw = all
+            .chain(self.seq_out.iter())
             .find(|(n, _)| n.as_str() == name)
             .map(|(_, range)| range)
             .ok_or(())?;
