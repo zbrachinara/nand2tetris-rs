@@ -1,7 +1,7 @@
 
 use petgraph::Graph;
 use crate::model::Chip;
-use crate::parser::Interface;
+use crate::parser::interface::Interface;
 
 pub enum Conn {
     Combinatorial {

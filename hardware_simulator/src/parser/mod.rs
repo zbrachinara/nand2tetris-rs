@@ -4,7 +4,7 @@ use thiserror::Error;
 
 mod chip;
 mod connection;
-mod interface;
+pub(crate) mod interface;
 mod pin_decl;
 mod symbols;
 
