@@ -71,6 +71,7 @@ struct ConstVChip {
 
 impl ConstVChip {
     fn from_number(mut n: usize, channel_size: u16, name: String) -> Self {
+        // TODO: assert that n fits within the channel
         let value = {
             let mut bits = Vec::new();
             while n > 0 {
