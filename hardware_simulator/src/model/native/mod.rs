@@ -6,6 +6,7 @@ use crate::model::Chip;
 use crate::parser::interface::Interface;
 
 pub use build::*;
+pub use vchip::*;
 
 pub enum Conn {
     Combinatorial {
