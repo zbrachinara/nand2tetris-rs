@@ -1,6 +1,6 @@
+use crate::bus_range::BusRange;
 use crate::model::Chip;
 use crate::parser::Interface;
-use crate::bus_range::BusRange;
 use std::iter::once;
 
 pub fn get_builtin(name: &str) -> Option<Box<dyn Chip>> {
@@ -10,7 +10,6 @@ pub fn get_builtin(name: &str) -> Option<Box<dyn Chip>> {
     }
 }
 
-#[derive(Clone)]
 struct Nand;
 impl Chip for Nand {
     fn interface(&self) -> Interface {
