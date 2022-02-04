@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 type PinMap = HashMap<String, BusRange>;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Default)]
 pub struct Interface {
     pub com_in: PinMap,
     pub com_out: PinMap,
