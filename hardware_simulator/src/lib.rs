@@ -2,7 +2,6 @@
 
 mod ir;
 mod model;
-mod parser;
 mod bus_range;
 
 type Span<'a> = nom_locate::LocatedSpan<&'a str>;

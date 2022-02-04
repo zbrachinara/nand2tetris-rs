@@ -1,4 +1,4 @@
-use crate::parser::symbols::{convert_num, generic_space0, name, skip_comma, spaced, symbol};
+use super::symbols::{convert_num, generic_space0, name, skip_comma, spaced, symbol};
 use crate::bus_range::BusRange;
 use nom::branch::alt;
 use nom::bytes::complete::is_not;

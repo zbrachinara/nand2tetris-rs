@@ -1,5 +1,5 @@
 use crate::bus_range::BusRange;
-use crate::parser::{Builtin, Chip, Implementation, Pin};
+use super::{Builtin, Chip, Implementation, Pin};
 use crate::Span;
 use std::collections::HashMap;
 
@@ -98,7 +98,7 @@ impl Interface {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parser::chip;
+    use crate::model::parser::chip;
     use std::iter::once;
 
     const COM_CHIP: &'static str = include_str!("And16.hdl");

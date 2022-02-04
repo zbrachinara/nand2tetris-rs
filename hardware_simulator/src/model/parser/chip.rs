@@ -1,7 +1,7 @@
-use crate::parser::connection::connection;
-use crate::parser::pin_decl::{in_pin_decl, out_pin_decl};
-use crate::parser::symbols::{name, spaced};
-use crate::parser::{Builtin, Chip, Connection, HdlParseError, Implementation, PResult, Span};
+use super::connection::connection;
+use super::pin_decl::{in_pin_decl, out_pin_decl};
+use super::symbols::{name, spaced};
+use super::{Builtin, Chip, Connection, HdlParseError, Implementation, PResult, Span};
 use nom::character::complete::char;
 use nom::combinator::opt;
 use nom::multi::{many1, separated_list0};
@@ -66,8 +66,8 @@ pub fn chip(arg: Span) -> PResult<Chip> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parser::symbols::Symbol;
-    use crate::parser::Argument;
+    use crate::model::parser::symbols::Symbol;
+    use crate::model::parser::Argument;
 
     #[test]
     fn test_builtin() {

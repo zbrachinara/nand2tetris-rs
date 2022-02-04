@@ -3,7 +3,7 @@ mod vchip;
 
 use petgraph::Graph;
 use crate::model::Chip;
-use crate::parser::interface::Interface;
+use super::parser::interface::Interface;
 
 pub use build::*;
 pub use vchip::*;

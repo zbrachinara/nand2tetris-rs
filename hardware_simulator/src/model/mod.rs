@@ -1,8 +1,9 @@
-use crate::parser::Interface;
+use parser::Interface;
 
 mod build_ctx;
 mod builtin;
 mod native;
+mod parser;
 
 pub trait Chip {
     fn interface(&self) -> Interface;

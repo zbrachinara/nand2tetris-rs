@@ -1,6 +1,6 @@
 use crate::bus_range::BusRange;
 use crate::model::Chip;
-use crate::parser::Interface;
+use super::parser::Interface;
 use std::iter::once;
 
 pub fn get_builtin(name: &str) -> Option<Box<dyn Chip>> {

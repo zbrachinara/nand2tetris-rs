@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 use crate::bus_range::BusRange;
 use crate::model::Chip;
-use crate::parser::Interface;
+use crate::model::parser::Interface;
 use std::iter::once;
 
 fn all_out(size: u16, name: String) -> Interface {

@@ -1,5 +1,5 @@
-use crate::parser::symbols::{convert_num, generic_space0, name, skip_comma, spaced};
-use crate::parser::*;
+use super::symbols::*;
+use super::*;
 use nom::character::complete::{char, digit1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;

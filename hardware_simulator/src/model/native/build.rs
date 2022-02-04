@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::bus_range::BusRange;
 use crate::model::Chip;
-use crate::parser::{Argument, Connection, Symbol};
+use crate::model::parser::{Argument, Connection, Symbol};
 
 pub fn connections_by_pin(
     connections: &Vec<Connection>,
