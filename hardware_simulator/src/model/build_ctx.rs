@@ -18,8 +18,8 @@ pub struct Context {
 
 fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<PathBuf> {
     #[cached(
-        key = "(String, PathBuf)",
-        convert = "{(target.to_string(), path.to_path_buf())}",
+        key = "String",
+        convert = "{target.to_string()}",
         option = true
     )]
     fn inner(target: &str, path: &Path) -> Option<PathBuf> {
