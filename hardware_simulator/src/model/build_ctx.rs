@@ -2,7 +2,7 @@ use crate::bus_range::BusRange;
 use crate::model::builtin::get_builtin;
 use crate::model::Chip;
 use crate::parser::{
-    chip, Argument, Builtin, Chip as ChipRepr, Connection, Implementation, Interface, Symbol,
+    chip, Argument, Builtin, Chip as ChipRepr, Connection, Implementation, Symbol,
 };
 use crate::Span;
 use cached::proc_macro::cached;
@@ -45,6 +45,47 @@ fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<PathBuf> {
     inner(target, path.as_ref())
 }
 
+fn connections_by_pin(
+    connections: &Vec<Connection>,
+    dependents: &Vec<Box<dyn Chip>>,
+) -> HashMap<String, Vec<(usize, BusRange)>> {
+    let mut pin_map = HashMap::new();
+
+    let mut insert = |k: String, v: (usize, BusRange)| {
+        pin_map
+            .entry(k)
+            .and_modify(|e: &mut Vec<_>| e.push(v.clone()))
+            .or_insert(vec![v]);
+    };
+
+    connections
+        .iter()
+        .enumerate()
+        .for_each(|(index, Connection { inputs, .. })| {
+            let interface = dependents[index].interface();
+            let _ = inputs.iter().try_for_each::<_, Result<(), ()>>(
+                |Argument {
+                     internal,
+                     internal_bus,
+                     external,
+                     ..
+                 }| {
+                    // TODO: Handle output pin indexing
+                    if let Symbol::Name(external) = external {
+                        insert(
+                            external.to_string(),
+                            (index, interface.real_range(internal, internal_bus.clone())?),
+                        )
+                    }
+
+                    Ok(())
+                },
+            );
+        });
+
+    pin_map
+}
+
 impl Context {
     pub fn new(path: impl AsRef<Path>) -> Self {
         Self {
@@ -76,40 +117,7 @@ impl Context {
 
                 // get list of all pins and their connections
                 // This is done by checking in which `Connection` the name of the pin appears
-                let mut pins: HashMap<String, Vec<(usize, BusRange)>> = HashMap::new();
-                connections.iter().enumerate().for_each(
-                    |(index, Connection { inputs, chip_name })| {
-                        let _ = inputs.iter().try_for_each::<_, Result<(), ()>>(
-                            |Argument {
-                                 internal,
-                                 internal_bus,
-                                 external,
-                                 external_bus,
-                             }| {
-                                let interface = dependents[index].interface();
-
-                                let mut insert = |k: String, v: (usize, BusRange)| {
-                                    pins.entry(k)
-                                        .and_modify(|e| e.push(v.clone()))
-                                        .or_insert(vec![v]);
-                                };
-
-                                // TODO: Handle output pin indexing
-                                if let Symbol::Name(external) = external {
-                                    insert(
-                                        external.to_string(),
-                                        (
-                                            index,
-                                            interface.real_range(internal, internal_bus.clone())?,
-                                        ),
-                                    )
-                                }
-
-                                Ok(())
-                            },
-                        );
-                    },
-                );
+                let pins = connections_by_pin(connections, &dependents);
 
                 println!("{pins:?}");
 
