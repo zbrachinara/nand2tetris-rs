@@ -29,12 +29,20 @@ pub fn connections_by_pin(
                      ..
                  }| {
                     // TODO: Handle output pin indexing
-                    if let Symbol::Name(external) = external {
-                        insert(
-                            external.to_string(),
-                            (index, interface.real_range(internal, internal_bus.clone())?),
-                        )
-                    }
+                    match external {
+                        Symbol::Name(external) => {
+                            insert(
+                                external.to_string(),
+                                (index, interface.real_range(internal, internal_bus.clone())?),
+                            )
+                        }
+                        Symbol::Value(v) => {
+                            todo!()
+                        }
+                        Symbol::Number(n) => {
+                            todo!()
+                        }
+                    };
 
                     Ok(())
                 },
