@@ -1,7 +1,7 @@
 use crate::model::builtin::get_builtin;
-use crate::model::native::connections_by_pin;
+use crate::model::native::{BusVChip, connections_by_pin};
 use crate::model::Chip;
-use crate::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation};
+use crate::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation, Interface};
 use crate::Span;
 use cached::proc_macro::cached;
 use itertools::Itertools;
@@ -58,6 +58,13 @@ impl Context {
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
         match &chip_repr.logic {
             Implementation::Native(connections) => {
+
+                println!("Evaluating {}", chip_repr.name);
+
+                let Interface { com_in, com_out, .. } = chip_repr.interface();
+                let (input, output) = (BusVChip::new_in(com_in), BusVChip::new_out(com_out));
+                println!("External interface: \n{input:?}\n{output:?}");
+
                 // instantiate all chips this chip depends on
                 let dependents = connections
                     .iter()
@@ -95,6 +102,6 @@ mod test {
         dir.push("../test_files");
 
         let ctx = Context::new(dir);
-        assert!(matches!(ctx.resolve_chip("And"), Some(_)));
+        assert!(matches!(ctx.resolve_chip("DMux8Way"), Some(_)));
     }
 }
