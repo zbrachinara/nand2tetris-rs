@@ -1,7 +1,10 @@
+mod build;
 
 use petgraph::Graph;
 use crate::model::Chip;
 use crate::parser::interface::Interface;
+
+pub use build::*;
 
 pub enum Conn {
     Combinatorial {

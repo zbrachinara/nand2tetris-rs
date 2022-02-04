@@ -1,13 +1,10 @@
-use crate::bus_range::BusRange;
 use crate::model::builtin::get_builtin;
+use crate::model::native::connections_by_pin;
 use crate::model::Chip;
-use crate::parser::{
-    chip, Argument, Builtin, Chip as ChipRepr, Connection, Implementation, Symbol,
-};
+use crate::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation};
 use crate::Span;
 use cached::proc_macro::cached;
 use itertools::Itertools;
-use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -41,47 +38,6 @@ fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<String> {
     inner(target, path.as_ref())
 }
 
-fn connections_by_pin(
-    connections: &Vec<Connection>,
-    dependents: &Vec<Box<dyn Chip>>,
-) -> HashMap<String, Vec<(usize, BusRange)>> {
-    let mut pin_map = HashMap::new();
-
-    let mut insert = |k: String, v: (usize, BusRange)| {
-        pin_map
-            .entry(k)
-            .and_modify(|e: &mut Vec<_>| e.push(v.clone()))
-            .or_insert(vec![v]);
-    };
-
-    connections
-        .iter()
-        .enumerate()
-        .for_each(|(index, Connection { inputs, .. })| {
-            let interface = dependents[index].interface();
-            let _ = inputs.iter().try_for_each::<_, Result<(), ()>>(
-                |Argument {
-                     internal,
-                     internal_bus,
-                     external,
-                     ..
-                 }| {
-                    // TODO: Handle output pin indexing
-                    if let Symbol::Name(external) = external {
-                        insert(
-                            external.to_string(),
-                            (index, interface.real_range(internal, internal_bus.clone())?),
-                        )
-                    }
-
-                    Ok(())
-                },
-            );
-        });
-
-    pin_map
-}
-
 impl Context {
     pub fn new(path: impl AsRef<Path>) -> Self {
         Self {
@@ -95,7 +51,6 @@ impl Context {
 
     pub fn resolve_chip(&self, target: &str) -> Option<Box<dyn Chip>> {
         let str = resolve_hdl_file(target, &self.root)?;
-        // let str = fs::read_to_string(path).ok()?;
         let buf = Span::from(str.as_str());
         Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
     }
