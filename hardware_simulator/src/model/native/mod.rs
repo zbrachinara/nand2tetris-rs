@@ -1,4 +1,5 @@
 mod build;
+mod vchip;
 
 use petgraph::Graph;
 use crate::model::Chip;
