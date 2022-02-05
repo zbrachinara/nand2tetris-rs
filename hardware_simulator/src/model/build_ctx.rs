@@ -1,5 +1,5 @@
 use crate::model::builtin::get_builtin;
-use crate::model::native::{build::connections_by_pin, vchip::BusVChip};
+use crate::model::native::{build::connections_by_pin, vchip::VirtualBus};
 use crate::model::Chip;
 use super::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation, Interface};
 use crate::Span;
@@ -62,7 +62,7 @@ impl Context {
                 println!("Evaluating {}", chip_repr.name);
 
                 let Interface { com_in, com_out, .. } = chip_repr.interface();
-                let (input, output) = (BusVChip::new_in(com_in), BusVChip::new_out(com_out));
+                let (input, output) = (VirtualBus::new_in(com_in), VirtualBus::new_out(com_out));
                 println!("External interface: \n{input:?}\n{output:?}");
 
                 // instantiate all chips this chip depends on

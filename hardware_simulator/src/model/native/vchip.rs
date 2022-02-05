@@ -24,12 +24,12 @@ fn all_out(size: u16, name: String) -> Interface {
 
 /// Represents a bus. For edges which connect to IN or OUT pins, connect to these instead
 #[derive(Debug)]
-pub struct BusVChip {
+pub struct VirtualBus {
     size: u16,
     interface: Interface,
 }
 
-impl BusVChip {
+impl VirtualBus {
     pub fn new_in(h: HashMap<String, BusRange>) -> Self {
         Self {
             size: h.iter().map(|(_, x)| x.size()).sum(),
@@ -50,7 +50,7 @@ impl BusVChip {
     }
 }
 
-impl Chip for BusVChip {
+impl Chip for VirtualBus {
     fn interface(&self) -> Interface {
         self.interface.clone()
     }
@@ -64,12 +64,12 @@ impl Chip for BusVChip {
     }
 }
 
-struct ConstVChip {
+struct VirtualConst {
     value: Vec<bool>,
     interface: Interface,
 }
 
-impl ConstVChip {
+impl VirtualConst {
     fn from_number(mut n: usize, channel_size: u16, name: String) -> Self {
         // TODO: assert that n fits within the channel
         let value = {
@@ -80,20 +80,20 @@ impl ConstVChip {
             }
             bits
         };
-        ConstVChip {
+        VirtualConst {
             value,
             interface: all_out(channel_size, name),
         }
     }
     fn from_bool(b: bool, channel_size: u16, name: String) -> Self {
-        ConstVChip {
+        VirtualConst {
             value: vec![b; channel_size as usize],
             interface: all_out(channel_size, name),
         }
     }
 }
 
-impl Chip for ConstVChip {
+impl Chip for VirtualConst {
     fn interface(&self) -> Interface {
         self.interface.clone()
     }
