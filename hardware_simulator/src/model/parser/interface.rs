@@ -101,8 +101,8 @@ mod test {
     use crate::model::parser::chip;
     use std::iter::once;
 
-    const COM_CHIP: &'static str = include_str!("And16.hdl");
-    const SEQ_CHIP: &'static str = include_str!("DFF.hdl");
+    const COM_CHIP: &'static str = include_str!("../../../../test_files/And16.hdl");
+    const SEQ_CHIP: &'static str = include_str!("../../../../test_files/DFF.hdl");
     const EXAMPLE_CHIP: &'static str = "\
 CHIP test {
     IN a[2], b[2], c[3];

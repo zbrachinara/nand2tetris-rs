@@ -353,7 +353,7 @@ mod test {
 
     #[test]
     fn test_chip_parser_success() {
-        let res = chip(Span::new(include_str!("And16.hdl")));
+        let res = chip(Span::new(include_str!("../../../../test_files/And16.hdl")));
         println!("{res:#?}");
         assert!(matches!(res, Ok(_)))
     }
