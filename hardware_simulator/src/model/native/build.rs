@@ -78,10 +78,10 @@ pub fn edges_from_connections(
                         },
                     )
                 }
-                Symbol::Value(v) => {
+                Symbol::Value(_) => {
                     todo!()
                 }
-                Symbol::Number(n) => {
+                Symbol::Number(_) => {
                     todo!()
                 }
             };
