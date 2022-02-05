@@ -1,12 +1,9 @@
-mod build;
-mod vchip;
+pub mod build;
+pub mod vchip;
 
 use petgraph::Graph;
 use crate::model::Chip;
 use super::parser::interface::Interface;
-
-pub use build::*;
-pub use vchip::*;
 
 pub enum ConnEdge {
     Combinatorial {

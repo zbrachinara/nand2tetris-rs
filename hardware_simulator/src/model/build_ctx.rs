@@ -1,5 +1,5 @@
 use crate::model::builtin::get_builtin;
-use crate::model::native::{BusVChip, connections_by_pin};
+use crate::model::native::{build::connections_by_pin, vchip::BusVChip};
 use crate::model::Chip;
 use super::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation, Interface};
 use crate::Span;
