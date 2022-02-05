@@ -1,5 +1,5 @@
 use crate::bus_range::BusRange;
-use crate::model::parser::{Argument, Connection as ConnRepr, Interface, Symbol};
+use crate::model::parser::{self, Argument, Interface, Symbol};
 use crate::model::Chip;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
@@ -11,7 +11,7 @@ pub struct Endpoint {
 }
 
 pub fn edges_from_connections(
-    conn_names: &Vec<ConnRepr>,
+    conn_names: &Vec<parser::Connection>,
     dependents: &Vec<Box<dyn Chip>>,
     input_chip: &HashMap<String, BusRange>,
     output_chip: &HashMap<String, BusRange>,
@@ -27,7 +27,7 @@ pub fn edges_from_connections(
         }
     };
 
-    for (index, ConnRepr { inputs, .. }) in conn_names.iter().enumerate() {
+    for (index, parser::Connection { inputs, .. }) in conn_names.iter().enumerate() {
         let interface = dependents[index].interface();
         let _ = inputs.iter().try_for_each::<_, Result<(), ()>>(|argument| {
             let Argument {
