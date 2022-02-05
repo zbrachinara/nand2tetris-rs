@@ -8,7 +8,7 @@ use super::parser::interface::Interface;
 pub use build::*;
 pub use vchip::*;
 
-pub enum Conn {
+pub enum ConnEdge {
     Combinatorial {
         buf: Vec<bool>,
     },
@@ -19,7 +19,7 @@ pub enum Conn {
 }
 
 pub struct NativeChip {
-    conn_graph: Graph<Box<dyn Chip>, Conn>,
+    conn_graph: Graph<Box<dyn Chip>, ConnEdge>,
 }
 
 impl Chip for NativeChip {
