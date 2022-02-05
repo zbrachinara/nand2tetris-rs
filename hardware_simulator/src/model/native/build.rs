@@ -38,19 +38,17 @@ pub fn edges_from_connections(
             } = argument;
             match external {
                 Symbol::Name(external) => {
-                    let mut external = external.to_string();
-
-                    let raw = {
-                        let r = external.clone();
-                        external = if let Some(bus) = external_bus {
+                    let (external, raw) = {
+                        let r = **external;
+                        let external = if let Some(bus) = external_bus {
                             format!("{external}.{}.{}", bus.start, bus.end)
                         } else {
-                            external
+                            external.to_string()
                         };
-                        r
+                        (external, r)
                     };
 
-                    if input_chip.contains_key(&raw) {
+                    if input_chip.contains_key(raw) {
                         insert(
                             external.to_string(),
                             Endpoint {
@@ -60,7 +58,7 @@ pub fn edges_from_connections(
                                     .real_range(&raw, external_bus.clone())?,
                             },
                         )
-                    } else if output_chip.contains_key(&raw) {
+                    } else if output_chip.contains_key(raw) {
                         insert(
                             external.to_string(),
                             Endpoint {
