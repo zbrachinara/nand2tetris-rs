@@ -1,5 +1,5 @@
-use crate::bus_range::BusRange;
 use super::{Builtin, Chip, Implementation, Pin};
+use crate::bus_range::BusRange;
 use crate::Span;
 use std::collections::HashMap;
 
@@ -70,13 +70,21 @@ impl<'a> Chip<'a> {
 }
 
 impl Interface {
+    fn iter_inputs(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+        self.com_in.iter().chain(self.seq_in.iter())
+    }
+
+    fn iter_outputs(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+        self.com_out.iter().chain(self.seq_out.iter())
+    }
+
+    fn iter_all(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+        self.iter_inputs().chain(self.iter_outputs())
+    }
+
     pub fn real_range(&self, name: &str, relative: Option<BusRange>) -> Result<BusRange, ()> {
         let raw = self
-            .com_in
-            .iter()
-            .chain(self.com_out.iter())
-            .chain(self.seq_in.iter())
-            .chain(self.seq_out.iter())
+            .iter_all()
             .find(|(n, _)| n.as_str() == name)
             .map(|(_, range)| range)
             .ok_or(())?;
@@ -92,6 +100,10 @@ impl Interface {
         } else {
             Ok(raw.clone())
         }
+    }
+
+    pub fn is_input(&self, name: &str) -> bool {
+        matches!(self.iter_inputs().find(|(s, _)| *s == name), Some(_))
     }
 }
 
