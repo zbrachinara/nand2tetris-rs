@@ -1,12 +1,15 @@
-use crate::model::builtin::get_builtin;
-use crate::model::native::{build::connections_by_pin, vchip::VirtualBus};
-use crate::model::Chip;
 use super::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation, Interface};
+use crate::model::builtin::get_builtin;
+use crate::model::native::{build::edges_from_connections, vchip::VirtualBus, ConnEdge};
+use crate::model::Chip;
 use crate::Span;
 use cached::proc_macro::cached;
 use itertools::Itertools;
+use petgraph::data::{Element, FromElements};
+use petgraph::Graph;
 use std::ffi::OsStr;
 use std::fs;
+use std::iter::once;
 use std::path::{Path, PathBuf};
 
 pub struct Context {
@@ -58,24 +61,34 @@ impl Context {
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
         match &chip_repr.logic {
             Implementation::Native(connections) => {
-
                 println!("Evaluating {}", chip_repr.name);
 
-                let Interface { com_in, com_out, .. } = chip_repr.interface();
-                let (input, output) = (VirtualBus::new_in(com_in), VirtualBus::new_out(com_out));
+                let Interface {
+                    com_in, com_out, ..
+                } = chip_repr.interface();
+                let (input, output) = (
+                    VirtualBus::new_in(com_in.clone()),
+                    VirtualBus::new_out(com_out.clone()),
+                );
                 println!("External interface: \n{input:?}\n{output:?}");
 
                 // instantiate all chips this chip depends on
-                let dependents = connections
+                let mut dependents = connections
                     .iter()
                     .filter_map(|Connection { chip_name, .. }| {
                         self.resolve_chip_maybe_builtin(**chip_name)
                     })
+                    .chain(once(Box::new(input) as Box<dyn Chip>))
+                    .chain(once(Box::new(output) as Box<dyn Chip>))
                     .collect_vec();
+
+                // let mut graph = Graph::<_, ConnEdge>::from_elements(
+                //     dependents.map(|chip| Element::Node { weight: chip }),
+                // );
 
                 // get list of all pins and their connections
                 // This is done by checking in which `Connection` the name of the pin appears
-                let pins = connections_by_pin(connections, &dependents);
+                let pins = edges_from_connections(connections, &mut dependents, &com_in, &com_out);
 
                 println!("{pins:?}");
 
