@@ -88,7 +88,7 @@ impl Context {
 
                 // get list of all pins and their connections
                 // This is done by checking in which `Connection` the name of the pin appears
-                let pins = edges_from_connections(connections, &mut dependents, &com_in, &com_out);
+                let pins = edges_from_connections(connections, &mut dependents);
 
                 println!("{pins:?}");
 

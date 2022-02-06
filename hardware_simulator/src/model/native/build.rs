@@ -13,8 +13,6 @@ pub struct Endpoint {
 pub fn edges_from_connections(
     conn_names: &Vec<parser::Connection>,
     dependents: &Vec<Box<dyn Chip>>,
-    input_chip: &HashMap<String, BusRange>,
-    output_chip: &HashMap<String, BusRange>,
 ) -> HashMap<String, Vec<Endpoint>> {
     let mut pin_map: HashMap<_, Vec<_>> = HashMap::new();
 
@@ -26,6 +24,9 @@ pub fn edges_from_connections(
             e.insert(vec![v]);
         }
     };
+
+    let input_interface = dependents[conn_names.len()].interface();
+    let output_interface = dependents[conn_names.len() + 1].interface();
 
     for (index, parser::Connection { inputs, .. }) in conn_names.iter().enumerate() {
         let interface = dependents[index].interface();
@@ -48,25 +49,22 @@ pub fn edges_from_connections(
                         (external, r)
                     };
 
-                    if input_chip.contains_key(raw) {
+                    if let Ok(bus) = input_interface.real_range(&raw, external_bus.clone()) {
                         insert(
                             external.to_string(),
                             Endpoint {
                                 index: conn_names.len(),
-                                range: dependents[conn_names.len()]
-                                    .interface()
-                                    .real_range(&raw, external_bus.clone())?,
+                                range: bus,
                             },
-                        )
-                    } else if output_chip.contains_key(raw) {
-                        insert(
+                        );
+                    } else if let Ok(bus) = output_interface.real_range(&raw, external_bus.clone())
+                    {
+                        insert (
                             external.to_string(),
                             Endpoint {
                                 index: conn_names.len() + 1,
-                                range: dependents[conn_names.len() + 1]
-                                    .interface()
-                                    .real_range(&raw, external_bus.clone())?,
-                            },
+                                range: bus
+                            }
                         )
                     }
 
