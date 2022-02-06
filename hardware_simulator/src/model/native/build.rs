@@ -5,6 +5,38 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
 #[derive(Debug)]
+pub struct EdgeSet {
+    input: Option<Endpoint>,
+    outputs: Vec<Endpoint>,
+}
+
+impl EdgeSet {
+
+    fn new_with(endpoint: Endpoint, as_input: bool) -> Result<Self, ()> {
+        let mut new = EdgeSet {
+            input: None,
+            outputs: Vec::new(),
+        };
+        new.add(endpoint, as_input)?;
+        Ok(new)
+    }
+
+    fn add(&mut self, endpoint: Endpoint, as_input: bool) -> Result<(), ()> {
+        if as_input {
+            if matches!(self.input, Some(_)) {
+                return Err(());
+            } else {
+                self.input = Some(endpoint)
+            }
+        } else {
+            self.outputs.push(endpoint)
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
 pub struct Endpoint {
     index: usize,
     range: BusRange,
@@ -13,16 +45,18 @@ pub struct Endpoint {
 pub fn edges_from_connections(
     conn_names: &Vec<parser::Connection>,
     dependents: &Vec<Box<dyn Chip>>,
-) -> HashMap<String, Vec<Endpoint>> {
-    let mut pin_map: HashMap<_, Vec<_>> = HashMap::new();
+) -> HashMap<String, EdgeSet> {
+    let mut pin_map: HashMap<_, EdgeSet> = HashMap::new();
 
-    let mut insert = |k: String, v: Endpoint| match pin_map.entry(k) {
-        Entry::Occupied(mut e) => {
-            e.get_mut().push(v);
-        }
-        Entry::Vacant(e) => {
-            e.insert(vec![v]);
-        }
+    let mut insert = |k: String, v: Endpoint, as_input: bool| {
+        match pin_map.entry(k) {
+            Entry::Occupied(mut e) => {
+                e.get_mut().add(v, as_input);
+            }
+            Entry::Vacant(e) => {
+                e.insert(EdgeSet::new_with(v, as_input).unwrap());
+            }
+        };
     };
 
     let input_interface = dependents[conn_names.len()].interface();
@@ -50,21 +84,26 @@ pub fn edges_from_connections(
                     };
 
                     if let Ok(bus) = input_interface.real_range(&raw, external_bus.clone()) {
+                        println!("Inserting input connection on {}", conn_names.len());
                         insert(
                             external.to_string(),
                             Endpoint {
                                 index: conn_names.len(),
                                 range: bus,
                             },
+                            // input_interface.is_input(&external),
+                            true // it's an output of the input bus
                         );
                     } else if let Ok(bus) = output_interface.real_range(&raw, external_bus.clone())
                     {
-                        insert (
+                        println!("Inserting output connection on {}", conn_names.len() + 1);
+                        insert(
                             external.to_string(),
                             Endpoint {
                                 index: conn_names.len() + 1,
-                                range: bus
-                            }
+                                range: bus,
+                            },
+                            false // it's an input of the output bus
                         )
                     }
 
@@ -74,6 +113,7 @@ pub fn edges_from_connections(
                             index,
                             range: interface.real_range(internal, internal_bus.clone())?,
                         },
+                        interface.is_input(&raw),
                     )
                 }
                 Symbol::Value(_) => {
