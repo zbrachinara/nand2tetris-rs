@@ -20,11 +20,12 @@ pub enum ConnEdge {
 
 pub struct NativeChip {
     pub conn_graph: Graph<Box<dyn Chip>, ConnEdge>,
+    pub interface: Interface,
 }
 
 impl Chip for NativeChip {
     fn interface(&self) -> Interface {
-        todo!()
+        self.interface.clone()
     }
 
     fn clock(&mut self) {

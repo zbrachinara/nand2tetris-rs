@@ -1,6 +1,8 @@
 use super::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation, Interface};
 use crate::model::builtin::get_builtin;
-use crate::model::native::{build::edges_from_connections, vchip::VirtualBus, ConnEdge, NativeChip};
+use crate::model::native::{
+    build::edges_from_connections, vchip::VirtualBus, ConnEdge, NativeChip,
+};
 use crate::model::Chip;
 use crate::Span;
 use cached::proc_macro::cached;
@@ -128,6 +130,7 @@ impl Context {
 
                 Ok(Box::new(NativeChip {
                     conn_graph: graph,
+                    interface: chip_repr.interface(),
                 }))
             }
             Implementation::Builtin(Builtin { name, .. }) => get_builtin(**name).ok_or(()),
