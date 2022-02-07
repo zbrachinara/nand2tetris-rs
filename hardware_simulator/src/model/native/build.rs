@@ -6,8 +6,8 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct EdgeSet {
-    input: Option<Endpoint>,
-    outputs: Vec<Endpoint>,
+    pub input: Option<Endpoint>,
+    pub outputs: Vec<Endpoint>,
 }
 
 impl EdgeSet {
@@ -38,8 +38,8 @@ impl EdgeSet {
 
 #[derive(Debug)]
 pub struct Endpoint {
-    index: usize,
-    range: BusRange,
+    pub index: usize,
+    pub range: BusRange,
 }
 
 pub fn edges_from_connections(
@@ -91,7 +91,6 @@ pub fn edges_from_connections(
                                 index: conn_names.len(),
                                 range: bus,
                             },
-                            // input_interface.is_input(&external),
                             true // it's an output of the input bus
                         );
                     } else if let Ok(bus) = output_interface.real_range(&raw, external_bus.clone())
