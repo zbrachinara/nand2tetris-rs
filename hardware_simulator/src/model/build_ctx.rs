@@ -1,11 +1,12 @@
 use super::parser::{chip, Builtin, Chip as ChipRepr, Connection, Implementation, Interface};
 use crate::model::builtin::get_builtin;
-use crate::model::native::{build::edges_from_connections, vchip::VirtualBus, ConnEdge};
+use crate::model::native::{build::edges_from_connections, vchip::VirtualBus, ConnEdge, NativeChip};
 use crate::model::Chip;
 use crate::Span;
 use cached::proc_macro::cached;
 use itertools::Itertools;
 use petgraph::data::{Element, FromElements};
+use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::ffi::OsStr;
 use std::fs;
@@ -90,14 +91,44 @@ impl Context {
                 // This is done by checking in which `Connection` the name of the pin appears
                 let pins = edges_from_connections(connections, &mut dependents);
 
-                println!("{pins:?}");
-
-                // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
+                println!("{pins:#?}");
 
                 // starting from the output pins, build a graph of all connections between chips
                 // should work recursively, but also be aware of chips which were already found
 
-                todo!()
+                let mut graph = Graph::<_, ConnEdge>::from_elements(
+                    dependents.into_iter().map(|x| Element::Node { weight: x }),
+                );
+
+                // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
+                // while changing edge sets to pairs
+                for (name, edge_set) in pins {
+                    let input = edge_set.input.ok_or(())?;
+                    if edge_set.outputs.len() == 0 {
+                        println!("No output!");
+                        return Err(());
+                    }
+                    for output in edge_set.outputs {
+                        if input.range.size() == output.range.size() {
+                            // TODO: Function to determine whether combinatorial or sequential
+                            graph.add_edge(
+                                NodeIndex::new(input.index),
+                                NodeIndex::new(output.index),
+                                ConnEdge::Combinatorial {
+                                    range: output.range,
+                                    buf: Vec::with_capacity(input.range.size() as usize),
+                                },
+                            );
+                        } else {
+                            println!("No input!");
+                            return Err(());
+                        }
+                    }
+                }
+
+                Ok(Box::new(NativeChip {
+                    conn_graph: graph,
+                }))
             }
             Implementation::Builtin(Builtin { name, .. }) => get_builtin(**name).ok_or(()),
         }

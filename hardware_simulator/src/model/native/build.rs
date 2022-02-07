@@ -11,7 +11,6 @@ pub struct EdgeSet {
 }
 
 impl EdgeSet {
-
     fn new_with(endpoint: Endpoint, as_input: bool) -> Result<Self, ()> {
         let mut new = EdgeSet {
             input: None,
@@ -51,12 +50,14 @@ pub fn edges_from_connections(
     let mut insert = |k: String, v: Endpoint, as_input: bool| {
         match pin_map.entry(k) {
             Entry::Occupied(mut e) => {
-                e.get_mut().add(v, as_input);
+                e.get_mut().add(v, as_input)
+                // Ok(())
             }
             Entry::Vacant(e) => {
-                e.insert(EdgeSet::new_with(v, as_input).unwrap());
+                e.insert(EdgeSet::new_with(v, as_input)?);
+                Ok(())
             }
-        };
+        }
     };
 
     let input_interface = dependents[conn_names.len()].interface();
@@ -64,7 +65,7 @@ pub fn edges_from_connections(
 
     for (index, parser::Connection { inputs, .. }) in conn_names.iter().enumerate() {
         let interface = dependents[index].interface();
-        let _ = inputs.iter().try_for_each::<_, Result<(), ()>>(|argument| {
+        let res = inputs.iter().try_for_each::<_, Result<(), ()>>(|argument| {
             let Argument {
                 internal,
                 internal_bus,
@@ -91,7 +92,7 @@ pub fn edges_from_connections(
                                 index: conn_names.len(),
                                 range: bus,
                             },
-                            true // it's an output of the input bus
+                            true, // it's an output of the input bus
                         );
                     } else if let Ok(bus) = output_interface.real_range(&raw, external_bus.clone())
                     {
@@ -102,18 +103,26 @@ pub fn edges_from_connections(
                                 index: conn_names.len() + 1,
                                 range: bus,
                             },
-                            false // it's an input of the output bus
-                        )
+                            false, // it's an input of the output bus
+                        );
                     }
 
+                    println!(
+                        "Pin {internal} is {}",
+                        if interface.is_input(&internal) {
+                            "input"
+                        } else {
+                            "output"
+                        }
+                    );
                     insert(
                         external.to_string(),
                         Endpoint {
                             index,
                             range: interface.real_range(internal, internal_bus.clone())?,
                         },
-                        interface.is_input(&raw),
-                    )
+                        !interface.is_input(&internal),
+                    )?;
                 }
                 Symbol::Value(_) => {
                     todo!()
@@ -125,6 +134,10 @@ pub fn edges_from_connections(
 
             Ok(())
         });
+
+        if let Err(x) = res {
+            println!("error: {x:?}");
+        }
     }
 
     pin_map

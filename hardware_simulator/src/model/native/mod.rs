@@ -2,21 +2,24 @@ pub mod build;
 pub mod vchip;
 
 use petgraph::Graph;
+use crate::bus_range::BusRange;
 use crate::model::Chip;
 use super::parser::interface::Interface;
 
 pub enum ConnEdge {
     Combinatorial {
+        range: BusRange,
         buf: Vec<bool>,
     },
     Sequential {
+        range: BusRange,
         waiting: Vec<bool>,
         buf: Vec<bool>,
     },
 }
 
 pub struct NativeChip {
-    conn_graph: Graph<Box<dyn Chip>, ConnEdge>,
+    pub conn_graph: Graph<Box<dyn Chip>, ConnEdge>,
 }
 
 impl Chip for NativeChip {
