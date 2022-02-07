@@ -20,7 +20,7 @@ pub struct Context {
 }
 
 fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<String> {
-    #[cached(key = "String", convert = "{target.to_string()}", option = true)]
+    #[cached(key = "String", convert = "{target.to_string()}", option = true)] // TODO: Clear cache on directory change
     fn inner(target: &str, path: &Path) -> Option<String> {
         if path.is_dir() {
             path.read_dir()
