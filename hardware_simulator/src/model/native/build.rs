@@ -175,51 +175,52 @@ pub fn native_chip(
         .chain(once(Box::new(output) as Box<dyn Chip>))
         .collect_vec();
 
-    // let mut graph = Graph::<_, ConnEdge>::from_elements(
-    //     dependents.map(|chip| Element::Node { weight: chip }),
-    // );
+    let mut graph = Graph::<_, ConnEdge>::from_elements(
+        dependents.iter().map(|chip| Element::Node { weight: chip }),
+    );
 
     // get list of all pins and their connections
     // This is done by checking in which `Connection` the name of the pin appears
-    let pins = edges_from_connections(connections, &mut dependents);
+    // let pins = edges_from_connections(connections, &mut dependents);
 
-    println!("{pins:#?}");
+    // println!("{pins:#?}");
 
     // starting from the output pins, build a graph of all connections between chips
     // should work recursively, but also be aware of chips which were already found
 
-    let mut graph = Graph::<_, ConnEdge>::from_elements(
-        dependents.into_iter().map(|x| Element::Node { weight: x }),
-    );
+    // let mut graph = Graph::<_, ConnEdge>::from_elements(
+    //     dependents.into_iter().map(|x| Element::Node { weight: x }),
+    // );
 
     // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
     // while changing edge sets to pairs
-    for (name, edge_set) in pins {
-        let input = edge_set.input.ok_or(())?;
-        if edge_set.outputs.len() == 0 {
-            println!("No output!");
-            return Err(());
-        }
-        for output in edge_set.outputs {
-            if input.range.size() == output.range.size() {
-                // TODO: Function to determine whether combinatorial or sequential
-                graph.add_edge(
-                    NodeIndex::new(input.index),
-                    NodeIndex::new(output.index),
-                    ConnEdge::Combinatorial {
-                        range: output.range,
-                        buf: Vec::with_capacity(input.range.size() as usize),
-                    },
-                );
-            } else {
-                println!("No input!");
-                return Err(());
-            }
-        }
-    }
+    // for (name, edge_set) in pins {
+    //     let input = edge_set.input.ok_or(())?;
+    //     if edge_set.outputs.len() == 0 {
+    //         println!("No output!");
+    //         return Err(());
+    //     }
+    //     for output in edge_set.outputs {
+    //         if input.range.size() == output.range.size() {
+    //             // TODO: Function to determine whether combinatorial or sequential
+    //             graph.add_edge(
+    //                 NodeIndex::new(input.index),
+    //                 NodeIndex::new(output.index),
+    //                 ConnEdge::Combinatorial {
+    //                     range: output.range,
+    //                     buf: Vec::with_capacity(input.range.size() as usize),
+    //                 },
+    //             );
+    //         } else {
+    //             println!("No input!");
+    //             return Err(());
+    //         }
+    //     }
+    // }
 
-    Ok(Box::new(NativeChip {
-        conn_graph: graph,
-        interface: chip_repr.interface(),
-    }))
+    // Ok(Box::new(NativeChip {
+    //     conn_graph: graph,
+    //     interface: chip_repr.interface(),
+    // }))
+    todo!()
 }
