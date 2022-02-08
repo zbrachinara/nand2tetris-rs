@@ -15,7 +15,7 @@ use std::num::IntErrorKind;
 pub enum Symbol<'a> {
     Name(Span<'a>),
     Value(Value),
-    Number(usize),
+    Number(usize), //TODO: Disallow for backwards compatibility
 }
 
 impl<'a> TryFrom<Span<'a>> for Symbol<'a> {
