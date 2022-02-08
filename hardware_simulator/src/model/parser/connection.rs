@@ -59,7 +59,7 @@ fn single_arg(arg: Span) -> PResult<Argument> {
 }
 
 fn args(arg: Span) -> PResult<Vec<Argument>> {
-    delimited(char('('), many0(complete(single_arg)), char(')'))(arg)
+    delimited(char('('), many0(single_arg), char(')'))(arg)
 }
 
 pub fn connection(arg: Span) -> PResult<Connection> {
@@ -290,6 +290,9 @@ mod test {
         if let &Symbol::Name(x) = external {
             assert_eq!(*x, "bruh");
         }
+
+        let err = args(Span::from("(in=a,"));
+        assert!(matches!(err, Err(_)))
     }
 
     #[test]
