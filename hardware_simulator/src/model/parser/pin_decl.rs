@@ -4,20 +4,28 @@ use nom::character::complete::{char, digit1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
-use nom::Parser;
+use nom::{Err, Parser};
 use nom_supreme::tag::complete::tag;
 
-fn bus_declaration(arg: Span) -> PResult<u16> {
-    let (remainder, size) = delimited(spaced(char('[')), digit1, spaced(char(']')))(arg)?;
-    Ok((remainder, convert_num(size)?))
+fn bus_declaration(arg: Span) -> PResult<Span> {
+    let (remainder, size) = delimited(spaced(char('[')), symbol, spaced(char(']')))(arg)?;
+    Ok((remainder, size))
 }
 
-//TODO: Bug | bus_declaration could be something other than a number, must return error
 fn pin_decl(arg: Span) -> PResult<Pin> {
-    let (remainder, (name, bus)) = tuple((name, opt(complete(bus_declaration))))(arg)?;
+    let (remainder, (name, size)) = tuple((name, opt(bus_declaration)))(arg)?;
     let (remainder, _) = skip_comma(remainder)?;
 
-    Ok((remainder, Pin { name, size: bus }))
+    match size {
+        Some(size) => Ok((
+            remainder,
+            Pin {
+                name,
+                size: Some(convert_num(size)?),
+            },
+        )),
+        None => Ok((remainder, Pin { name, size: None })),
+    }
 }
 
 fn headed_pin_decl<'a>(header: &'static str) -> impl FnMut(Span<'a>) -> PResult<Vec<Pin<'a>>> {
@@ -42,12 +50,12 @@ mod test {
 
     #[test]
     fn test_bus_declaration() {
-        fn check(test: PResult<u16>, exp: Result<(&str, u16), ()>) {
+        fn check(test: PResult<Span>, exp: Result<(&str, &str), ()>) {
             match exp {
                 Ok((str, num)) => match test {
                     Ok((str_test, num_test)) => {
                         assert_eq!(*str_test, str);
-                        assert_eq!(num_test, num);
+                        assert_eq!(*num_test, num);
                     }
                     _ => panic!("{test:?}"),
                 },
@@ -55,14 +63,15 @@ mod test {
             }
         }
 
-        check(bus_declaration(Span::from("[1]")), Ok(("", 1)));
-        check(bus_declaration(Span::from("[5]")), Ok(("", 5)));
-        check(bus_declaration(Span::from("[25]")), Ok(("", 25)));
-        check(bus_declaration(Span::from("\n[\n25\n]\n")), Ok(("", 25)));
+        check(bus_declaration(Span::from("[1]")), Ok(("", "1")));
+        check(bus_declaration(Span::from("[5]")), Ok(("", "5")));
+        check(bus_declaration(Span::from("[25]")), Ok(("", "25")));
+        check(bus_declaration(Span::from("\n[\n25\n]\n")), Ok(("", "25")));
         check(
             bus_declaration(Span::from("\n[\n25\n]\nbruh")),
-            Ok(("bruh", 25)),
+            Ok(("bruh", "25")),
         );
+        check(bus_declaration(Span::from("[abcdef]")), Ok(("", "abcdef")));
     }
 
     fn check_pin_decl(test: Pin, (name, size): (&str, Option<u16>)) {
@@ -81,6 +90,11 @@ mod test {
             let res = pin_decl(Span::from("in[5], out[4]")).unwrap();
             assert_eq!(*(res.0), "out[4]");
             check_pin_decl(res.1, ("in", Some(5)));
+        }
+        {
+            let res = pin_decl(Span::from("in[abc]"));
+            println!("{res:?}");
+            assert!(matches!(res, Err(_)))
         }
     }
 
