@@ -1,10 +1,10 @@
 use super::symbols::*;
 use super::*;
-use nom::character::complete::{char, digit1};
+use nom::character::complete::char;
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
-use nom::{Err, Parser};
+use nom::Parser;
 use nom_supreme::tag::complete::tag;
 
 fn bus_declaration(arg: Span) -> PResult<Span> {

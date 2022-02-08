@@ -1,8 +1,16 @@
 use crate::bus_range::BusRange;
-use crate::model::parser::{self, Argument, Interface, Symbol};
+use crate::model::parser::{self, Argument, Chip as ChipRepr, Connection, Interface, Symbol};
 use crate::model::Chip;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::iter::once;
+use petgraph::Graph;
+use petgraph::data::{Element, FromElements};
+use petgraph::graph::NodeIndex;
+use itertools::Itertools;
+use crate::model::build_ctx::Context;
+use crate::model::native::{ConnEdge, NativeChip};
+use crate::model::native::vchip::VirtualBus;
 
 #[derive(Debug)]
 pub struct EdgeSet {
@@ -41,7 +49,7 @@ pub struct Endpoint {
     pub range: BusRange,
 }
 
-pub fn edges_from_connections(
+fn edges_from_connections(
     conn_names: &Vec<parser::Connection>,
     dependents: &Vec<Box<dyn Chip>>,
 ) -> HashMap<String, EdgeSet> {
@@ -141,4 +149,77 @@ pub fn edges_from_connections(
     }
 
     pin_map
+}
+
+pub fn native_chip(
+    ctx: &Context,
+    chip_repr: &ChipRepr,
+    connections: &Vec<Connection>,
+) -> Result<Box<dyn Chip>, ()> {
+    println!("Evaluating {}", chip_repr.name);
+
+    let Interface {
+        com_in, com_out, ..
+    } = chip_repr.interface();
+    let (input, output) = (
+        VirtualBus::new_in(com_in.clone()),
+        VirtualBus::new_out(com_out.clone()),
+    );
+    println!("External interface: \n{input:?}\n{output:?}");
+
+    // instantiate all chips this chip depends on
+    let mut dependents = connections
+        .iter()
+        .filter_map(|Connection { chip_name, .. }| ctx.resolve_chip_maybe_builtin(**chip_name))
+        .chain(once(Box::new(input) as Box<dyn Chip>))
+        .chain(once(Box::new(output) as Box<dyn Chip>))
+        .collect_vec();
+
+    // let mut graph = Graph::<_, ConnEdge>::from_elements(
+    //     dependents.map(|chip| Element::Node { weight: chip }),
+    // );
+
+    // get list of all pins and their connections
+    // This is done by checking in which `Connection` the name of the pin appears
+    let pins = edges_from_connections(connections, &mut dependents);
+
+    println!("{pins:#?}");
+
+    // starting from the output pins, build a graph of all connections between chips
+    // should work recursively, but also be aware of chips which were already found
+
+    let mut graph = Graph::<_, ConnEdge>::from_elements(
+        dependents.into_iter().map(|x| Element::Node { weight: x }),
+    );
+
+    // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
+    // while changing edge sets to pairs
+    for (name, edge_set) in pins {
+        let input = edge_set.input.ok_or(())?;
+        if edge_set.outputs.len() == 0 {
+            println!("No output!");
+            return Err(());
+        }
+        for output in edge_set.outputs {
+            if input.range.size() == output.range.size() {
+                // TODO: Function to determine whether combinatorial or sequential
+                graph.add_edge(
+                    NodeIndex::new(input.index),
+                    NodeIndex::new(output.index),
+                    ConnEdge::Combinatorial {
+                        range: output.range,
+                        buf: Vec::with_capacity(input.range.size() as usize),
+                    },
+                );
+            } else {
+                println!("No input!");
+                return Err(());
+            }
+        }
+    }
+
+    Ok(Box::new(NativeChip {
+        conn_graph: graph,
+        interface: chip_repr.interface(),
+    }))
 }
