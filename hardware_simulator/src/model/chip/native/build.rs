@@ -5,6 +5,7 @@ use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use itertools::Itertools;
+use std::borrow::Cow;
 // use petgraph::data::{Element, FromElements};
 use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
@@ -220,7 +221,7 @@ pub fn native_chip(
     // insert the input and output
     let input_interface = input.interface();
     let output_interface = output.interface();
-    let (in_index, out_index) = (
+    let (input_index, output_index) = (
         conn_graph.add_node(Box::new(input)),
         conn_graph.add_node(Box::new(output)),
     );
@@ -241,12 +242,48 @@ pub fn native_chip(
         {
             match external {
                 Symbol::Name(pin_name) => {
-                    // if let Ok(range) = input_interface.real_range(*pin_name, external_bus.as_ref())
-                    // {
-                    // } else if let Ok(range) =
-                    //     output_interface.real_range(*pin_name, external_bus.as_ref())
-                    // {
-                    // }
+                    let pin_name = *pin_name;
+                    {
+                        let canonical_pin_name = if let Some(ref external_bus) = external_bus {
+                            Cow::Owned(format!(
+                                "{pin_name}.{}.{}",
+                                external_bus.start, external_bus.end
+                            ))
+                        } else {
+                            Cow::Borrowed(pin_name)
+                        };
+
+                        // automatic hooking to input/output pins
+                        if let Ok(range) =
+                            input_interface.real_range(pin_name, external_bus.as_ref())
+                        {
+                            edge_sets.insert(
+                                canonical_pin_name.to_string(),
+                                Endpoint {
+                                    range,
+                                    index: input_index,
+                                    com_or_seq: ClockBehavior::Combinatorial,
+                                },
+                                true,
+                            );
+                        } else if let Ok(range) =
+                            output_interface.real_range(pin_name, external_bus.as_ref())
+                        {
+                            edge_sets.insert(
+                                canonical_pin_name.to_string(),
+                                Endpoint {
+                                    range,
+                                    index: output_index,
+                                    com_or_seq: ClockBehavior::Combinatorial,
+                                },
+                                false,
+                            );
+                        } else {
+                            if matches!(external_bus, Some(_)) {
+                                return Err(())
+                            }
+                        }
+                    }
 
                     edge_sets.insert(
                         (*pin_name).to_string(),
@@ -256,7 +293,7 @@ pub fn native_chip(
                             com_or_seq: ClockBehavior::Combinatorial, // TODO: Get this from the interface
                         },
                         !interface.is_input(*internal),
-                    );
+                    )?;
                 }
                 Symbol::Value(_) => todo!(),
                 Symbol::Number(_) => panic!("Numbers are not supported by this hack hdl version"),
