@@ -1,5 +1,5 @@
 use crate::bus_range::BusRange;
-use crate::model::chip::build_ctx::Context;
+use crate::model::chip::build_ctx::FileContext;
 use crate::model::chip::native::ConnEdge;
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
@@ -190,7 +190,7 @@ struct Dependency<'a> {
 }
 
 pub fn native_chip(
-    ctx: &Context,
+    ctx: &FileContext,
     top_interface: Interface,
     connections: Vec<Connection>,
 ) -> Result<Box<dyn Chip>, ()> {

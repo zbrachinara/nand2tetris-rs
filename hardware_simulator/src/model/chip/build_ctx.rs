@@ -8,7 +8,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub struct Context {
+pub struct FileContext {
     root: PathBuf,
 }
 
@@ -37,7 +37,7 @@ fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<String> {
     inner(target, path.as_ref())
 }
 
-impl Context {
+impl FileContext {
     pub fn new(path: impl AsRef<Path>) -> Self {
         Self {
             root: path.as_ref().to_path_buf(),
@@ -73,7 +73,7 @@ mod test {
         println!("{dir:?}");
         dir.push("../test_files");
 
-        let ctx = Context::new(dir);
+        let ctx = FileContext::new(dir);
         assert!(matches!(ctx.resolve_chip("DMux8Way"), Some(_)));
     }
 }
