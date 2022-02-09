@@ -44,7 +44,7 @@ impl EdgeSet {
 
 #[derive(Debug)]
 pub struct Endpoint {
-    pub index: usize,
+    pub index: NodeIndex,
     pub range: BusRange,
     pub com_or_seq: ClockBehavior,
 }
@@ -161,7 +161,7 @@ pub enum ClockBehavior {
 // }
 
 struct Dependency<'a> {
-    index: NodeIndex<u32>,
+    index: NodeIndex,
     interface: Interface,
     connections: Vec<Argument<'a>>,
 }
@@ -180,7 +180,7 @@ pub fn native_chip(
     let mut conn_graph = Graph::<_, ConnEdge>::new();
 
     // instantiate all chips this chip depends on
-    let mut dependents = connections
+    let dependents = connections
         .into_iter()
         .filter_map(|Connection { chip_name, inputs }| {
             ctx.resolve_chip_maybe_builtin(*chip_name).map(|chip| {
@@ -192,7 +192,8 @@ pub fn native_chip(
                     connections: inputs,
                 }
             })
-        });
+        })
+        .collect_vec();
 
     // insert the input and output
     let input_interface = input.interface();
@@ -202,7 +203,7 @@ pub fn native_chip(
         conn_graph.add_node(Box::new(output)),
     );
 
-    let edge_sets = HashMap::new();
+    let edge_sets = HashMap::<String, EdgeSet>::new();
     for Dependency {
         index,
         interface,
