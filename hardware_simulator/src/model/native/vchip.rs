@@ -23,7 +23,7 @@ fn all_out(size: u16, name: String) -> Interface {
 }
 
 /// Represents a bus. For edges which connect to IN or OUT pins, connect to these instead
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VirtualBus {
     size: u16,
     interface: Interface,
@@ -62,8 +62,13 @@ impl Chip for VirtualBus {
     fn eval(&mut self, x: &[bool]) -> Vec<bool> {
         x.to_vec()
     }
+
+    fn chip_clone(&self) -> Box<dyn Chip> {
+        Box::new(self.clone())
+    }
 }
 
+#[derive(Debug, Clone)]
 struct VirtualConst {
     value: Vec<bool>,
     interface: Interface,
@@ -104,5 +109,9 @@ impl Chip for VirtualConst {
 
     fn eval(&mut self, _: &[bool]) -> Vec<bool> {
         self.value.clone()
+    }
+
+    fn chip_clone(&self) -> Box<dyn Chip> {
+        Box::new(self.clone())
     }
 }

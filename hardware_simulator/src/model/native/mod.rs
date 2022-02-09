@@ -6,6 +6,7 @@ use crate::bus_range::BusRange;
 use crate::model::Chip;
 use super::parser::interface::Interface;
 
+#[derive(Clone)]
 pub enum ConnEdge {
     Combinatorial {
         range: BusRange,
@@ -34,5 +35,12 @@ impl Chip for NativeChip {
 
     fn eval(&mut self, _: &[bool]) -> Vec<bool> {
         todo!()
+    }
+
+    fn chip_clone(&self) -> Box<dyn Chip> {
+        Box::new(Self {
+            conn_graph: self.conn_graph.clone(),
+            interface: self.interface.clone(),
+        })
     }
 }

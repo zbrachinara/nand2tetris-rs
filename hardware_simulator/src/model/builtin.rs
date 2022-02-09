@@ -32,4 +32,7 @@ impl Chip for Nand {
     fn eval(&mut self, pins: &[bool]) -> Vec<bool> {
         vec![!(pins[0] && pins[1])]
     }
+    fn chip_clone(&self) -> Box<dyn Chip> {
+        Box::new(Nand)
+    }
 }
