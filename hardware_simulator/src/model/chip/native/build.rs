@@ -259,7 +259,7 @@ pub fn native_chip(
                     );
                 }
                 Symbol::Value(_) => todo!(),
-                Symbol::Number(_) => todo!(),
+                Symbol::Number(_) => panic!("Numbers are not supported by this hack hdl version"),
             }
         }
     }
