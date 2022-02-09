@@ -10,6 +10,7 @@ use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use derive_more::{Deref, DerefMut};
 
 #[derive(Debug)]
 pub struct EdgeSet {
@@ -38,6 +39,27 @@ impl EdgeSet {
             self.outputs.push(endpoint)
         }
 
+        Ok(())
+    }
+}
+
+#[derive(Deref, DerefMut)]
+struct EdgeSetMap(HashMap<String, EdgeSet>);
+
+impl EdgeSetMap {
+    fn new() -> Self {
+        Self(HashMap::new())
+    }
+
+    fn insert(&mut self, k: String, v: Endpoint, input: bool) -> Result<(), ()> {
+        match self.entry(k) {
+            Entry::Occupied(mut e) => {
+                e.get_mut().add(v, input)?;
+            }
+            Entry::Vacant(e) => {
+                e.insert(EdgeSet::new_with(v, input)?);
+            }
+        };
         Ok(())
     }
 }
@@ -219,6 +241,13 @@ pub fn native_chip(
         {
             match external {
                 Symbol::Name(pin_name) => {
+                    if let Ok(range) = input_interface.real_range(*pin_name, external_bus.as_ref())
+                    {
+                    } else if let Ok(range) =
+                        output_interface.real_range(*pin_name, external_bus.as_ref())
+                    {
+                    }
+
 
                 }
                 Symbol::Value(_) => todo!(),
