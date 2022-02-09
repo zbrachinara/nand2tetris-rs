@@ -202,6 +202,30 @@ pub fn native_chip(
         conn_graph.add_node(Box::new(output)),
     );
 
+    let edge_sets = HashMap::new();
+    for Dependency {
+        index,
+        interface,
+        connections,
+    } in dependents
+    {
+        for Argument {
+            internal,
+            internal_bus,
+            external,
+            external_bus,
+        } in connections
+        {
+            match external {
+                Symbol::Name(pin_name) => {
+
+                }
+                Symbol::Value(_) => todo!(),
+                Symbol::Number(_) => todo!(),
+            }
+        }
+    }
+
     // get list of all pins and their connections
     // This is done by checking in which `Connection` the name of the pin appears
     // let pins = edges_from_connections(connections, &mut dependents);
