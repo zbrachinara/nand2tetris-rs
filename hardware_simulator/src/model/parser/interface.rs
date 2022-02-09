@@ -82,7 +82,7 @@ impl Interface {
         self.iter_inputs().chain(self.iter_outputs())
     }
 
-    pub fn real_range(&self, name: &str, relative: Option<BusRange>) -> Result<BusRange, ()> {
+    pub fn real_range(&self, name: &str, relative: Option<&BusRange>) -> Result<BusRange, ()> {
         let raw = self
             .iter_all()
             .find(|(n, _)| n.as_str() == name)
@@ -178,7 +178,7 @@ CHIP test {
         assert_eq!(
             com_chip
                 .interface()
-                .real_range("b", Some(BusRange { start: 0, end: 7 })),
+                .real_range("b", Some(&BusRange { start: 0, end: 7 })),
             Ok(BusRange { start: 16, end: 23 })
         );
         assert_eq!(
