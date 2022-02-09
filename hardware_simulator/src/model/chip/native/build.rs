@@ -160,7 +160,7 @@ fn edges_from_connections(
     pin_map
 }
 
-struct ConnDesc<'a> {
+struct Dependency<'a> {
     index: NodeIndex<u32>,
     interface: Interface,
     connections: Vec<Argument<'a>>,
@@ -186,14 +186,13 @@ pub fn native_chip(
             ctx.resolve_chip_maybe_builtin(*chip_name).map(|chip| {
                 let interface = chip.interface();
                 let index = conn_graph.add_node(chip);
-                ConnDesc {
+                Dependency {
                     index,
                     interface,
                     connections: inputs,
                 }
             })
-        })
-        .collect_vec();
+        });
 
     // insert the input and output
     let input_interface = input.interface();
