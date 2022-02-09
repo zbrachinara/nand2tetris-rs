@@ -1,7 +1,7 @@
 use crate::bus_range::BusRange;
 use crate::model::chip::build_ctx::Context;
-use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::native::ConnEdge;
+use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
 use crate::model::parser::{self, Argument, Chip as ChipRepr, Connection, Interface, Symbol};
 use itertools::Itertools;
@@ -162,14 +162,10 @@ pub fn native_chip(
     top_interface: Interface,
     connections: Vec<Connection>,
 ) -> Result<Box<dyn Chip>, ()> {
-
     let Interface {
         com_in, com_out, ..
     } = top_interface;
-    let (input, output) = (
-        VirtualBus::new_in(com_in),
-        VirtualBus::new_out(com_out),
-    );
+    let (input, output) = (VirtualBus::new_in(com_in), VirtualBus::new_out(com_out));
     println!("External interface: \n{input:?}\n{output:?}");
 
     let mut conn_graph = Graph::<_, ConnEdge>::new();
@@ -188,9 +184,15 @@ pub fn native_chip(
                 }
             })
         })
-        // .chain(once(Box::new(input) as Box<dyn Chip>))
-        // .chain(once(Box::new(output) as Box<dyn Chip>))
         .collect_vec();
+
+    // insert the input and output
+    let input_interface = input.interface();
+    let output_interface = output.interface();
+    let (in_index, out_index) = (
+        conn_graph.add_node(Box::new(input)),
+        conn_graph.add_node(Box::new(output)),
+    );
 
     // get list of all pins and their connections
     // This is done by checking in which `Connection` the name of the pin appears
