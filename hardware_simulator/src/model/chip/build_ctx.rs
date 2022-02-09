@@ -1,7 +1,7 @@
-use super::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
-use crate::model::builtin::get_builtin;
-use crate::model::native::build::native_chip;
-use crate::model::Chip;
+use crate::model::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
+use crate::model::chip::builtin::get_builtin;
+use crate::model::chip::native::build::native_chip;
+use crate::model::chip::Chip;
 use crate::Span;
 use cached::proc_macro::cached;
 use std::ffi::OsStr;

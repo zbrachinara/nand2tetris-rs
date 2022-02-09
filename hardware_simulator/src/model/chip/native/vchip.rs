@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 use crate::bus_range::BusRange;
-use crate::model::Chip;
+use crate::model::chip::Chip;
 use crate::model::parser::Interface;
 use std::iter::once;
 

@@ -3,8 +3,8 @@ pub mod vchip;
 
 use petgraph::Graph;
 use crate::bus_range::BusRange;
-use crate::model::Chip;
-use super::parser::interface::Interface;
+use crate::model::chip::Chip;
+use crate::model::parser::Interface;
 
 #[derive(Clone)]
 pub enum ConnEdge {

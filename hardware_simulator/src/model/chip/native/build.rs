@@ -1,6 +1,6 @@
 use crate::bus_range::BusRange;
 use crate::model::parser::{self, Argument, Chip as ChipRepr, Connection, Interface, Symbol};
-use crate::model::Chip;
+use crate::model::chip::Chip;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::iter::once;
@@ -8,9 +8,9 @@ use petgraph::Graph;
 use petgraph::data::{Element, FromElements};
 use petgraph::graph::NodeIndex;
 use itertools::Itertools;
-use crate::model::build_ctx::Context;
-use crate::model::native::{ConnEdge, NativeChip};
-use crate::model::native::vchip::VirtualBus;
+use crate::model::chip::build_ctx::Context;
+use crate::model::chip::native::ConnEdge;
+use crate::model::chip::native::vchip::VirtualBus;
 
 #[derive(Debug)]
 pub struct EdgeSet {
