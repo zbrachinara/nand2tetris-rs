@@ -253,7 +253,7 @@ pub fn native_chip(
                         Endpoint {
                             index,
                             range: interface.real_range(*internal, internal_bus.as_ref())?,
-                            com_or_seq: ClockBehavior::Combinatorial,
+                            com_or_seq: ClockBehavior::Combinatorial, // TODO: Get this from the interface
                         },
                         !interface.is_input(*internal),
                     );
