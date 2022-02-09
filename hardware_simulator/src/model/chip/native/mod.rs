@@ -1,5 +1,4 @@
 pub mod build;
-pub mod vchip;
 
 use petgraph::Graph;
 use crate::bus_range::BusRange;

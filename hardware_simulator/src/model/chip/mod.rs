@@ -3,6 +3,7 @@ use crate::model::parser::Interface;
 pub mod native;
 pub mod builtin;
 mod build_ctx;
+pub mod vchip;
 
 
 pub trait Chip {
