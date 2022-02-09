@@ -3,14 +3,13 @@ use crate::model::chip::build_ctx::Context;
 use crate::model::chip::native::ConnEdge;
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
-use crate::model::parser::{self, Argument, Chip as ChipRepr, Connection, Interface, Symbol};
+use crate::model::parser::{self, Argument, Connection, Interface, Symbol};
 use itertools::Itertools;
 use petgraph::data::{Element, FromElements};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::iter::once;
 
 #[derive(Debug)]
 pub struct EdgeSet {
@@ -47,6 +46,13 @@ impl EdgeSet {
 pub struct Endpoint {
     pub index: usize,
     pub range: BusRange,
+    pub com_or_seq: ClockBehavior,
+}
+
+#[derive(Debug)]
+pub enum ClockBehavior {
+    Combinatorial,
+    Sequential,
 }
 
 fn edges_from_connections(
@@ -99,6 +105,7 @@ fn edges_from_connections(
                             Endpoint {
                                 index: conn_names.len(),
                                 range: bus,
+                                com_or_seq: ClockBehavior::Combinatorial,
                             },
                             true, // it's an output of the input bus
                         );
@@ -110,6 +117,7 @@ fn edges_from_connections(
                             Endpoint {
                                 index: conn_names.len() + 1,
                                 range: bus,
+                                com_or_seq: ClockBehavior::Combinatorial,
                             },
                             false, // it's an input of the output bus
                         );
@@ -128,6 +136,7 @@ fn edges_from_connections(
                         Endpoint {
                             index,
                             range: interface.real_range(internal, internal_bus.clone())?,
+                            com_or_seq: ClockBehavior::Combinatorial,
                         },
                         !interface.is_input(&internal),
                     )?;
