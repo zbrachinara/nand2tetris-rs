@@ -43,7 +43,7 @@ impl EdgeSet {
     }
 }
 
-#[derive(Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut)]
 struct EdgeSetMap(HashMap<String, EdgeSet>);
 
 impl EdgeSetMap {
@@ -263,6 +263,8 @@ pub fn native_chip(
             }
         }
     }
+
+    println!("{edge_sets:?}");
 
     // get list of all pins and their connections
     // This is done by checking in which `Connection` the name of the pin appears
