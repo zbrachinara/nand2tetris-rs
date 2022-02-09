@@ -55,9 +55,10 @@ impl Context {
     }
 
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
-        match &chip_repr.logic {
-            Implementation::Native(connections) => native_chip(&self, &chip_repr, connections),
-            Implementation::Builtin(Builtin { name, .. }) => get_builtin(**name).ok_or(()),
+        let interface = chip_repr.interface();
+        match chip_repr.logic {
+            Implementation::Native(connections) => native_chip(&self, interface, connections),
+            Implementation::Builtin(Builtin { name, .. }) => get_builtin(*name).ok_or(()),
         }
     }
 }

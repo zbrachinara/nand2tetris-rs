@@ -1,16 +1,16 @@
 use crate::bus_range::BusRange;
-use crate::model::parser::{self, Argument, Chip as ChipRepr, Connection, Interface, Symbol};
+use crate::model::chip::build_ctx::Context;
+use crate::model::chip::vchip::VirtualBus;
+use crate::model::chip::native::ConnEdge;
 use crate::model::chip::Chip;
+use crate::model::parser::{self, Argument, Chip as ChipRepr, Connection, Interface, Symbol};
+use itertools::Itertools;
+use petgraph::data::{Element, FromElements};
+use petgraph::graph::NodeIndex;
+use petgraph::Graph;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::iter::once;
-use petgraph::Graph;
-use petgraph::data::{Element, FromElements};
-use petgraph::graph::NodeIndex;
-use itertools::Itertools;
-use crate::model::chip::build_ctx::Context;
-use crate::model::chip::native::ConnEdge;
-use crate::model::chip::native::vchip::VirtualBus;
 
 #[derive(Debug)]
 pub struct EdgeSet {
@@ -151,33 +151,46 @@ fn edges_from_connections(
     pin_map
 }
 
+struct ConnDesc<'a> {
+    index: NodeIndex<u32>,
+    interface: Interface,
+    connections: Vec<Argument<'a>>,
+}
+
 pub fn native_chip(
     ctx: &Context,
-    chip_repr: &ChipRepr,
-    connections: &Vec<Connection>,
+    top_interface: Interface,
+    connections: Vec<Connection>,
 ) -> Result<Box<dyn Chip>, ()> {
-    println!("Evaluating {}", chip_repr.name);
 
     let Interface {
         com_in, com_out, ..
-    } = chip_repr.interface();
+    } = top_interface;
     let (input, output) = (
-        VirtualBus::new_in(com_in.clone()),
-        VirtualBus::new_out(com_out.clone()),
+        VirtualBus::new_in(com_in),
+        VirtualBus::new_out(com_out),
     );
     println!("External interface: \n{input:?}\n{output:?}");
 
+    let mut conn_graph = Graph::<_, ConnEdge>::new();
+
     // instantiate all chips this chip depends on
     let mut dependents = connections
-        .iter()
-        .filter_map(|Connection { chip_name, .. }| ctx.resolve_chip_maybe_builtin(**chip_name))
-        .chain(once(Box::new(input) as Box<dyn Chip>))
-        .chain(once(Box::new(output) as Box<dyn Chip>))
+        .into_iter()
+        .filter_map(|Connection { chip_name, inputs }| {
+            ctx.resolve_chip_maybe_builtin(*chip_name).map(|chip| {
+                let interface = chip.interface();
+                let index = conn_graph.add_node(chip);
+                ConnDesc {
+                    index,
+                    interface,
+                    connections: inputs,
+                }
+            })
+        })
+        // .chain(once(Box::new(input) as Box<dyn Chip>))
+        // .chain(once(Box::new(output) as Box<dyn Chip>))
         .collect_vec();
-
-    let mut graph = Graph::<_, ConnEdge>::from_elements(
-        dependents.iter().map(|chip| Element::Node { weight: chip }),
-    );
 
     // get list of all pins and their connections
     // This is done by checking in which `Connection` the name of the pin appears
