@@ -3,14 +3,14 @@ use crate::model::chip::build_ctx::Context;
 use crate::model::chip::native::ConnEdge;
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
-use crate::model::parser::{self, Argument, Connection, Interface, Symbol};
+use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use itertools::Itertools;
-use petgraph::data::{Element, FromElements};
+// use petgraph::data::{Element, FromElements};
+use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use derive_more::{Deref, DerefMut};
 
 #[derive(Debug)]
 pub struct EdgeSet {
@@ -225,7 +225,7 @@ pub fn native_chip(
         conn_graph.add_node(Box::new(output)),
     );
 
-    let edge_sets = HashMap::<String, EdgeSet>::new();
+    let mut edge_sets = EdgeSetMap::new();
     for Dependency {
         index,
         interface,
@@ -241,14 +241,22 @@ pub fn native_chip(
         {
             match external {
                 Symbol::Name(pin_name) => {
-                    if let Ok(range) = input_interface.real_range(*pin_name, external_bus.as_ref())
-                    {
-                    } else if let Ok(range) =
-                        output_interface.real_range(*pin_name, external_bus.as_ref())
-                    {
-                    }
+                    // if let Ok(range) = input_interface.real_range(*pin_name, external_bus.as_ref())
+                    // {
+                    // } else if let Ok(range) =
+                    //     output_interface.real_range(*pin_name, external_bus.as_ref())
+                    // {
+                    // }
 
-
+                    edge_sets.insert(
+                        (*pin_name).to_string(),
+                        Endpoint {
+                            index,
+                            range: interface.real_range(*internal, internal_bus.as_ref())?,
+                            com_or_seq: ClockBehavior::Combinatorial,
+                        },
+                        !interface.is_input(*internal),
+                    );
                 }
                 Symbol::Value(_) => todo!(),
                 Symbol::Number(_) => todo!(),
