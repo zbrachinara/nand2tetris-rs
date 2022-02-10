@@ -132,6 +132,12 @@ pub fn native_chip(
         for argument in connections {
             match argument.external {
                 Symbol::Name(pin_name) => {
+                    let Argument {
+                        internal,
+                        internal_bus,
+                        external_bus,
+                        ..
+                    } = argument;
                     let pin_name = *pin_name;
                     let canonical_pin_name = if let Some(ref external_bus) = external_bus {
                         Cow::Owned(format!(
