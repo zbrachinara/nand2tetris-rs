@@ -1,13 +1,11 @@
 use crate::bus_range::BusRange;
 use crate::model::chip::build_ctx::FileContext;
-use crate::model::chip::native::ConnEdge;
+use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use itertools::Itertools;
 use std::borrow::Cow;
-// use petgraph::data::{Element, FromElements};
-use crate::Span;
 use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
@@ -43,6 +41,13 @@ impl EdgeSet {
 
         Ok(())
     }
+
+    fn iter(&self) -> Result<impl Iterator<Item = (&Endpoint, &Endpoint)>, ()> {
+        self.input
+            .as_ref()
+            .map(|i| self.outputs.iter().map(move |x| (i, x)))
+            .ok_or(())
+    }
 }
 
 #[derive(Debug, Deref, DerefMut)]
@@ -66,17 +71,27 @@ impl EdgeSetMap {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Endpoint {
     pub index: NodeIndex,
     pub range: BusRange,
     pub com_or_seq: ClockBehavior,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ClockBehavior {
     Combinatorial,
     Sequential,
+}
+
+impl ClockBehavior {
+    fn and(&self, rhs: &Self) -> Self {
+        if matches!(self, ClockBehavior::Sequential) || matches!(rhs, ClockBehavior::Sequential) {
+            ClockBehavior::Sequential
+        } else {
+            ClockBehavior::Combinatorial
+        }
+    }
 }
 
 struct Dependency<'a> {
@@ -92,7 +107,7 @@ pub fn native_chip(
 ) -> Result<Box<dyn Chip>, ()> {
     let Interface {
         com_in, com_out, ..
-    } = top_interface;
+    } = top_interface.clone();
     let (input, output) = (VirtualBus::new_in(com_in), VirtualBus::new_out(com_out));
     println!("External interface: \n{input:?}\n{output:?}");
 
@@ -199,48 +214,29 @@ pub fn native_chip(
 
     println!("{edge_sets:#?}");
 
-    // get list of all pins and their connections
-    // This is done by checking in which `Connection` the name of the pin appears
-    // let pins = edges_from_connections(connections, &mut dependents);
-
-    // println!("{pins:#?}");
-
-    // starting from the output pins, build a graph of all connections between chips
-    // should work recursively, but also be aware of chips which were already found
-
-    // let mut graph = Graph::<_, ConnEdge>::from_elements(
-    //     dependents.into_iter().map(|x| Element::Node { weight: x }),
-    // );
-
-    // check for contradictions (one pin with many sources, incompatible channel sizes, etc)
-    // while changing edge sets to pairs
-    // for (name, edge_set) in pins {
-    //     let input = edge_set.input.ok_or(())?;
-    //     if edge_set.outputs.len() == 0 {
-    //         println!("No output!");
-    //         return Err(());
-    //     }
-    //     for output in edge_set.outputs {
-    //         if input.range.size() == output.range.size() {
-    //             // TODO: Function to determine whether combinatorial or sequential
-    //             graph.add_edge(
-    //                 NodeIndex::new(input.index),
-    //                 NodeIndex::new(output.index),
-    //                 ConnEdge::Combinatorial {
-    //                     range: output.range,
-    //                     buf: Vec::with_capacity(input.range.size() as usize),
-    //                 },
-    //             );
-    //         } else {
-    //             println!("No input!");
-    //             return Err(());
-    //         }
-    //     }
-    // }
-
-    // Ok(Box::new(NativeChip {
-    //     conn_graph: graph,
-    //     interface: chip_repr.interface(),
-    // }))
-    todo!()
+    for (_, set) in edge_sets.iter() {
+        for (input, output) in set.iter()? {
+            (input.range.size() == output.range.size()).then(|| {
+                if matches!(input.com_or_seq.and(&output.com_or_seq), ClockBehavior::Sequential) {
+                    conn_graph.add_edge(input.index, output.index, ConnEdge::Sequential {
+                        in_range: input.range.clone(),
+                        out_range: output.range.clone(),
+                        waiting: vec![],
+                        buf: vec![]
+                    })
+                } else {
+                    conn_graph.add_edge(input.index, output.index, ConnEdge::Combinatorial {
+                        in_range: input.range.clone(),
+                        out_range: output.range.clone(),
+                        buf: vec![]
+                    })
+                }
+            });
+        }
+    }
+    
+    Ok(Box::new(NativeChip {
+        conn_graph,
+        interface: top_interface,
+    }))
 }

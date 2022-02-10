@@ -8,11 +8,13 @@ use crate::model::parser::Interface;
 #[derive(Clone)]
 pub enum ConnEdge {
     Combinatorial {
-        range: BusRange,
+        in_range: BusRange,
+        out_range: BusRange,
         buf: Vec<bool>,
     },
     Sequential {
-        range: BusRange,
+        in_range: BusRange,
+        out_range: BusRange,
         waiting: Vec<bool>,
         buf: Vec<bool>,
     },
