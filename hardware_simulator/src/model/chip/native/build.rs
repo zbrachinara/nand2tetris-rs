@@ -6,7 +6,6 @@ use crate::model::chip::Chip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use derive_more::{Deref, DerefMut};
 use itertools::Itertools;
-use petgraph::dot::Dot;
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::borrow::Cow;
@@ -105,7 +104,7 @@ pub fn native_chip(
     ctx: &FileContext,
     top_interface: Interface,
     connections: Vec<Connection>,
-) -> Result<Box<dyn Chip>, ()> {
+) -> Result<NativeChip, ()> {
     let Interface {
         com_in, com_out, ..
     } = top_interface.clone();
@@ -247,8 +246,8 @@ pub fn native_chip(
         }
     }
 
-    Ok(Box::new(NativeChip {
+    Ok(NativeChip {
         conn_graph,
         interface: top_interface,
-    }))
+    })
 }

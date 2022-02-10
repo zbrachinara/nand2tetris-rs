@@ -1,7 +1,7 @@
-use crate::model::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::model::chip::builtin::get_builtin;
 use crate::model::chip::native::build::native_chip;
 use crate::model::chip::Chip;
+use crate::model::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::Span;
 use cached::proc_macro::cached;
 use std::ffi::OsStr;
@@ -57,7 +57,9 @@ impl FileContext {
     pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
         let interface = chip_repr.interface();
         match chip_repr.logic {
-            Implementation::Native(connections) => native_chip(&self, interface, connections),
+            Implementation::Native(connections) => {
+                native_chip(&self, interface, connections).map(|x| Box::new(x) as Box<dyn Chip>)
+            }
             Implementation::Builtin(Builtin { name, .. }) => get_builtin(*name).ok_or(()),
         }
     }
