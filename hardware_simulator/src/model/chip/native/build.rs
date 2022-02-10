@@ -7,6 +7,7 @@ use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use itertools::Itertools;
 use std::borrow::Cow;
 // use petgraph::data::{Element, FromElements};
+use crate::Span;
 use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
@@ -233,55 +234,45 @@ pub fn native_chip(
         connections,
     } in dependents
     {
-        for Argument {
-            internal,
-            internal_bus,
-            external,
-            external_bus,
-        } in connections
-        {
-            match external {
+        for argument in connections {
+            match argument.external {
                 Symbol::Name(pin_name) => {
                     let pin_name = *pin_name;
-                    {
-                        let canonical_pin_name = if let Some(ref external_bus) = external_bus {
-                            Cow::Owned(format!(
-                                "{pin_name}.{}.{}",
-                                external_bus.start, external_bus.end
-                            ))
-                        } else {
-                            Cow::Borrowed(pin_name)
-                        };
+                    let canonical_pin_name = if let Some(ref external_bus) = external_bus {
+                        Cow::Owned(format!(
+                            "{pin_name}.{}.{}",
+                            external_bus.start, external_bus.end
+                        ))
+                    } else {
+                        Cow::Borrowed(pin_name)
+                    };
 
-                        // automatic hooking to input/output pins
-                        if let Ok(range) =
-                            input_interface.real_range(pin_name, external_bus.as_ref())
-                        {
-                            edge_sets.insert(
-                                canonical_pin_name.to_string(),
-                                Endpoint {
-                                    range,
-                                    index: input_index,
-                                    com_or_seq: ClockBehavior::Combinatorial,
-                                },
-                                true,
-                            );
-                        } else if let Ok(range) =
-                            output_interface.real_range(pin_name, external_bus.as_ref())
-                        {
-                            edge_sets.insert(
-                                canonical_pin_name.to_string(),
-                                Endpoint {
-                                    range,
-                                    index: output_index,
-                                    com_or_seq: ClockBehavior::Combinatorial,
-                                },
-                                false,
-                            );
-                        } else {
-                            if matches!(external_bus, Some(_)) {
-                                return Err(())
-                            }
+                    // automatic hooking to input/output pins
+                    if let Ok(range) = input_interface.real_range(pin_name, external_bus.as_ref()) {
+                        edge_sets.insert(
+                            canonical_pin_name.to_string(),
+                            Endpoint {
+                                range,
+                                index: input_index,
+                                com_or_seq: ClockBehavior::Combinatorial,
+                            },
+                            true,
+                        );
+                    } else if let Ok(range) =
+                        output_interface.real_range(pin_name, external_bus.as_ref())
+                    {
+                        edge_sets.insert(
+                            canonical_pin_name.to_string(),
+                            Endpoint {
+                                range,
+                                index: output_index,
+                                com_or_seq: ClockBehavior::Combinatorial,
+                            },
+                            false,
+                        );
+                    } else {
+                        if matches!(external_bus, Some(_)) {
+                            return Err(());
                         }
                     }
 
@@ -301,7 +292,7 @@ pub fn native_chip(
         }
     }
 
-    println!("{edge_sets:?}");
+    println!("{edge_sets:#?}");
 
     // get list of all pins and their connections
     // This is done by checking in which `Connection` the name of the pin appears
