@@ -109,7 +109,6 @@ pub fn native_chip(
         com_in, com_out, ..
     } = top_interface.clone();
     let (input, output) = (VirtualBus::new_in(com_in), VirtualBus::new_out(com_out));
-    println!("External interface: \n{input:?}\n{output:?}");
 
     let mut conn_graph = Graph::<_, ConnEdge>::new();
 
@@ -211,8 +210,6 @@ pub fn native_chip(
             }
         }
     }
-
-    // println!("{edge_sets:#?}");
 
     for (_, set) in edge_sets.iter() {
         for (input, output) in set.iter()? {
