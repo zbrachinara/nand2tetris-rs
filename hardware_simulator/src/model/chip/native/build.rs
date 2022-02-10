@@ -149,36 +149,40 @@ pub fn native_chip(
                     };
 
                     // automatic hooking to input/output pins
-                    if let Ok(range) = input_interface.real_range(pin_name, external_bus.as_ref()) {
-                        edge_sets.insert(
-                            canonical_pin_name.to_string(),
-                            Endpoint {
-                                range,
-                                index: input_index,
-                                com_or_seq: ClockBehavior::Combinatorial,
-                            },
-                            true,
-                        );
-                    } else if let Ok(range) =
-                        output_interface.real_range(pin_name, external_bus.as_ref())
-                    {
-                        edge_sets.insert(
-                            canonical_pin_name.to_string(),
-                            Endpoint {
-                                range,
-                                index: output_index,
-                                com_or_seq: ClockBehavior::Combinatorial,
-                            },
-                            false,
-                        );
-                    } else {
-                        if matches!(external_bus, Some(_)) {
-                            return Err(());
+                    if !edge_sets.contains_key(&*canonical_pin_name) {
+                        if let Ok(range) =
+                            input_interface.real_range(pin_name, external_bus.as_ref())
+                        {
+                            edge_sets.insert(
+                                canonical_pin_name.to_string(),
+                                Endpoint {
+                                    range,
+                                    index: input_index,
+                                    com_or_seq: ClockBehavior::Combinatorial,
+                                },
+                                true,
+                            )?;
+                        } else if let Ok(range) =
+                            output_interface.real_range(pin_name, external_bus.as_ref())
+                        {
+                            edge_sets.insert(
+                                canonical_pin_name.to_string(),
+                                Endpoint {
+                                    range,
+                                    index: output_index,
+                                    com_or_seq: ClockBehavior::Combinatorial,
+                                },
+                                false,
+                            )?;
+                        } else {
+                            if matches!(external_bus, Some(_)) {
+                                return Err(());
+                            }
                         }
                     }
 
                     edge_sets.insert(
-                        (*pin_name).to_string(),
+                        canonical_pin_name.to_string(),
                         Endpoint {
                             index,
                             range: interface.real_range(*internal, internal_bus.as_ref())?,
