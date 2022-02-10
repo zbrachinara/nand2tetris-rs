@@ -4,11 +4,12 @@ use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
-use itertools::Itertools;
-use std::borrow::Cow;
 use derive_more::{Deref, DerefMut};
+use itertools::Itertools;
+use petgraph::dot::Dot;
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
+use std::borrow::Cow;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
@@ -212,29 +213,40 @@ pub fn native_chip(
         }
     }
 
-    println!("{edge_sets:#?}");
+    // println!("{edge_sets:#?}");
 
     for (_, set) in edge_sets.iter() {
         for (input, output) in set.iter()? {
             (input.range.size() == output.range.size()).then(|| {
-                if matches!(input.com_or_seq.and(&output.com_or_seq), ClockBehavior::Sequential) {
-                    conn_graph.add_edge(input.index, output.index, ConnEdge::Sequential {
-                        in_range: input.range.clone(),
-                        out_range: output.range.clone(),
-                        waiting: vec![],
-                        buf: vec![]
-                    })
+                if matches!(
+                    input.com_or_seq.and(&output.com_or_seq),
+                    ClockBehavior::Sequential
+                ) {
+                    conn_graph.add_edge(
+                        input.index,
+                        output.index,
+                        ConnEdge::Sequential {
+                            in_range: input.range.clone(),
+                            out_range: output.range.clone(),
+                            waiting: vec![],
+                            buf: vec![],
+                        },
+                    )
                 } else {
-                    conn_graph.add_edge(input.index, output.index, ConnEdge::Combinatorial {
-                        in_range: input.range.clone(),
-                        out_range: output.range.clone(),
-                        buf: vec![]
-                    })
+                    conn_graph.add_edge(
+                        input.index,
+                        output.index,
+                        ConnEdge::Combinatorial {
+                            in_range: input.range.clone(),
+                            out_range: output.range.clone(),
+                            buf: vec![],
+                        },
+                    )
                 }
             });
         }
     }
-    
+
     Ok(Box::new(NativeChip {
         conn_graph,
         interface: top_interface,
