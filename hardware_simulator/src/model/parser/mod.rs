@@ -8,7 +8,7 @@ pub(crate) mod interface;
 mod pin_decl;
 mod symbols;
 
-pub use chip::chip;
+pub use chip::{chip, create_chip};
 pub use interface::Interface;
 pub use symbols::Symbol;
 use crate::bus_range::BusRange;

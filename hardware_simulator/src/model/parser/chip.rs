@@ -63,6 +63,10 @@ pub fn chip(arg: Span) -> PResult<Chip> {
     ))
 }
 
+pub fn create_chip(arg: Span) -> Result<Chip, nom::Err<ErrorTree<Span>>> {
+    Ok(chip(arg)?.1)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
