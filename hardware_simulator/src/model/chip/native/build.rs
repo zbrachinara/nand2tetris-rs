@@ -2,7 +2,7 @@ use crate::bus_range::BusRange;
 use crate::model::chip::build_ctx::FileContext;
 use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
-use crate::model::chip::ChipObject;
+use crate::model::chip::Chip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use derive_more::{Deref, DerefMut};
 use itertools::Itertools;
@@ -128,13 +128,56 @@ pub fn native_chip(
         })
         .collect_vec();
 
+    let edge_sets = make_edge_set(input, output, &mut conn_graph, dependents)?;
+
+    for (_, set) in edge_sets.iter() {
+        for (input, output) in set.iter()? {
+            (input.range.size() == output.range.size()).then(|| {
+                if matches!(
+                    input.com_or_seq.and(&output.com_or_seq),
+                    ClockBehavior::Sequential
+                ) {
+                    conn_graph.add_edge(
+                        input.index,
+                        output.index,
+                        ConnEdge::Sequential {
+                            in_range: input.range.clone(),
+                            out_range: output.range.clone(),
+                            waiting: vec![],
+                            buf: vec![],
+                        },
+                    )
+                } else {
+                    conn_graph.add_edge(
+                        input.index,
+                        output.index,
+                        ConnEdge::Combinatorial {
+                            in_range: input.range.clone(),
+                            out_range: output.range.clone(),
+                            buf: vec![],
+                        },
+                    )
+                }
+            });
+        }
+    }
+
+    Ok(NativeChip {
+        conn_graph,
+        interface: top_interface,
+    })
+}
+
+fn make_edge_set(
+    input: Chip,
+    output: Chip,
+    conn_graph: &mut Graph<Chip, ConnEdge>,
+    dependents: Vec<Dependency>,
+) -> Result<EdgeSetMap, ()> {
     // insert the input and output
     let input_interface = input.interface();
     let output_interface = output.interface();
-    let (input_index, output_index) = (
-        conn_graph.add_node(input),
-        conn_graph.add_node(output),
-    );
+    let (input_index, output_index) = (conn_graph.add_node(input), conn_graph.add_node(output));
 
     let mut edge_sets = EdgeSetMap::new();
     for Dependency {
@@ -211,40 +254,5 @@ pub fn native_chip(
         }
     }
 
-    for (_, set) in edge_sets.iter() {
-        for (input, output) in set.iter()? {
-            (input.range.size() == output.range.size()).then(|| {
-                if matches!(
-                    input.com_or_seq.and(&output.com_or_seq),
-                    ClockBehavior::Sequential
-                ) {
-                    conn_graph.add_edge(
-                        input.index,
-                        output.index,
-                        ConnEdge::Sequential {
-                            in_range: input.range.clone(),
-                            out_range: output.range.clone(),
-                            waiting: vec![],
-                            buf: vec![],
-                        },
-                    )
-                } else {
-                    conn_graph.add_edge(
-                        input.index,
-                        output.index,
-                        ConnEdge::Combinatorial {
-                            in_range: input.range.clone(),
-                            out_range: output.range.clone(),
-                            buf: vec![],
-                        },
-                    )
-                }
-            });
-        }
-    }
-
-    Ok(NativeChip {
-        conn_graph,
-        interface: top_interface,
-    })
+    Ok(edge_sets)
 }
