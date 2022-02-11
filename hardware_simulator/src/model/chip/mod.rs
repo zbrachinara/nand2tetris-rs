@@ -8,7 +8,7 @@ pub mod vchip;
 
 pub enum Chip {
     Native(NativeChip),
-    Builtin(Box<dyn BuiltinChip>),
+    Builtin(Box<dyn ChipObject>),
 }
 
 impl Chip {
@@ -41,16 +41,10 @@ impl Clone for Chip {
     }
 }
 
-pub trait BuiltinChip {
+pub trait ChipObject {
     fn interface(&self) -> Interface;
 
     fn clock(&mut self);
     fn eval(&mut self, _: &[bool]) -> Vec<bool>;
-    fn chip_clone(&self) -> Box<dyn BuiltinChip>;
+    fn chip_clone(&self) -> Box<dyn ChipObject>;
 }
-
-// impl Clone for Box<dyn BuiltinChip> {
-//     fn clone(&self) -> Self {
-//         self.chip_clone()
-//     }
-// }

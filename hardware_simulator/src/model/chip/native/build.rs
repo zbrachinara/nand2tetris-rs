@@ -2,7 +2,7 @@ use crate::bus_range::BusRange;
 use crate::model::chip::build_ctx::FileContext;
 use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
-use crate::model::chip::BuiltinChip;
+use crate::model::chip::ChipObject;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use derive_more::{Deref, DerefMut};
 use itertools::Itertools;
