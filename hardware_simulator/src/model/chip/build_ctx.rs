@@ -72,7 +72,6 @@ mod test {
     #[test]
     fn general() {
         let mut dir = std::env::current_dir().unwrap();
-        println!("{dir:?}");
         dir.push("../test_files");
 
         let ctx = FileContext::new(dir);
