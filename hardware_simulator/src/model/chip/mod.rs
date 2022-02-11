@@ -1,10 +1,11 @@
+use std::path::Path;
 use crate::model::chip::native::NativeChip;
 use crate::model::parser::Interface;
 
 mod build_ctx;
-pub mod builtin;
-pub mod native;
-pub mod vchip;
+mod builtin;
+mod native;
+mod vchip;
 
 pub enum Chip {
     Native(NativeChip),
@@ -12,19 +13,23 @@ pub enum Chip {
 }
 
 impl Chip {
-    fn interface(&self) -> Interface {
+    pub fn build(name: &str, root: impl AsRef<Path>) -> Option<Self> {
+        build_ctx::FileContext::new(root).resolve_chip_maybe_builtin(name)
+    }
+
+    pub fn interface(&self) -> Interface {
         match self {
             Chip::Native(v) => v.interface(),
             Chip::Builtin(v) => v.interface(),
         }
     }
-    fn clock(&mut self) {
+    pub fn clock(&mut self) {
         match self {
             Chip::Native(v) => v.clock(),
             Chip::Builtin(v) => v.clock(),
         }
     }
-    fn eval(&mut self, args: &[bool]) -> Vec<bool> {
+    pub fn eval(&mut self, args: &[bool]) -> Vec<bool> {
         match self {
             Chip::Native(v) => v.eval(args),
             Chip::Builtin(v) => v.eval(args),

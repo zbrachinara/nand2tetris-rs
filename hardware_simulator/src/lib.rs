@@ -1,5 +1,3 @@
-#![allow(dead_code)] // TODO: remove
-
 mod ir;
 pub mod model;
 pub mod bus_range;

@@ -74,6 +74,7 @@ struct VirtualConst {
     interface: Interface,
 }
 
+#[allow(dead_code)]
 impl VirtualConst {
     fn from_number(mut n: usize, channel_size: u16, name: String) -> Self {
         // TODO: assert that n fits within the channel
