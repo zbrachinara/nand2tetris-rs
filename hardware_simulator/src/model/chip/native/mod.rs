@@ -1,4 +1,5 @@
 pub mod build;
+mod edge_set;
 
 use petgraph::Graph;
 use crate::bus_range::BusRange;
