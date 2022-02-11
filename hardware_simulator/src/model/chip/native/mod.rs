@@ -2,7 +2,7 @@ pub mod build;
 
 use petgraph::Graph;
 use crate::bus_range::BusRange;
-use crate::model::chip::Chip;
+use crate::model::chip::{BuiltinChip, Chip};
 use crate::model::parser::Interface;
 
 #[derive(Clone)]
@@ -20,12 +20,13 @@ pub enum ConnEdge {
     },
 }
 
+#[derive(Clone)]
 pub struct NativeChip {
-    pub conn_graph: Graph<Box<dyn Chip>, ConnEdge>,
+    pub conn_graph: Graph<Chip, ConnEdge>,
     pub interface: Interface,
 }
 
-impl Chip for NativeChip {
+impl BuiltinChip for NativeChip {
     fn interface(&self) -> Interface {
         self.interface.clone()
     }
@@ -38,7 +39,7 @@ impl Chip for NativeChip {
         todo!()
     }
 
-    fn chip_clone(&self) -> Box<dyn Chip> {
+    fn chip_clone(&self) -> Box<dyn BuiltinChip> {
         Box::new(Self {
             conn_graph: self.conn_graph.clone(),
             interface: self.interface.clone(),

@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 use crate::bus_range::BusRange;
-use crate::model::chip::Chip;
+use crate::model::chip::{BuiltinChip, Chip};
 use crate::model::parser::Interface;
 use std::iter::once;
 
@@ -30,27 +30,27 @@ pub struct VirtualBus {
 }
 
 impl VirtualBus {
-    pub fn new_in(h: HashMap<String, BusRange>) -> Self {
-        Self {
+    pub fn new_in(h: HashMap<String, BusRange>) -> Chip {
+        Chip::Builtin(Box::new(Self {
             size: h.iter().map(|(_, x)| x.size()).sum(),
             interface: Interface {
                 com_out: h,
                 ..Default::default()
             },
-        }
+        }))
     }
-    pub fn new_out(h: HashMap<String, BusRange>) -> Self {
-        Self {
+    pub fn new_out(h: HashMap<String, BusRange>) -> Chip {
+        Chip::Builtin(Box::new(Self {
             size: h.iter().map(|(_, x)| x.size()).sum(),
             interface: Interface {
                 com_in: h,
                 ..Default::default()
             },
-        }
+        }))
     }
 }
 
-impl Chip for VirtualBus {
+impl BuiltinChip for VirtualBus {
     fn interface(&self) -> Interface {
         self.interface.clone()
     }
@@ -63,7 +63,7 @@ impl Chip for VirtualBus {
         x.to_vec()
     }
 
-    fn chip_clone(&self) -> Box<dyn Chip> {
+    fn chip_clone(&self) -> Box<dyn BuiltinChip> {
         Box::new(self.clone())
     }
 }
@@ -98,7 +98,7 @@ impl VirtualConst {
     }
 }
 
-impl Chip for VirtualConst {
+impl BuiltinChip for VirtualConst {
     fn interface(&self) -> Interface {
         self.interface.clone()
     }
@@ -111,7 +111,7 @@ impl Chip for VirtualConst {
         self.value.clone()
     }
 
-    fn chip_clone(&self) -> Box<dyn Chip> {
+    fn chip_clone(&self) -> Box<dyn BuiltinChip> {
         Box::new(self.clone())
     }
 }

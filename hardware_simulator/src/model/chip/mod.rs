@@ -1,21 +1,56 @@
+use crate::model::chip::native::NativeChip;
 use crate::model::parser::Interface;
 
-pub mod native;
-pub mod builtin;
 mod build_ctx;
+pub mod builtin;
+pub mod native;
 pub mod vchip;
 
+pub enum Chip {
+    Native(NativeChip),
+    Builtin(Box<dyn BuiltinChip>),
+}
 
-pub trait Chip {
+impl Chip {
+    fn interface(&self) -> Interface {
+        match self {
+            Chip::Native(v) => v.interface(),
+            Chip::Builtin(v) => v.interface(),
+        }
+    }
+    fn clock(&mut self) {
+        match self {
+            Chip::Native(v) => v.clock(),
+            Chip::Builtin(v) => v.clock(),
+        }
+    }
+    fn eval(&mut self, args: &[bool]) -> Vec<bool> {
+        match self {
+            Chip::Native(v) => v.eval(args),
+            Chip::Builtin(v) => v.eval(args),
+        }
+    }
+}
+
+impl Clone for Chip {
+    fn clone(&self) -> Self {
+        match self {
+            Chip::Native(v) => Chip::Native(v.clone()),
+            Chip::Builtin(v) => Chip::Builtin(v.chip_clone()),
+        }
+    }
+}
+
+pub trait BuiltinChip {
     fn interface(&self) -> Interface;
 
     fn clock(&mut self);
     fn eval(&mut self, _: &[bool]) -> Vec<bool>;
-    fn chip_clone(&self) -> Box<dyn Chip>;
+    fn chip_clone(&self) -> Box<dyn BuiltinChip>;
 }
 
-impl Clone for Box<dyn Chip> {
-    fn clone(&self) -> Self {
-        self.chip_clone()
-    }
-}
+// impl Clone for Box<dyn BuiltinChip> {
+//     fn clone(&self) -> Self {
+//         self.chip_clone()
+//     }
+// }

@@ -1,9 +1,9 @@
 use crate::bus_range::BusRange;
-use crate::model::chip::Chip;
+use crate::model::chip::BuiltinChip;
 use crate::model::parser::Interface;
 use std::iter::once;
 
-pub fn get_builtin(name: &str) -> Option<Box<dyn Chip>> {
+pub fn get_builtin(name: &str) -> Option<Box<dyn BuiltinChip>> {
     match name {
         "Nand" => Some(Box::new(Nand)),
         _ => None,
@@ -11,7 +11,7 @@ pub fn get_builtin(name: &str) -> Option<Box<dyn Chip>> {
 }
 
 struct Nand;
-impl Chip for Nand {
+impl BuiltinChip for Nand {
     fn interface(&self) -> Interface {
         Interface {
             com_in: [
@@ -32,7 +32,7 @@ impl Chip for Nand {
     fn eval(&mut self, pins: &[bool]) -> Vec<bool> {
         vec![!(pins[0] && pins[1])]
     }
-    fn chip_clone(&self) -> Box<dyn Chip> {
+    fn chip_clone(&self) -> Box<dyn BuiltinChip> {
         Box::new(Nand)
     }
 }

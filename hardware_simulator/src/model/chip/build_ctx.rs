@@ -1,6 +1,6 @@
 use crate::model::chip::builtin::get_builtin;
 use crate::model::chip::native::build::native_chip;
-use crate::model::chip::Chip;
+use crate::model::chip::{BuiltinChip, Chip};
 use crate::model::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::Span;
 use cached::proc_macro::cached;
@@ -44,23 +44,25 @@ impl FileContext {
         }
     }
 
-    pub fn resolve_chip_maybe_builtin(&self, target: &str) -> Option<Box<dyn Chip>> {
-        get_builtin(target).or_else(|| self.resolve_chip(target))
+    pub fn resolve_chip_maybe_builtin(&self, target: &str) -> Option<Chip> {
+        get_builtin(target).map(|x| Chip::Builtin(x)).or_else(|| self.resolve_chip(target))
     }
 
-    pub fn resolve_chip(&self, target: &str) -> Option<Box<dyn Chip>> {
+    pub fn resolve_chip(&self, target: &str) -> Option<Chip> {
         let str = resolve_hdl_file(target, &self.root)?;
         let buf = Span::from(str.as_str());
         Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
     }
 
-    pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Box<dyn Chip>, ()> {
+    pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Chip, ()> {
         let interface = chip_repr.interface();
         match chip_repr.logic {
             Implementation::Native(connections) => {
-                native_chip(&self, interface, connections).map(|x| Box::new(x) as Box<dyn Chip>)
+                native_chip(&self, interface, connections).map(|x| Chip::Native(x))
             }
-            Implementation::Builtin(Builtin { name, .. }) => get_builtin(*name).ok_or(()),
+            Implementation::Builtin(Builtin { name, .. }) => {
+                get_builtin(*name).map(|x| Chip::Builtin(x)).ok_or(())
+            }
         }
     }
 }

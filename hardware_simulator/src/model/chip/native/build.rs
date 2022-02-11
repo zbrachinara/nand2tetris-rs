@@ -2,7 +2,7 @@ use crate::bus_range::BusRange;
 use crate::model::chip::build_ctx::FileContext;
 use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
-use crate::model::chip::Chip;
+use crate::model::chip::BuiltinChip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use derive_more::{Deref, DerefMut};
 use itertools::Itertools;
@@ -132,8 +132,8 @@ pub fn native_chip(
     let input_interface = input.interface();
     let output_interface = output.interface();
     let (input_index, output_index) = (
-        conn_graph.add_node(Box::new(input)),
-        conn_graph.add_node(Box::new(output)),
+        conn_graph.add_node(input),
+        conn_graph.add_node(output),
     );
 
     let mut edge_sets = EdgeSetMap::new();
