@@ -1,7 +1,7 @@
 #![allow(dead_code)] // TODO: remove
 
 mod ir;
-mod model;
-mod bus_range;
+pub mod model;
+pub mod bus_range;
 
-type Span<'a> = nom_locate::LocatedSpan<&'a str>;
+pub type Span<'a> = nom_locate::LocatedSpan<&'a str>;

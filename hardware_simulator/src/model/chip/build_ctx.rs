@@ -1,6 +1,6 @@
 use crate::model::chip::builtin::get_builtin;
 use crate::model::chip::native::build::native_chip;
-use crate::model::chip::{ChipObject, Chip};
+use crate::model::chip::Chip;
 use crate::model::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::Span;
 use cached::proc_macro::cached;
@@ -45,7 +45,9 @@ impl FileContext {
     }
 
     pub fn resolve_chip_maybe_builtin(&self, target: &str) -> Option<Chip> {
-        get_builtin(target).map(|x| Chip::Builtin(x)).or_else(|| self.resolve_chip(target))
+        get_builtin(target)
+            .map(|x| Chip::Builtin(x))
+            .or_else(|| self.resolve_chip(target))
     }
 
     pub fn resolve_chip(&self, target: &str) -> Option<Chip> {
