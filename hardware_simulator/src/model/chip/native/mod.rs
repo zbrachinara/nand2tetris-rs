@@ -40,9 +40,6 @@ impl ChipObject for NativeChip {
     }
 
     fn chip_clone(&self) -> Box<dyn ChipObject> {
-        Box::new(Self {
-            conn_graph: self.conn_graph.clone(),
-            interface: self.interface.clone(),
-        })
+        Box::new(self.clone())
     }
 }
