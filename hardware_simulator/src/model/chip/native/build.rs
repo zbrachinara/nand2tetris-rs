@@ -58,8 +58,10 @@ pub fn native_chip(
             })
         })
         .collect_vec();
+    // including the input and output virtual chips
+    let (input_index, output_index) = (conn_graph.add_node(input), conn_graph.add_node(output));
 
-    let edge_sets = make_edge_set(input, output, &mut conn_graph, dependents)?;
+    let edge_sets = make_edge_set(input_index, output_index, &mut conn_graph, dependents)?;
 
     for (_, set) in edge_sets.iter() {
         for (input, output) in set.iter()? {
@@ -100,15 +102,14 @@ pub fn native_chip(
 }
 
 fn make_edge_set(
-    input: Chip,
-    output: Chip,
+    input_index: NodeIndex,
+    output_index: NodeIndex,
     conn_graph: &mut Graph<Chip, ConnEdge>,
     dependents: Vec<Dependency>,
 ) -> Result<EdgeSetMap, ()> {
     // insert the input and output
-    let input_interface = input.interface();
-    let output_interface = output.interface();
-    let (input_index, output_index) = (conn_graph.add_node(input), conn_graph.add_node(output));
+    let input_interface = conn_graph[input_index].interface();
+    let output_interface = conn_graph[output_index].interface();
 
     let mut edge_sets = EdgeSetMap::new();
     for Dependency {
