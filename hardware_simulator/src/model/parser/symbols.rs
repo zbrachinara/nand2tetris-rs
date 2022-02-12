@@ -1,4 +1,4 @@
-use super::{HdlParseError, PResult, Value};
+use super::{PResult, Value};
 use crate::Span;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take_till, take_until, take_while1};
@@ -10,6 +10,7 @@ use nom::Parser;
 use nom_supreme::error::{BaseErrorKind, ErrorTree};
 use nom_supreme::tag::complete::tag;
 use std::num::IntErrorKind;
+use crate::model::parser::error::HdlParseError;
 
 #[derive(Eq, PartialEq, Debug)]
 pub enum Symbol<'a> {

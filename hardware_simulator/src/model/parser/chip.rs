@@ -1,7 +1,7 @@
 use super::connection::connection;
 use super::pin_decl::{in_pin_decl, out_pin_decl};
 use super::symbols::{name, spaced};
-use super::{Builtin, Chip, Connection, HdlParseError, Implementation, PResult, Span};
+use super::{Builtin, Chip, Connection, Implementation, PResult, Span};
 use nom::character::complete::char;
 use nom::combinator::opt;
 use nom::multi::{many1, separated_list0};
@@ -9,6 +9,7 @@ use nom::sequence::{delimited, preceded, terminated, tuple};
 use nom::Parser;
 use nom_supreme::error::{BaseErrorKind, ErrorTree};
 use nom_supreme::tag::complete::tag;
+use crate::model::parser::error::HdlParseError;
 
 fn builtin(arg: Span) -> PResult<Builtin> {
     let (remainder, (name, clocked)) = tuple((

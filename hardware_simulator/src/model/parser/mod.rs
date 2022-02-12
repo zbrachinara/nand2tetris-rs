@@ -1,12 +1,12 @@
 use crate::Span;
 use nom_supreme::error::ErrorTree;
-use thiserror::Error;
 
 mod chip;
 mod connection;
 pub(crate) mod interface;
 mod pin_decl;
 mod symbols;
+pub mod error;
 
 use crate::bus_range::BusRange;
 pub use chip::{chip, create_chip};
@@ -59,18 +59,4 @@ pub struct Argument<'a> {
 pub enum Value {
     True,
     False,
-}
-
-#[derive(Error, Debug, PartialEq)]
-pub enum HdlParseError {
-    #[error("Not a valid symbol")]
-    BadSymbol,
-    #[error("Name is not correct (Must not be a number or literal)")]
-    BadName,
-    #[error("Number is too large")]
-    NumberOverflow,
-    #[error("A problem occurred when trying to parse this number")]
-    NumberError,
-    #[error("Could not deduce a given implementation")]
-    BadImplementation,
 }

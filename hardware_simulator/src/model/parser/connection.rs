@@ -11,6 +11,7 @@ use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
 use nom_supreme::tag::complete::tag;
+use crate::model::parser::error::HdlParseError;
 
 use super::*;
 
