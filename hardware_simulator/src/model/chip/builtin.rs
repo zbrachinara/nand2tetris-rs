@@ -14,6 +14,7 @@ struct Nand;
 impl ChipObject for Nand {
     fn interface(&self) -> Interface {
         Interface {
+            name: "Nand".to_string(),
             com_in: [
                 ("a".to_string(), BusRange { start: 0, end: 0 }),
                 ("b".to_string(), BusRange { start: 1, end: 1 }),

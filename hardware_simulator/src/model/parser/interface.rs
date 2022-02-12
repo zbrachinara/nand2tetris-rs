@@ -7,6 +7,7 @@ type PinMap = HashMap<String, BusRange>;
 
 #[derive(PartialEq, Debug, Clone, Default)]
 pub struct Interface {
+    pub name: String,
     pub com_in: PinMap,
     pub com_out: PinMap,
     pub seq_in: PinMap,
@@ -53,6 +54,7 @@ impl<'a> Chip<'a> {
             let (seq_out, com_out) = split_seq_com(&self.out_pins, clocked);
 
             Interface {
+                name: self.name.to_string(),
                 seq_in,
                 com_in,
                 seq_out,
@@ -60,6 +62,7 @@ impl<'a> Chip<'a> {
             }
         } else {
             Interface {
+                name: self.name.to_string(),
                 com_in: to_map(self.in_pins.clone(), 0).0,
                 com_out: to_map(self.out_pins.clone(), 0).0,
                 seq_in: HashMap::with_capacity(0),
@@ -130,6 +133,7 @@ CHIP test {
         assert_eq!(
             com_chip.interface(),
             Interface {
+                name: "And16".to_string(),
                 com_in: [
                     ("a".to_string(), BusRange { start: 0, end: 15 }),
                     ("b".to_string(), BusRange { start: 16, end: 31 })
@@ -148,6 +152,7 @@ CHIP test {
         assert_eq!(
             seq_chip.interface(),
             Interface {
+                name: String::from("DFF"),
                 com_in: Default::default(),
                 com_out: once(("out".to_string(), BusRange { start: 0, end: 0 })).collect(),
                 seq_in: once(("in".to_string(), BusRange { start: 0, end: 0 })).collect(),
@@ -159,6 +164,7 @@ CHIP test {
         assert_eq!(
             example_chip.interface(),
             Interface {
+                name: "test".to_string(),
                 com_in: once(("a".to_string(), BusRange { start: 5, end: 6 })).collect(),
                 com_out: once(("d".to_string(), BusRange { start: 0, end: 0 })).collect(),
                 seq_in: [

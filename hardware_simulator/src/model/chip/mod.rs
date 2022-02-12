@@ -46,6 +46,12 @@ impl Clone for Chip {
     }
 }
 
+impl Debug for Chip {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.interface().name)
+    }
+}
+
 pub trait ChipObject {
     fn interface(&self) -> Interface;
 
