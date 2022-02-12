@@ -1,10 +1,10 @@
 pub mod build;
 mod edge_set;
 
-use petgraph::Graph;
 use crate::bus_range::BusRange;
-use crate::model::chip::{ChipObject, Chip};
+use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
+use petgraph::Graph;
 
 #[derive(Clone)]
 pub enum ConnEdge {

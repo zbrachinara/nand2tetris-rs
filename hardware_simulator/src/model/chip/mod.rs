@@ -1,7 +1,7 @@
-use std::fmt::{Debug, Formatter};
 use crate::model::chip::build_ctx::ChipContext;
 use crate::model::chip::native::NativeChip;
 use crate::model::parser::Interface;
+use std::fmt::{Debug, Formatter};
 
 mod build_ctx;
 mod builtin;

@@ -3,10 +3,10 @@
 //! between two nodes. This is not possible for, for example, numerical constants, so they must be
 //! defined here.
 
-use std::collections::HashMap;
 use crate::bus_range::BusRange;
-use crate::model::chip::{ChipObject, Chip};
+use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
+use std::collections::HashMap;
 use std::iter::once;
 
 fn all_out(size: u16, name: String) -> Interface {
@@ -17,7 +17,8 @@ fn all_out(size: u16, name: String) -> Interface {
                 start: 0,
                 end: size - 1,
             },
-        )).collect(),
+        ))
+        .collect(),
         ..Default::default()
     }
 }

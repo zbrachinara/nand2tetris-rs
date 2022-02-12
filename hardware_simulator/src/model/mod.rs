@@ -1,2 +1,2 @@
-mod parser;
 pub mod chip;
+mod parser;

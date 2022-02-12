@@ -1,4 +1,5 @@
 use super::edge_set::{EdgeSetMap, Endpoint};
+use crate::clock_behavior::ClockBehavior;
 use crate::model::chip::build_ctx::ChipContext;
 use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
@@ -7,7 +8,6 @@ use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::borrow::Cow;
-use crate::clock_behavior::ClockBehavior;
 
 struct Dependency<'a> {
     index: NodeIndex,
@@ -31,8 +31,6 @@ pub fn native_chip(
     let dependents = {
         let mut dependents = vec![];
         for Connection { chip_name, inputs } in connections {
-            // .into_iter()
-            // .map(|Connection { chip_name, inputs }| {
             dependents.push(ctx.resolve_chip(*chip_name).map(|chip| {
                 let interface = chip.interface();
                 let index = conn_graph.add_node(chip);
@@ -42,8 +40,6 @@ pub fn native_chip(
                     connections: inputs,
                 }
             })?);
-            // })
-            // .collect_vec();
         }
 
         dependents
