@@ -7,6 +7,7 @@ pub mod build_ctx;
 mod builtin;
 mod native;
 mod vchip;
+mod error;
 
 pub enum Chip {
     Native(NativeChip),
