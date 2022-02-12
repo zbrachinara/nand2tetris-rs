@@ -1,5 +1,5 @@
 use crate::bus_range::BusRange;
-use super::build::ClockBehavior;
+use crate::clock_behavior::ClockBehavior;
 use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
 use std::collections::hash_map::Entry;

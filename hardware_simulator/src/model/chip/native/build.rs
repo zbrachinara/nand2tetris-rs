@@ -7,22 +7,7 @@ use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::borrow::Cow;
-
-#[derive(Debug, Clone)]
-pub enum ClockBehavior {
-    Combinatorial,
-    Sequential,
-}
-
-impl ClockBehavior {
-    fn and(&self, rhs: &Self) -> Self {
-        if matches!(self, ClockBehavior::Sequential) || matches!(rhs, ClockBehavior::Sequential) {
-            ClockBehavior::Sequential
-        } else {
-            ClockBehavior::Combinatorial
-        }
-    }
-}
+use crate::clock_behavior::ClockBehavior;
 
 struct Dependency<'a> {
     index: NodeIndex,
