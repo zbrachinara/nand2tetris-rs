@@ -1,4 +1,6 @@
+use std::fmt::{Debug, Formatter};
 use std::path::Path;
+use crate::model::chip::build_ctx::ChipContext;
 use crate::model::chip::native::NativeChip;
 use crate::model::parser::Interface;
 
@@ -13,8 +15,8 @@ pub enum Chip {
 }
 
 impl Chip {
-    pub fn build(name: &str, root: impl AsRef<Path>) -> Option<Self> {
-        build_ctx::FileContext::new(root).resolve_chip_maybe_builtin(name)
+    pub fn build(name: &str, ctx: &mut ChipContext) -> Result<Self, ()> {
+        ctx.resolve_chip(name)
     }
 
     pub fn interface(&self) -> Interface {

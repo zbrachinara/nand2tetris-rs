@@ -1,5 +1,5 @@
 use super::edge_set::{EdgeSetMap, Endpoint};
-use crate::model::chip::build_ctx::FileContext;
+use crate::model::chip::build_ctx::ChipContext;
 use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
@@ -32,7 +32,7 @@ struct Dependency<'a> {
 }
 
 pub fn native_chip(
-    ctx: &FileContext,
+    ctx: &mut ChipContext,
     top_interface: Interface,
     connections: Vec<Connection>,
 ) -> Result<NativeChip, ()> {
@@ -44,10 +44,12 @@ pub fn native_chip(
     let mut conn_graph = Graph::<_, ConnEdge>::new();
 
     // instantiate all chips this chip depends on
-    let dependents = connections
-        .into_iter()
-        .filter_map(|Connection { chip_name, inputs }| {
-            ctx.resolve_chip_maybe_builtin(*chip_name).map(|chip| {
+    let dependents = {
+        let mut dependents = vec![];
+        for Connection { chip_name, inputs } in connections {
+            // .into_iter()
+            // .map(|Connection { chip_name, inputs }| {
+            dependents.push(ctx.resolve_chip(*chip_name).map(|chip| {
                 let interface = chip.interface();
                 let index = conn_graph.add_node(chip);
                 Dependency {
@@ -55,9 +57,13 @@ pub fn native_chip(
                     interface,
                     connections: inputs,
                 }
-            })
-        })
-        .collect_vec();
+            })?);
+            // })
+            // .collect_vec();
+        }
+
+        dependents
+    };
     // including the input and output virtual chips
     let (input_index, output_index) = (conn_graph.add_node(input), conn_graph.add_node(output));
 

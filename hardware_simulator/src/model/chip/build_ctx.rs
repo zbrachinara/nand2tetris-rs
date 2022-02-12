@@ -1,66 +1,63 @@
 use crate::model::chip::builtin::get_builtin;
 use crate::model::chip::native::build::native_chip;
+use crate::model::chip::native::NativeChip;
 use crate::model::chip::Chip;
-use crate::model::parser::{chip, Builtin, Chip as ChipRepr, Implementation};
+use crate::model::parser::{create_chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::Span;
 use cached::proc_macro::cached;
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub struct FileContext {
-    root: PathBuf,
+pub struct ChipContext {
+    chips: HashMap<String, Chip>,
 }
 
-fn resolve_hdl_file(target: &str, path: impl AsRef<Path>) -> Option<String> {
-    #[cached(key = "String", convert = "{target.to_string()}", option = true)] // TODO: Clear cache on directory change
-    fn inner(target: &str, path: &Path) -> Option<String> {
-        if path.is_dir() {
-            path.read_dir()
-                .ok()?
-                .filter_map(|res| res.ok())
-                .filter_map(|dir_entry| resolve_hdl_file(target, &dir_entry.path()))
-                .next()
-        } else if path.is_file() {
-            if path.extension() == Some(OsStr::new("hdl"))
-                && path.file_stem() == Some(OsStr::new(target))
-            {
-                Some(fs::read_to_string(path).unwrap())
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
-
-    inner(target, path.as_ref())
-}
-
-impl FileContext {
-    pub fn new(path: impl AsRef<Path>) -> Self {
+impl ChipContext {
+    pub fn new() -> Self {
         Self {
-            root: path.as_ref().to_path_buf(),
+            chips: HashMap::new(),
         }
     }
 
-    pub fn resolve_chip_maybe_builtin(&self, target: &str) -> Option<Chip> {
+    pub fn add_hdl(&mut self, path: impl AsRef<Path>) -> Result<(), ()> {
+        fn inner(ctx: &mut ChipContext, path: &Path) -> Result<Chip, ()> {
+            if path.extension() == Some(OsStr::new("hdl")) {
+                let str = fs::read_to_string(path).map_err(|_| ())?;
+                let buf = Span::from(str.as_str());
+                ctx.make_hdl(create_chip(buf).map_err(|_| ())?)
+            } else {
+                Err(())
+            }
+        }
+
+        if let Ok(chip) = inner(self, path.as_ref()) {
+            self.chips.insert(chip.interface().name, chip);
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    pub fn resolve_chip(&mut self, target: &str) -> Result<Chip, ()> {
         get_builtin(target)
             .map(|x| Chip::Builtin(x))
-            .or_else(|| self.resolve_chip(target))
+            .or_else(|| self.chips.get(&target.to_string()).cloned())
+            .ok_or(())
     }
 
-    pub fn resolve_chip(&self, target: &str) -> Option<Chip> {
-        let str = resolve_hdl_file(target, &self.root)?;
-        let buf = Span::from(str.as_str());
-        Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
-    }
+    // pub fn resolve_chip(&self, target: &str) -> Option<Chip> {
+    // let str = resolve_hdl_file(target, &self.root)?;
+    // let buf = Span::from(str.as_str());
+    // Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
+    // }
 
-    pub fn make_hdl(&self, chip_repr: ChipRepr) -> Result<Chip, ()> {
+    pub fn make_hdl(&mut self, chip_repr: ChipRepr) -> Result<Chip, ()> {
         let interface = chip_repr.interface();
         match chip_repr.logic {
             Implementation::Native(connections) => {
-                native_chip(&self, interface, connections).map(|x| Chip::Native(x))
+                native_chip(self, interface, connections).map(|x| Chip::Native(x))
             }
             Implementation::Builtin(Builtin { name, .. }) => {
                 get_builtin(*name).map(|x| Chip::Builtin(x)).ok_or(())
@@ -78,7 +75,12 @@ mod test {
         let mut dir = std::env::current_dir().unwrap();
         dir.push("../test_files");
 
-        let ctx = FileContext::new(dir);
-        assert!(matches!(ctx.resolve_chip("DMux8Way"), Some(_)));
+        let mut ctx = ChipContext::new();
+        assert!(matches!(ctx.add_hdl(dir.join("Not.hdl")), Ok(_)));
+        assert!(matches!(ctx.add_hdl(dir.join("And.hdl")), Ok(_)));
+        assert!(matches!(ctx.add_hdl(dir.join("DMux.hdl")), Ok(_)));
+        assert!(matches!(ctx.add_hdl(dir.join("DMux4Way.hdl")), Ok(_)));
+        assert!(matches!(ctx.add_hdl(dir.join("DMux8Way.hdl")), Ok(_)));
+        assert!(matches!(ctx.resolve_chip("DMux8Way"), Ok(_)));
     }
 }
