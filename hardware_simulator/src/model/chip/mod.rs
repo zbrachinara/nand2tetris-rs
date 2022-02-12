@@ -1,9 +1,9 @@
-use crate::model::chip::build_ctx::ChipContext;
-use crate::model::chip::native::NativeChip;
 use crate::model::parser::Interface;
+use build_ctx::ChipBuilder;
+use native::NativeChip;
 use std::fmt::{Debug, Formatter};
 
-mod build_ctx;
+pub mod build_ctx;
 mod builtin;
 mod native;
 mod vchip;
@@ -14,7 +14,7 @@ pub enum Chip {
 }
 
 impl Chip {
-    pub fn build(name: &str, ctx: &mut ChipContext) -> Result<Self, ()> {
+    pub fn build(name: &str, ctx: &mut ChipBuilder) -> Result<Self, ()> {
         ctx.resolve_chip(name)
     }
 

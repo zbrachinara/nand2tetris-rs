@@ -8,11 +8,11 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 
-pub struct ChipContext {
+pub struct ChipBuilder {
     chips: HashMap<String, Chip>,
 }
 
-impl ChipContext {
+impl ChipBuilder {
     pub fn new() -> Self {
         Self {
             chips: HashMap::new(),
@@ -20,7 +20,7 @@ impl ChipContext {
     }
 
     pub fn add_hdl(&mut self, path: impl AsRef<Path>) -> Result<(), ()> {
-        fn inner(ctx: &mut ChipContext, path: &Path) -> Result<Chip, ()> {
+        fn inner(ctx: &mut ChipBuilder, path: &Path) -> Result<Chip, ()> {
             if path.extension() == Some(OsStr::new("hdl")) {
                 let str = fs::read_to_string(path).map_err(|_| ())?;
                 let buf = Span::from(str.as_str());
@@ -67,7 +67,7 @@ mod test {
         let mut dir = std::env::current_dir().unwrap();
         dir.push("../test_files");
 
-        let mut ctx = ChipContext::new();
+        let mut ctx = ChipBuilder::new();
         assert!(matches!(ctx.add_hdl(dir.join("Not.hdl")), Ok(_)));
         assert!(matches!(ctx.add_hdl(dir.join("And.hdl")), Ok(_)));
         assert!(matches!(ctx.add_hdl(dir.join("DMux.hdl")), Ok(_)));

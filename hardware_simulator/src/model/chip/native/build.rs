@@ -1,6 +1,6 @@
 use super::edge_set::{EdgeSetMap, Endpoint};
 use crate::clock_behavior::ClockBehavior;
-use crate::model::chip::build_ctx::ChipContext;
+use crate::model::chip::build_ctx::ChipBuilder;
 use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
@@ -16,7 +16,7 @@ struct Dependency<'a> {
 }
 
 pub fn native_chip(
-    ctx: &mut ChipContext,
+    ctx: &mut ChipBuilder,
     top_interface: Interface,
     connections: Vec<Connection>,
 ) -> Result<NativeChip, ()> {
