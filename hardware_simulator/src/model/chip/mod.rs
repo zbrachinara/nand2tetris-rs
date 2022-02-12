@@ -16,7 +16,7 @@ pub enum Chip {
 
 impl Chip {
     pub fn build(name: &str, ctx: &mut ChipBuilder) -> Result<Self, ()> {
-        ctx.resolve_chip(name)
+        ctx.resolve_chip(name).map_err(|_|())
     }
 
     pub fn interface(&self) -> Interface {

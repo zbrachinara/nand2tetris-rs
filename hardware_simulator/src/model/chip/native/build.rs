@@ -39,7 +39,7 @@ pub fn native_chip(
                     interface,
                     connections: inputs,
                 }
-            })?);
+            }).map_err(|_|())?);
         }
 
         dependents

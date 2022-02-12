@@ -1,4 +1,5 @@
 use crate::model::chip::builtin::get_builtin;
+use crate::model::chip::error::ModelConstructionError;
 use crate::model::chip::native::build::native_chip;
 use crate::model::chip::Chip;
 use crate::model::parser::{create_chip, Builtin, Chip as ChipRepr, Implementation};
@@ -19,14 +20,17 @@ impl ChipBuilder {
         }
     }
 
-    pub fn add_hdl(&mut self, path: impl AsRef<Path>) -> Result<(), ()> {
-        fn inner(ctx: &mut ChipBuilder, path: &Path) -> Result<Chip, ()> {
+    pub fn add_hdl(&mut self, path: impl AsRef<Path>) -> Result<(), ModelConstructionError> {
+        fn inner(ctx: &mut ChipBuilder, path: &Path) -> Result<Chip, ModelConstructionError> {
             if path.extension() == Some(OsStr::new("hdl")) {
-                let str = fs::read_to_string(path).map_err(|_| ())?;
+                let str =
+                    fs::read_to_string(path).map_err(|_| ModelConstructionError::ChipNotFound)?;
                 let buf = Span::from(str.as_str());
-                ctx.make_hdl(create_chip(buf).map_err(|_| ())?)
+                let chip =
+                    create_chip(buf).map_err(|_| ModelConstructionError::HdlParseError)?;
+                ctx.make_hdl(chip).map_err(|_| ModelConstructionError::ConstructionError)
             } else {
-                Err(())
+                Err(ModelConstructionError::ChipNotFound)
             }
         }
 
@@ -34,15 +38,15 @@ impl ChipBuilder {
             self.chips.insert(chip.interface().name, chip);
             Ok(())
         } else {
-            Err(())
+            Err(ModelConstructionError::ChipNotFound)
         }
     }
 
-    pub fn resolve_chip(&mut self, target: &str) -> Result<Chip, ()> {
+    pub fn resolve_chip(&mut self, target: &str) -> Result<Chip, ModelConstructionError> {
         get_builtin(target)
             .map(|x| Chip::Builtin(x))
             .or_else(|| self.chips.get(&target.to_string()).cloned())
-            .ok_or(())
+            .ok_or(ModelConstructionError::ChipNotFound)
     }
 
     fn make_hdl(&mut self, chip_repr: ChipRepr) -> Result<Chip, ()> {
