@@ -1,5 +1,4 @@
 use std::fmt::{Debug, Formatter};
-use std::path::Path;
 use crate::model::chip::build_ctx::ChipContext;
 use crate::model::chip::native::NativeChip;
 use crate::model::parser::Interface;

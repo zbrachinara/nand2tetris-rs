@@ -1,14 +1,12 @@
 use crate::model::chip::builtin::get_builtin;
 use crate::model::chip::native::build::native_chip;
-use crate::model::chip::native::NativeChip;
 use crate::model::chip::Chip;
 use crate::model::parser::{create_chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::Span;
-use cached::proc_macro::cached;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub struct ChipContext {
     chips: HashMap<String, Chip>,

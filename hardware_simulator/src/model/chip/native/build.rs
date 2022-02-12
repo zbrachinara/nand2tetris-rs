@@ -4,7 +4,6 @@ use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
 use crate::model::chip::Chip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
-use itertools::Itertools;
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::borrow::Cow;
