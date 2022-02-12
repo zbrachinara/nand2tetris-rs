@@ -47,13 +47,7 @@ impl ChipContext {
             .ok_or(())
     }
 
-    // pub fn resolve_chip(&self, target: &str) -> Option<Chip> {
-    // let str = resolve_hdl_file(target, &self.root)?;
-    // let buf = Span::from(str.as_str());
-    // Some(self.make_hdl(chip(buf).ok()?.1).ok()?)
-    // }
-
-    pub fn make_hdl(&mut self, chip_repr: ChipRepr) -> Result<Chip, ()> {
+    fn make_hdl(&mut self, chip_repr: ChipRepr) -> Result<Chip, ()> {
         let interface = chip_repr.interface();
         match chip_repr.logic {
             Implementation::Native(connections) => {
