@@ -31,15 +31,19 @@ pub fn native_chip(
     let dependents = {
         let mut dependents = vec![];
         for Connection { chip_name, inputs } in connections {
-            dependents.push(ctx.resolve_chip(*chip_name).map(|chip| {
-                let interface = chip.interface();
-                let index = conn_graph.add_node(chip);
-                Dependency {
-                    index,
-                    interface,
-                    connections: inputs,
-                }
-            }).map_err(|_|())?);
+            dependents.push(
+                ctx.resolve_chip(*chip_name)
+                    .map(|chip| {
+                        let interface = chip.interface();
+                        let index = conn_graph.add_node(chip);
+                        Dependency {
+                            index,
+                            interface,
+                            connections: inputs,
+                        }
+                    })
+                    .map_err(|_| ())?,
+            );
         }
 
         dependents
@@ -59,22 +63,13 @@ pub fn native_chip(
                     conn_graph.add_edge(
                         input.index,
                         output.index,
-                        ConnEdge::Sequential {
-                            in_range: input.range.clone(),
-                            out_range: output.range.clone(),
-                            waiting: vec![],
-                            buf: vec![],
-                        },
+                        ConnEdge::new_seq(input.range.clone(), output.range.clone()),
                     )
                 } else {
                     conn_graph.add_edge(
                         input.index,
                         output.index,
-                        ConnEdge::Combinatorial {
-                            in_range: input.range.clone(),
-                            out_range: output.range.clone(),
-                            buf: vec![],
-                        },
+                        ConnEdge::new_com(input.range.clone(), output.range.clone()),
                     )
                 }
             });

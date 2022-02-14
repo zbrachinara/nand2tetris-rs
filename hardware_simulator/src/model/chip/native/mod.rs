@@ -21,6 +21,26 @@ pub enum ConnEdge {
     },
 }
 
+impl ConnEdge {
+    fn new_com(in_range: BusRange, out_range: BusRange) -> Self {
+        let size = in_range.size() as usize;
+        Self::Combinatorial {
+            in_range,
+            out_range,
+            buf: Vec::with_capacity(size),
+        }
+    }
+    fn new_seq(in_range: BusRange, out_range: BusRange) -> Self {
+        let size = in_range.size() as usize;
+        Self::Sequential {
+            in_range,
+            out_range,
+            waiting: Vec::with_capacity(size),
+            buf: Vec::with_capacity(size),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct NativeChip {
     pub conn_graph: Graph<Chip, ConnEdge>,
