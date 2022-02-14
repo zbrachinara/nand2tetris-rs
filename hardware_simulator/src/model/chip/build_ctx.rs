@@ -2,7 +2,7 @@ use crate::model::chip::builtin::get_builtin;
 use crate::model::chip::error::ModelConstructionError;
 use crate::model::chip::native::build::native_chip;
 use crate::model::chip::Chip;
-use crate::model::parser::{create_chip, Builtin, Chip as ChipRepr, Implementation};
+use crate::model::parser::{create_chip, Builtin, Chip as ChipRepr, Form};
 use crate::Span;
 use anyhow::anyhow;
 use std::collections::HashMap;
@@ -60,14 +60,14 @@ impl ChipBuilder {
     fn make_hdl(&mut self, chip_repr: ChipRepr) -> Result<Chip, ModelConstructionError> {
         let interface = chip_repr.interface();
         match chip_repr.logic {
-            Implementation::Native(connections) => native_chip(self, interface, connections)
+            Form::Native(connections) => native_chip(self, interface, connections)
                 .map(|x| Chip::Native(x))
                 .map_err(|_| {
                     ModelConstructionError::Unk(Some(anyhow!(
                         "Error somewhere in construction of native chip"
                     )))
                 }),
-            Implementation::Builtin(Builtin { name, .. }) => get_builtin(*name)
+            Form::Builtin(Builtin { name, .. }) => get_builtin(*name)
                 .map(|x| Chip::Builtin(x))
                 .ok_or(ModelConstructionError::ChipNotFound(name.to_string())),
         }

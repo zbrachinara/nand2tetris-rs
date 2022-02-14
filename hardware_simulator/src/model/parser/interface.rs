@@ -1,4 +1,4 @@
-use super::{Builtin, Chip, Implementation, Pin};
+use super::{Builtin, Chip, Form, Channel};
 use crate::bus_range::BusRange;
 use crate::Span;
 use std::collections::HashMap;
@@ -14,10 +14,10 @@ pub struct Interface {
     pub seq_out: PinMap,
 }
 
-fn to_map(pins: Vec<Pin>, mut next: u16) -> (PinMap, u16) {
+fn to_map(pins: Vec<Channel>, mut next: u16) -> (PinMap, u16) {
     let map = pins
         .into_iter()
-        .map(|Pin { name, size }| {
+        .map(|Channel { name, size }| {
             let size = if let Some(n) = size { n } else { 1 };
             let range = BusRange {
                 start: next,
@@ -31,7 +31,7 @@ fn to_map(pins: Vec<Pin>, mut next: u16) -> (PinMap, u16) {
     (map, next)
 }
 
-fn split_seq_com(pins: &Vec<Pin>, seq_names: &Vec<Span>) -> (PinMap, PinMap) {
+fn split_seq_com(pins: &Vec<Channel>, seq_names: &Vec<Span>) -> (PinMap, PinMap) {
     let (in_seq, in_com) = pins.iter().cloned().partition(|pin| {
         seq_names
             .iter()
@@ -47,7 +47,7 @@ fn split_seq_com(pins: &Vec<Pin>, seq_names: &Vec<Span>) -> (PinMap, PinMap) {
 impl<'a> Chip<'a> {
     // defines the rules for interacting with the chip using Vec
     pub fn interface(&self) -> Interface {
-        if let Implementation::Builtin(Builtin { ref clocked, .. }) = self.logic {
+        if let Form::Builtin(Builtin { ref clocked, .. }) = self.logic {
             let empty = vec![];
             let clocked = if let Some(x) = clocked { x } else { &empty };
             let (seq_in, com_in) = split_seq_com(&self.in_pins, clocked);

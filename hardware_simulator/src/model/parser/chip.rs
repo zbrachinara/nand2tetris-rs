@@ -1,7 +1,7 @@
 use super::connection::connection;
-use super::pin_decl::{in_pin_decl, out_pin_decl};
+use super::channel::{in_pin_decl, out_pin_decl};
 use super::symbols::{name, spaced};
-use super::{Builtin, Chip, Connection, Implementation, PResult, Span};
+use super::{Builtin, Chip, Connection, Form, PResult, Span};
 use nom::character::complete::char;
 use nom::combinator::opt;
 use nom::multi::{many1, separated_list0};
@@ -28,14 +28,14 @@ fn native(arg: Span) -> PResult<Vec<Connection>> {
     spaced(preceded(tag("PARTS:"), many1(connection)))(arg)
 }
 
-fn implementation(arg: Span) -> PResult<Implementation> {
+fn implementation(arg: Span) -> PResult<Form> {
     let builtin = builtin(arg);
     let native = native(arg);
 
     if let Ok((remainder, answer)) = builtin {
-        Ok((remainder, Implementation::Builtin(answer)))
+        Ok((remainder, Form::Builtin(answer)))
     } else if let Ok((remainder, answer)) = native {
-        Ok((remainder, Implementation::Native(answer)))
+        Ok((remainder, Form::Native(answer)))
     } else {
         Err(nom::Err::Error(ErrorTree::Base {
             location: arg,

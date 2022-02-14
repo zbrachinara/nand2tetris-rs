@@ -12,35 +12,35 @@ fn bus_declaration(arg: Span) -> PResult<Span> {
     Ok((remainder, size))
 }
 
-fn pin_decl(arg: Span) -> PResult<Pin> {
+fn channel_declaration(arg: Span) -> PResult<Channel> {
     let (remainder, (name, size)) = tuple((name, opt(bus_declaration)))(arg)?;
     let (remainder, _) = skip_comma(remainder)?;
 
     match size {
         Some(size) => Ok((
             remainder,
-            Pin {
+            Channel {
                 name,
                 size: Some(convert_num(size)?),
             },
         )),
-        None => Ok((remainder, Pin { name, size: None })),
+        None => Ok((remainder, Channel { name, size: None })),
     }
 }
 
-fn headed_pin_decl<'a>(header: &'static str) -> impl FnMut(Span<'a>) -> PResult<Vec<Pin<'a>>> {
+fn headed_pin_decl<'a>(header: &'static str) -> impl FnMut(Span<'a>) -> PResult<Vec<Channel<'a>>> {
     delimited(
         spaced(tag(header)),
-        many0(complete(pin_decl)),
+        many0(complete(channel_declaration)),
         tuple((generic_space0, tag(";"))),
     )
 }
 
-pub fn in_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
+pub fn in_pin_decl(arg: Span) -> PResult<Vec<Channel>> {
     headed_pin_decl("IN").parse(arg)
 }
 
-pub fn out_pin_decl(arg: Span) -> PResult<Vec<Pin>> {
+pub fn out_pin_decl(arg: Span) -> PResult<Vec<Channel>> {
     headed_pin_decl("OUT").parse(arg)
 }
 
@@ -74,7 +74,7 @@ mod test {
         check(bus_declaration(Span::from("[abcdef]")), Ok(("", "abcdef")));
     }
 
-    fn check_pin_decl(test: Pin, (name, size): (&str, Option<u16>)) {
+    fn check_pin_decl(test: Channel, (name, size): (&str, Option<u16>)) {
         assert_eq!(*test.name, name);
         assert_eq!(test.size, size);
     }
@@ -82,17 +82,17 @@ mod test {
     #[test]
     fn test_pin_decl() {
         {
-            let res = pin_decl(Span::from("in[5]")).unwrap();
+            let res = channel_declaration(Span::from("in[5]")).unwrap();
             assert_eq!(*(res.0), "");
             check_pin_decl(res.1, ("in", Some(5)));
         }
         {
-            let res = pin_decl(Span::from("in[5], out[4]")).unwrap();
+            let res = channel_declaration(Span::from("in[5], out[4]")).unwrap();
             assert_eq!(*(res.0), "out[4]");
             check_pin_decl(res.1, ("in", Some(5)));
         }
         {
-            let res = pin_decl(Span::from("in[abc]"));
+            let res = channel_declaration(Span::from("in[abc]"));
             println!("{res:?}");
             assert!(matches!(res, Err(_)))
         }

@@ -4,7 +4,7 @@ use nom_supreme::error::ErrorTree;
 mod chip;
 mod connection;
 pub(crate) mod interface;
-mod pin_decl;
+mod channel;
 mod symbols;
 pub mod error;
 
@@ -18,13 +18,13 @@ type PResult<'a, O> = nom::IResult<Span<'a>, O, ErrorTree<Span<'a>>>;
 #[derive(Debug)]
 pub struct Chip<'a> {
     pub name: Span<'a>,
-    pub in_pins: Vec<Pin<'a>>,
-    pub out_pins: Vec<Pin<'a>>,
-    pub logic: Implementation<'a>,
+    pub in_pins: Vec<Channel<'a>>,
+    pub out_pins: Vec<Channel<'a>>,
+    pub logic: Form<'a>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
-pub enum Implementation<'a> {
+pub enum Form<'a> {
     Builtin(Builtin<'a>),
     Native(Vec<Connection<'a>>),
 }
@@ -36,7 +36,7 @@ pub struct Builtin<'a> {
 }
 
 #[derive(Eq, PartialEq, Debug, Clone)]
-pub struct Pin<'a> {
+pub struct Channel<'a> {
     pub name: Span<'a>,
     pub size: Option<u16>,
 }
