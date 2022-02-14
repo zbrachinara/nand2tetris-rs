@@ -10,6 +10,7 @@ nom = "7.1.0"
 nom_locate = "4.0.0"
 nom-supreme = "0.6.0"
 thiserror = "1.0.30"
+anyhow = "1.0.53"
 derive_more = "0.99.17"
 cached = {version="0.30.0", features = [ "proc_macro" ], default-features = false}
 petgraph = "0.6.0"

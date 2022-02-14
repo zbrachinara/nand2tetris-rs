@@ -4,6 +4,7 @@ use crate::model::chip::native::build::native_chip;
 use crate::model::chip::Chip;
 use crate::model::parser::{create_chip, Builtin, Chip as ChipRepr, Implementation};
 use crate::Span;
+use anyhow::anyhow;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs;
@@ -22,42 +23,53 @@ impl ChipBuilder {
 
     pub fn add_hdl(&mut self, path: impl AsRef<Path>) -> Result<(), ModelConstructionError> {
         fn inner(ctx: &mut ChipBuilder, path: &Path) -> Result<Chip, ModelConstructionError> {
-            if path.extension() == Some(OsStr::new("hdl")) {
-                let str =
-                    fs::read_to_string(path).map_err(|_| ModelConstructionError::ChipNotFound)?;
-                let buf = Span::from(str.as_str());
-                let chip =
-                    create_chip(buf).map_err(|_| ModelConstructionError::HdlParseError)?;
-                ctx.make_hdl(chip).map_err(|_| ModelConstructionError::ConstructionError)
-            } else {
-                Err(ModelConstructionError::ChipNotFound)
+            let name = path
+                .file_stem()
+                .ok_or(ModelConstructionError::Unk(Some(anyhow!(
+                    "Could not read the path: {path:?}"
+                ))))?
+                .to_string_lossy()
+                .to_string();
+            match path.extension() {
+                Some(x) if x == OsStr::new("hdl") => {
+                    let str = fs::read_to_string(path)
+                        .map_err(|_| ModelConstructionError::ChipNotFound(name))?;
+                    let buf = Span::from(str.as_str());
+                    let chip =
+                        create_chip(buf).map_err(|_| ModelConstructionError::HdlParseError)?;
+                    ctx.make_hdl(chip)
+                        .map_err(|_| ModelConstructionError::ConstructionError)
+                }
+                Some(_) => Err(ModelConstructionError::ChipNotFound(name)),
+                None => Err(ModelConstructionError::Unk(None)),
             }
         }
 
-        if let Ok(chip) = inner(self, path.as_ref()) {
-            self.chips.insert(chip.interface().name, chip);
-            Ok(())
-        } else {
-            Err(ModelConstructionError::ChipNotFound)
-        }
+        let chip = inner(self, path.as_ref())?;
+        self.chips.insert(chip.interface().name, chip);
+        Ok(())
     }
 
     pub fn resolve_chip(&mut self, target: &str) -> Result<Chip, ModelConstructionError> {
         get_builtin(target)
             .map(|x| Chip::Builtin(x))
             .or_else(|| self.chips.get(&target.to_string()).cloned())
-            .ok_or(ModelConstructionError::ChipNotFound)
+            .ok_or(ModelConstructionError::ChipNotFound(target.to_string()))
     }
 
-    fn make_hdl(&mut self, chip_repr: ChipRepr) -> Result<Chip, ()> {
+    fn make_hdl(&mut self, chip_repr: ChipRepr) -> Result<Chip, ModelConstructionError> {
         let interface = chip_repr.interface();
         match chip_repr.logic {
-            Implementation::Native(connections) => {
-                native_chip(self, interface, connections).map(|x| Chip::Native(x))
-            }
-            Implementation::Builtin(Builtin { name, .. }) => {
-                get_builtin(*name).map(|x| Chip::Builtin(x)).ok_or(())
-            }
+            Implementation::Native(connections) => native_chip(self, interface, connections)
+                .map(|x| Chip::Native(x))
+                .map_err(|_| {
+                    ModelConstructionError::Unk(Some(anyhow!(
+                        "Error somewhere in construction of native chip"
+                    )))
+                }),
+            Implementation::Builtin(Builtin { name, .. }) => get_builtin(*name)
+                .map(|x| Chip::Builtin(x))
+                .ok_or(ModelConstructionError::ChipNotFound(name.to_string())),
         }
     }
 }
