@@ -1,7 +1,7 @@
 use crate::model::parser::Interface;
 use build_ctx::ChipBuilder;
 use native::NativeChip;
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Display, Formatter};
 
 pub mod build_ctx;
 mod builtin;
@@ -48,7 +48,7 @@ impl Clone for Chip {
     }
 }
 
-impl Debug for Chip {
+impl Display for Chip {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.interface().name)
     }

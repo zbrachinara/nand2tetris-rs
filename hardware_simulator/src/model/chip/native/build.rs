@@ -53,7 +53,7 @@ pub fn native_chip(
 
     let edge_sets = make_edge_set(input_index, output_index, &mut conn_graph, dependents)?;
 
-    for (_, set) in edge_sets.iter() {
+    for (name, set) in edge_sets.iter() {
         for (input, output) in set.iter()? {
             (input.range.size() == output.range.size()).then(|| {
                 if matches!(
@@ -63,13 +63,13 @@ pub fn native_chip(
                     conn_graph.add_edge(
                         input.index,
                         output.index,
-                        ConnEdge::new_seq(input.range.clone(), output.range.clone()),
+                        ConnEdge::new_seq(name.clone(), input.range.clone(), output.range.clone()),
                     )
                 } else {
                     conn_graph.add_edge(
                         input.index,
                         output.index,
-                        ConnEdge::new_com(input.range.clone(), output.range.clone()),
+                        ConnEdge::new_com(name.clone(), input.range.clone(), output.range.clone()),
                     )
                 }
             });
