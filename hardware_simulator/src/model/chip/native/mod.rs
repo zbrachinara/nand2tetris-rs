@@ -6,7 +6,7 @@ use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
 use petgraph::Graph;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ConnEdge {
     Combinatorial {
         in_range: BusRange,
