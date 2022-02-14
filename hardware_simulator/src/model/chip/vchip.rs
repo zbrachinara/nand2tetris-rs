@@ -35,6 +35,7 @@ impl VirtualBus {
         Chip::Builtin(Box::new(Self {
             size: h.iter().map(|(_, x)| x.size()).sum(),
             interface: Interface {
+                name: "_Input".to_string(),
                 com_out: h,
                 ..Default::default()
             },
@@ -44,6 +45,7 @@ impl VirtualBus {
         Chip::Builtin(Box::new(Self {
             size: h.iter().map(|(_, x)| x.size()).sum(),
             interface: Interface {
+                name: "_Output".to_string(),
                 com_in: h,
                 ..Default::default()
             },
