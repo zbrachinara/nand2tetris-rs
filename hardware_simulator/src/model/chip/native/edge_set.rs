@@ -68,5 +68,5 @@ impl EdgeSetMap {
 pub struct Endpoint {
     pub index: NodeIndex,
     pub range: BusRange,
-    pub com_or_seq: ClockBehavior,
+    pub clocked: ClockBehavior,
 }

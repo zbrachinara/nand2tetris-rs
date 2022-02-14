@@ -57,7 +57,7 @@ pub fn native_chip(
         for (input, output) in set.iter()? {
             (input.range.size() == output.range.size()).then(|| {
                 if matches!(
-                    input.com_or_seq.and(&output.com_or_seq),
+                    input.clocked.and(&output.clocked),
                     ClockBehavior::Sequential
                 ) {
                     conn_graph.add_edge(
@@ -128,7 +128,7 @@ fn make_edge_set(
                                 Endpoint {
                                     range,
                                     index: input_index,
-                                    com_or_seq: ClockBehavior::Combinatorial,
+                                    clocked: ClockBehavior::Combinatorial,
                                 },
                                 true,
                             )?;
@@ -140,7 +140,7 @@ fn make_edge_set(
                                 Endpoint {
                                     range,
                                     index: output_index,
-                                    com_or_seq: ClockBehavior::Combinatorial,
+                                    clocked: ClockBehavior::Combinatorial,
                                 },
                                 false,
                             )?;
@@ -156,7 +156,7 @@ fn make_edge_set(
                         Endpoint {
                             index,
                             range: interface.real_range(*internal, internal_bus.as_ref())?,
-                            com_or_seq: ClockBehavior::Combinatorial, // TODO: Get this from the interface
+                            clocked: interface.clocked(pin_name),
                         },
                         !interface.is_input(*internal),
                     )?;
