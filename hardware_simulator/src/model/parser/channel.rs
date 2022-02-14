@@ -93,7 +93,6 @@ mod test {
         }
         {
             let res = channel_declaration(Span::from("in[abc]"));
-            println!("{res:?}");
             assert!(matches!(res, Err(_)))
         }
     }
