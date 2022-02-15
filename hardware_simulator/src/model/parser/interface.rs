@@ -124,6 +124,10 @@ impl Interface {
             None => ClockBehavior::Sequential
         }
     }
+
+    pub fn has_clocked(&self) -> bool {
+        self.iter_sequential().count() > 0
+    }
 }
 
 #[cfg(test)]

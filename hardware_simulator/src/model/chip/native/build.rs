@@ -3,7 +3,7 @@ use crate::clock_behavior::ClockBehavior;
 use crate::model::chip::build_ctx::ChipBuilder;
 use crate::model::chip::native::{ConnEdge, NativeChip};
 use crate::model::chip::vchip::VirtualBus;
-use crate::model::chip::Chip;
+use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
@@ -28,31 +28,38 @@ pub fn native_chip(
     let mut conn_graph = Graph::<_, ConnEdge>::new();
 
     // instantiate all chips this chip depends on
-    let dependents = {
+    let (dependents, clocked_chips) = {
         let mut dependents = vec![];
+        let mut clocked_chips = vec![];
         for Connection { chip_name, inputs } in connections {
-            dependents.push(
-                ctx.resolve_chip(*chip_name)
-                    .map(|chip| {
-                        let interface = chip.interface();
-                        let index = conn_graph.add_node(chip);
-                        Dependency {
-                            index,
-                            interface,
-                            connections: inputs,
-                        }
-                    })
-                    .map_err(|_| ())?,
-            );
+            let chip = ctx.resolve_chip(*chip_name).map_err(|_| ())?;
+            let clocked = chip.is_clocked();
+            let dependency = ctx
+                .resolve_chip(*chip_name)
+                .map(|chip| {
+                    let interface = chip.interface();
+                    let index = conn_graph.add_node(chip);
+                    Dependency {
+                        index,
+                        interface,
+                        connections: inputs,
+                    }
+                })
+                .map_err(|_| ())?;
+            if clocked {
+                clocked_chips.push(dependency.index)
+            }
+            dependents.push(dependency);
         }
 
-        dependents
+        (dependents, clocked_chips)
     };
     // including the input and output virtual chips
     let (input_index, output_index) = (conn_graph.add_node(input), conn_graph.add_node(output));
 
     let edge_sets = make_edge_set(input_index, output_index, &mut conn_graph, dependents)?;
 
+    let mut clocked_edges = vec![];
     for (name, set) in edge_sets.iter() {
         for (input, output) in set.iter()? {
             (input.range.size() == output.range.size()).then(|| {
@@ -60,17 +67,17 @@ pub fn native_chip(
                     input.clocked.and(&output.clocked),
                     ClockBehavior::Sequential
                 ) {
-                    conn_graph.add_edge(
+                    clocked_edges.push(conn_graph.add_edge(
                         input.index,
                         output.index,
                         ConnEdge::new_seq(name.clone(), input.range.clone(), output.range.clone()),
-                    )
+                    ));
                 } else {
                     conn_graph.add_edge(
                         input.index,
                         output.index,
                         ConnEdge::new_com(name.clone(), input.range.clone(), output.range.clone()),
-                    )
+                    );
                 }
             });
         }
@@ -79,6 +86,8 @@ pub fn native_chip(
     Ok(NativeChip {
         conn_graph,
         interface: top_interface,
+        clocked_chips,
+        clocked_edges,
     })
 }
 

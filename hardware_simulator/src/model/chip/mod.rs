@@ -1,13 +1,13 @@
 use crate::model::parser::Interface;
 use build_ctx::ChipBuilder;
 use native::NativeChip;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
 pub mod build_ctx;
 mod builtin;
+mod error;
 mod native;
 mod vchip;
-mod error;
 
 pub enum Chip {
     Native(NativeChip),
@@ -16,7 +16,14 @@ pub enum Chip {
 
 impl Chip {
     pub fn build(name: &str, ctx: &mut ChipBuilder) -> Result<Self, ()> {
-        ctx.resolve_chip(name).map_err(|_|())
+        ctx.resolve_chip(name).map_err(|_| ())
+    }
+
+    pub fn is_clocked(&self) -> bool {
+        match self {
+            Chip::Native(n) => n.is_clocked(),
+            Chip::Builtin(b) => b.is_clocked(),
+        }
     }
 
     pub fn interface(&self) -> Interface {
@@ -48,6 +55,12 @@ impl Clone for Chip {
     }
 }
 
+impl Debug for Chip {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        (self as &dyn Display).fmt(f)
+    }
+}
+
 impl Display for Chip {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.interface().name)
@@ -56,6 +69,9 @@ impl Display for Chip {
 
 pub trait ChipObject {
     fn interface(&self) -> Interface;
+    fn is_clocked(&self) -> bool {
+        self.interface().has_clocked()
+    }
 
     fn clock(&mut self);
     fn eval(&mut self, _: &[bool]) -> Vec<bool>;

@@ -91,6 +91,7 @@ mod test {
         assert!(matches!(ctx.add_hdl(dir.join("DMux4Way.hdl")), Ok(_)));
         assert!(matches!(ctx.add_hdl(dir.join("DMux8Way.hdl")), Ok(_)));
         let chip = ctx.resolve_chip("DMux8Way").unwrap();
+        println!("{chip:?}");
         if let Chip::Native(chip) = chip {
             println!("{}", Dot::new(&chip.conn_graph))
         }
