@@ -57,7 +57,10 @@ impl Clone for Chip {
 
 impl Debug for Chip {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        (self as &dyn Display).fmt(f)
+        match self {
+            Self::Native(n) => write!(f, "{n:?}"),
+            Self::Builtin(b) => write!(f, "{}", b.interface().name),
+        }
     }
 }
 
