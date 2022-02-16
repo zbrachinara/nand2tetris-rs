@@ -28,7 +28,7 @@ impl ChipObject for NativeChip {
         for edge in &self.clocked_edges {
             self.conn_graph[edge.clone()].clock();
         }
-        self.eval();
+        // self.eval(); //TODO: Need to propagate changes after edges change
     }
 
     fn eval(&mut self, _: &[bool]) -> Vec<bool> {
