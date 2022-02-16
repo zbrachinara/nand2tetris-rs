@@ -37,3 +37,13 @@ impl ChipObject for Nand {
         Box::new(Nand)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn nand() {
+        assert!(!Nand.is_clocked())
+    }
+}

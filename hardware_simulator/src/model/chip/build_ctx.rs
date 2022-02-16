@@ -76,8 +76,8 @@ impl ChipBuilder {
 
 #[cfg(test)]
 mod test {
-    use petgraph::dot::Dot;
     use super::*;
+    use petgraph::dot::Dot;
 
     #[test]
     fn general() {
@@ -90,11 +90,17 @@ mod test {
         assert!(matches!(ctx.add_hdl(dir.join("DMux.hdl")), Ok(_)));
         assert!(matches!(ctx.add_hdl(dir.join("DMux4Way.hdl")), Ok(_)));
         assert!(matches!(ctx.add_hdl(dir.join("DMux8Way.hdl")), Ok(_)));
-        let chip = ctx.resolve_chip("DMux8Way").unwrap();
-        println!("{chip:?}");
-        if let Chip::Native(chip) = chip {
-            println!("{}", Dot::new(&chip.conn_graph))
+        {
+            let chip = ctx.resolve_chip("DMux8Way").unwrap();
+            assert!(!chip.is_clocked());
+            if let Chip::Native(chip) = chip {
+                println!("{}", Dot::new(&chip.conn_graph))
+            }
         }
-        // assert!(matches!(ctx.resolve_chip("DMux8Way"), Ok(_)));
+
+        {
+            let chip = ctx.resolve_chip("Not").unwrap();
+            assert!(!chip.is_clocked());
+        }
     }
 }

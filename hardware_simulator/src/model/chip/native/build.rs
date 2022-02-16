@@ -165,7 +165,7 @@ fn make_edge_set(
                         Endpoint {
                             index,
                             range: interface.real_range(*internal, internal_bus.as_ref())?,
-                            clocked: interface.clocked(pin_name),
+                            clocked: interface.clocked(*internal),
                         },
                         !interface.is_input(*internal),
                     )?;
