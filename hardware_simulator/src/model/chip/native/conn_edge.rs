@@ -51,4 +51,10 @@ impl ConnEdge {
             buf: Vec::with_capacity(size),
         }
     }
+
+    pub fn clock(&mut self) {
+        if let Self::Sequential {waiting, buf, ..} = self {
+            buf.copy_from_slice(waiting);
+        }
+    }
 }

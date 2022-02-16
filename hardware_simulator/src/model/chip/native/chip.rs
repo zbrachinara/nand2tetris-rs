@@ -22,7 +22,13 @@ impl ChipObject for NativeChip {
     }
 
     fn clock(&mut self) {
-        todo!()
+        for node in &self.clocked_chips {
+            self.conn_graph[node.clone()].clock();
+        }
+        for edge in &self.clocked_edges {
+            self.conn_graph[edge.clone()].clock();
+        }
+        self.eval();
     }
 
     fn eval(&mut self, _: &[bool]) -> Vec<bool> {
