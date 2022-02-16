@@ -1,9 +1,10 @@
 use super::edge_set::{EdgeSetMap, Endpoint};
 use crate::clock_behavior::ClockBehavior;
 use crate::model::chip::build_ctx::ChipBuilder;
-use crate::model::chip::native::{ConnEdge, NativeChip};
+use crate::model::chip::native::chip::NativeChip;
+use crate::model::chip::native::conn_edge::ConnEdge;
 use crate::model::chip::vchip::VirtualBus;
-use crate::model::chip::{Chip, ChipObject};
+use crate::model::chip::Chip;
 use crate::model::parser::{Argument, Connection, Interface, Symbol};
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;

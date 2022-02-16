@@ -25,6 +25,7 @@ fn all_out(size: u16, name: String) -> Interface {
 
 /// Represents a bus. For edges which connect to IN or OUT pins, connect to these instead
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct VirtualBus {
     size: u16,
     interface: Interface,
