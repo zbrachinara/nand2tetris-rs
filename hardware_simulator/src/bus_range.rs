@@ -5,7 +5,7 @@ pub struct BusRange {
 }
 
 impl BusRange {
-    pub fn size(&self) -> u16 {
+    pub unsafe fn size(&self) -> u16 {
         self.end - self.start
     }
 }

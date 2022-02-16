@@ -21,7 +21,7 @@ impl ChipBuilder {
         }
     }
 
-    pub fn add_hdl(&mut self, path: impl AsRef<Path>) -> Result<(), ModelConstructionError> {
+    pub unsafe fn add_hdl(&mut self, path: impl AsRef<Path>) -> Result<(), ModelConstructionError> {
         fn inner(ctx: &mut ChipBuilder, path: &Path) -> Result<Chip, ModelConstructionError> {
             let name = path
                 .file_stem()

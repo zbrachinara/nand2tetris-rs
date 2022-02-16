@@ -5,7 +5,7 @@ pub enum ClockBehavior {
 }
 
 impl ClockBehavior {
-    pub fn and(&self, rhs: &Self) -> Self {
+    pub unsafe fn and(&self, rhs: &Self) -> Self {
         if matches!(self, ClockBehavior::Sequential) || matches!(rhs, ClockBehavior::Sequential) {
             ClockBehavior::Sequential
         } else {

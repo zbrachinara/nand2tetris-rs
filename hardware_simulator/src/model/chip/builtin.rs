@@ -26,7 +26,7 @@ impl ChipObject for Nand {
             seq_out: Default::default(),
         }
     }
-
+    
     fn clock(&mut self) {
         // nothing
     }
