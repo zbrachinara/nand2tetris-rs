@@ -17,6 +17,18 @@ impl ChannelRange {
 
 impl From<ChannelRange> for Range<usize> {
     fn from(r: ChannelRange) -> Self {
-        (r.start as usize)..(r.end as usize)
+        (r.start as usize)..(r.end as usize + 1)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::channel_range::ChannelRange;
+
+    #[test]
+    fn to_std_range() {
+        assert_eq!(ChannelRange {
+            start: 0, end: 10
+        }.as_range(), 0..11)
     }
 }
