@@ -1,8 +1,8 @@
-use super::{Builtin, Chip, Form, Channel};
+use super::{Builtin, Channel, Chip, Form};
 use crate::bus_range::BusRange;
+use crate::clock_behavior::ClockBehavior;
 use crate::Span;
 use std::collections::HashMap;
-use crate::clock_behavior::ClockBehavior;
 
 type PinMap = HashMap<String, BusRange>;
 
@@ -121,12 +121,28 @@ impl Interface {
     pub fn clocked(&self, name: &str) -> ClockBehavior {
         match self.iter_combinatorial().find(|(n, _)| *n == name) {
             Some(_) => ClockBehavior::Combinatorial,
-            None => ClockBehavior::Sequential
+            None => ClockBehavior::Sequential,
         }
     }
 
     pub fn has_clocked(&self) -> bool {
         self.iter_sequential().count() > 0
+    }
+
+    pub fn size_in(&self) -> usize {
+        self.iter_inputs()
+            .map(|(_, BusRange { end, .. })| end)
+            .max()
+            .map(|x| *x as usize)
+            .unwrap()
+    }
+
+    pub fn size_out(&self) -> usize {
+        self.iter_outputs()
+            .map(|(_, BusRange { end, .. })| end)
+            .max()
+            .map(|x| *x as usize)
+            .unwrap()
     }
 }
 
