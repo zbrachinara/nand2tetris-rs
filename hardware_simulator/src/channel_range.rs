@@ -1,10 +1,10 @@
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct BusRange {
+pub struct ChannelRange {
     pub start: u16,
     pub end: u16,
 }
 
-impl BusRange {
+impl ChannelRange {
     pub fn size(&self) -> u16 {
         self.end - self.start
     }

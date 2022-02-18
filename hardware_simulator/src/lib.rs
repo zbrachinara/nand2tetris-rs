@@ -1,4 +1,4 @@
-pub mod bus_range;
+pub mod channel_range;
 mod clock_behavior;
 pub mod model;
 

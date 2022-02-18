@@ -8,7 +8,7 @@ mod channel;
 mod symbols;
 pub mod error;
 
-use crate::bus_range::BusRange;
+use crate::channel_range::ChannelRange;
 pub use chip::{chip, create_chip};
 pub use interface::Interface;
 pub use symbols::Symbol;
@@ -50,9 +50,9 @@ pub struct Connection<'a> {
 #[derive(Eq, PartialEq, Debug)]
 pub struct Argument<'a> {
     pub internal: Span<'a>,
-    pub internal_bus: Option<BusRange>,
+    pub internal_bus: Option<ChannelRange>,
     pub external: Symbol<'a>,
-    pub external_bus: Option<BusRange>,
+    pub external_bus: Option<ChannelRange>,
 }
 
 #[derive(Eq, PartialEq, Debug)]

@@ -1,5 +1,5 @@
 use super::symbols::{convert_num, generic_space0, name, skip_comma, spaced, symbol};
-use crate::bus_range::BusRange;
+use crate::channel_range::ChannelRange;
 use nom::branch::alt;
 use nom::bytes::complete::is_not;
 use nom::character::complete::digit1;
@@ -15,7 +15,7 @@ use crate::model::parser::error::HdlParseError;
 
 use super::*;
 
-fn bus_range(arg: Span) -> PResult<BusRange> {
+fn bus_range(arg: Span) -> PResult<ChannelRange> {
     let (remainder, (start, end)) = spaced(delimited(char('['), is_not("]"), char(']')))
         .and_then(alt((
             separated_pair(spaced(digit1), tag(".."), spaced(digit1)),
@@ -25,10 +25,10 @@ fn bus_range(arg: Span) -> PResult<BusRange> {
 
     let (start, end) = (convert_num(start)?, convert_num(end)?);
 
-    Ok((remainder, BusRange { start, end }))
+    Ok((remainder, ChannelRange { start, end }))
 }
 
-fn symbol_bus(arg: Span) -> PResult<(Span, Option<BusRange>)> {
+fn symbol_bus(arg: Span) -> PResult<(Span, Option<ChannelRange>)> {
     tuple((symbol, opt(complete(bus_range)))).parse(arg)
 }
 
@@ -81,7 +81,7 @@ mod test {
 
     #[test]
     fn test_bus_range() {
-        let test = |res: (Span, BusRange), excess, bus| {
+        let test = |res: (Span, ChannelRange), excess, bus| {
             assert_eq!(*res.0, excess);
             assert_eq!(res.1, bus);
         };
@@ -89,34 +89,34 @@ mod test {
         test(
             bus_range(Span::from("[0..1]")).unwrap(),
             "",
-            BusRange { start: 0, end: 1 },
+            ChannelRange { start: 0, end: 1 },
         );
         test(
             bus_range(Span::from("[5..10]")).unwrap(),
             "",
-            BusRange { start: 5, end: 10 },
+            ChannelRange { start: 5, end: 10 },
         );
         test(
             bus_range(Span::from("[5..10] and")).unwrap(),
             "and",
-            BusRange { start: 5, end: 10 },
+            ChannelRange { start: 5, end: 10 },
         );
         test(
             bus_range(Span::from("[   5   ..  10       ] and")).unwrap(),
             "and",
-            BusRange { start: 5, end: 10 },
+            ChannelRange { start: 5, end: 10 },
         );
         test(
             bus_range(Span::from("[   5\n   ..  10       ] and")).unwrap(),
             "and",
-            BusRange { start: 5, end: 10 },
+            ChannelRange { start: 5, end: 10 },
         );
         assert!(matches!(bus_range(Span::from("[ a..b]")), Err(_)));
     }
 
     #[test]
     fn test_symbol_bus() {
-        let test = |res: (Span, (Span, Option<BusRange>)), bus| {
+        let test = |res: (Span, (Span, Option<ChannelRange>)), bus| {
             assert_eq!(*res.0, "");
             assert_eq!(*res.1 .0, "limo");
             assert_eq!(res.1 .1, bus);
@@ -124,11 +124,11 @@ mod test {
 
         test(
             symbol_bus(Span::from("limo[1..10]")).unwrap(),
-            Some(BusRange { start: 1, end: 10 }),
+            Some(ChannelRange { start: 1, end: 10 }),
         );
         test(
             symbol_bus(Span::from("limo   [  1  .. 10  ]")).unwrap(),
-            Some(BusRange { start: 1, end: 10 }),
+            Some(ChannelRange { start: 1, end: 10 }),
         );
         test(symbol_bus(Span::from("limo   ")).unwrap(), None);
         test(symbol_bus(Span::from("limo")).unwrap(), None);
@@ -188,12 +188,12 @@ mod test {
         test_2(
             single_arg(Span::from("in[3..4]=true)")).unwrap(),
             ")",
-            Some(BusRange { start: 3, end: 4 }),
+            Some(ChannelRange { start: 3, end: 4 }),
         );
         test_2(
             single_arg(Span::from("in[3]=true)")).unwrap(),
             ")",
-            Some(BusRange { start: 3, end: 3 }),
+            Some(ChannelRange { start: 3, end: 3 }),
         );
 
         let test_3 = |res: (Span, Argument), excess, in_bus, ex_bus, int, ext| {
@@ -219,16 +219,16 @@ mod test {
         test_3(
             single_arg(Span::from("in[3]=out[4])")).unwrap(),
             ")",
-            Some(BusRange { start: 3, end: 3 }),
-            Some(BusRange { start: 4, end: 4 }),
+            Some(ChannelRange { start: 3, end: 3 }),
+            Some(ChannelRange { start: 4, end: 4 }),
             "in",
             "out",
         );
         test_3(
             single_arg(Span::from("a[9..10]=b[5..10]")).unwrap(),
             "",
-            Some(BusRange { start: 9, end: 10 }),
-            Some(BusRange { start: 5, end: 10 }),
+            Some(ChannelRange { start: 9, end: 10 }),
+            Some(ChannelRange { start: 5, end: 10 }),
             "a",
             "b",
         );
@@ -243,7 +243,7 @@ mod test {
                 external,
                 external_bus,
             } = res.1;
-            assert_eq!(internal_bus, Some(BusRange { start: 3, end: 4 }));
+            assert_eq!(internal_bus, Some(ChannelRange { start: 3, end: 4 }));
             assert_eq!(external_bus, None);
 
             assert_eq!(*internal, "in");
@@ -315,7 +315,7 @@ mod test {
             external,
             external_bus,
         } = &inputs[0];
-        assert_eq!(internal_bus, &Some(BusRange { start: 3, end: 4 }));
+        assert_eq!(internal_bus, &Some(ChannelRange { start: 3, end: 4 }));
         assert_eq!(external_bus, &None);
 
         assert_eq!(**internal, "a");
@@ -331,7 +331,7 @@ mod test {
             external,
             external_bus,
         } = &inputs[1];
-        assert_eq!(internal_bus, &Some(BusRange { start: 1, end: 10 }));
+        assert_eq!(internal_bus, &Some(ChannelRange { start: 1, end: 10 }));
         assert_eq!(external_bus, &None);
 
         assert_eq!(**internal, "b");
@@ -348,7 +348,7 @@ mod test {
             external_bus,
         } = &inputs[2];
         assert_eq!(internal_bus, &None);
-        assert_eq!(external_bus, &Some(BusRange { start: 6, end: 9 }));
+        assert_eq!(external_bus, &Some(ChannelRange { start: 6, end: 9 }));
 
         assert_eq!(**internal, "out");
 

@@ -1,4 +1,4 @@
-use crate::bus_range::BusRange;
+use crate::channel_range::ChannelRange;
 use crate::model::chip::ChipObject;
 use crate::model::parser::Interface;
 use std::iter::once;
@@ -16,12 +16,12 @@ impl ChipObject for Nand {
         Interface {
             name: "Nand".to_string(),
             com_in: [
-                ("a".to_string(), BusRange { start: 0, end: 0 }),
-                ("b".to_string(), BusRange { start: 1, end: 1 }),
+                ("a".to_string(), ChannelRange { start: 0, end: 0 }),
+                ("b".to_string(), ChannelRange { start: 1, end: 1 }),
             ]
             .into_iter()
             .collect(),
-            com_out: once(("out".to_string(), BusRange { start: 1, end: 1 })).collect(),
+            com_out: once(("out".to_string(), ChannelRange { start: 1, end: 1 })).collect(),
             seq_in: Default::default(),
             seq_out: Default::default(),
         }

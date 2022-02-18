@@ -1,18 +1,18 @@
-use crate::bus_range::BusRange;
+use crate::channel_range::ChannelRange;
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug)]
 pub enum ConnEdge {
     Combinatorial {
         name: String,
-        in_range: BusRange,
-        out_range: BusRange,
+        in_range: ChannelRange,
+        out_range: ChannelRange,
         buf: Vec<bool>,
     },
     Sequential {
         name: String,
-        in_range: BusRange,
-        out_range: BusRange,
+        in_range: ChannelRange,
+        out_range: ChannelRange,
         waiting: Vec<bool>,
         buf: Vec<bool>,
     },
@@ -32,7 +32,7 @@ impl Display for ConnEdge {
 }
 
 impl ConnEdge {
-    pub fn new_com(name: String, in_range: BusRange, out_range: BusRange) -> Self {
+    pub fn new_com(name: String, in_range: ChannelRange, out_range: ChannelRange) -> Self {
         let size = in_range.size() as usize;
         Self::Combinatorial {
             name,
@@ -41,7 +41,7 @@ impl ConnEdge {
             buf: Vec::with_capacity(size),
         }
     }
-    pub fn new_seq(name: String, in_range: BusRange, out_range: BusRange) -> Self {
+    pub fn new_seq(name: String, in_range: ChannelRange, out_range: ChannelRange) -> Self {
         let size = in_range.size() as usize;
         Self::Sequential {
             name,
@@ -58,7 +58,7 @@ impl ConnEdge {
         }
     }
 
-    pub fn get_with_range(&self) -> (&[bool], BusRange) {
+    pub fn get_with_range(&self) -> (&[bool], ChannelRange) {
         match self {
             ConnEdge::Combinatorial { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
             ConnEdge::Sequential { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),

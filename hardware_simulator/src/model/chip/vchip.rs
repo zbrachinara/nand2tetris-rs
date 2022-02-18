@@ -3,7 +3,7 @@
 //! between two nodes. This is not possible for, for example, numerical constants, so they must be
 //! defined here.
 
-use crate::bus_range::BusRange;
+use crate::channel_range::ChannelRange;
 use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
 use std::collections::HashMap;
@@ -13,7 +13,7 @@ fn all_out(size: u16, name: String) -> Interface {
     Interface {
         com_out: once((
             name,
-            BusRange {
+            ChannelRange {
                 start: 0,
                 end: size - 1,
             },
@@ -32,7 +32,7 @@ pub struct VirtualBus {
 }
 
 impl VirtualBus {
-    pub fn new_in(h: HashMap<String, BusRange>) -> Chip {
+    pub fn new_in(h: HashMap<String, ChannelRange>) -> Chip {
         Chip::Builtin(Box::new(Self {
             size: h.iter().map(|(_, x)| x.size()).sum(),
             interface: Interface {
@@ -42,7 +42,7 @@ impl VirtualBus {
             },
         }))
     }
-    pub fn new_out(h: HashMap<String, BusRange>) -> Chip {
+    pub fn new_out(h: HashMap<String, ChannelRange>) -> Chip {
         Chip::Builtin(Box::new(Self {
             size: h.iter().map(|(_, x)| x.size()).sum(),
             interface: Interface {

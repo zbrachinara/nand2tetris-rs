@@ -1,10 +1,10 @@
 use super::{Builtin, Channel, Chip, Form};
-use crate::bus_range::BusRange;
+use crate::channel_range::ChannelRange;
 use crate::clock_behavior::ClockBehavior;
 use crate::Span;
 use std::collections::HashMap;
 
-type PinMap = HashMap<String, BusRange>;
+type PinMap = HashMap<String, ChannelRange>;
 
 #[derive(PartialEq, Debug, Clone, Default)]
 pub struct Interface {
@@ -20,7 +20,7 @@ fn to_map(pins: Vec<Channel>, mut next: u16) -> (PinMap, u16) {
         .into_iter()
         .map(|Channel { name, size }| {
             let size = if let Some(n) = size { n } else { 1 };
-            let range = BusRange {
+            let range = ChannelRange {
                 start: next,
                 end: next + size - 1,
             };
@@ -74,27 +74,27 @@ impl<'a> Chip<'a> {
 }
 
 impl Interface {
-    fn iter_inputs(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+    fn iter_inputs(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
         self.com_in.iter().chain(self.seq_in.iter())
     }
 
-    fn iter_outputs(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+    fn iter_outputs(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
         self.com_out.iter().chain(self.seq_out.iter())
     }
 
-    fn iter_all(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+    fn iter_all(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
         self.iter_inputs().chain(self.iter_outputs())
     }
 
-    fn iter_combinatorial(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+    fn iter_combinatorial(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
         self.com_in.iter().chain(self.com_out.iter())
     }
 
-    fn iter_sequential(&self) -> impl Iterator<Item = (&String, &BusRange)> {
+    fn iter_sequential(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
         self.seq_in.iter().chain(self.seq_out.iter())
     }
 
-    pub fn real_range(&self, name: &str, relative: Option<&BusRange>) -> Result<BusRange, ()> {
+    pub fn real_range(&self, name: &str, relative: Option<&ChannelRange>) -> Result<ChannelRange, ()> {
         let raw = self
             .iter_all()
             .find(|(n, _)| n.as_str() == name)
@@ -105,7 +105,7 @@ impl Interface {
                 return Err(());
             }
             // offset the provided relative range
-            Ok(BusRange {
+            Ok(ChannelRange {
                 start: raw.start + relative.start,
                 end: raw.start + relative.end,
             })
@@ -131,7 +131,7 @@ impl Interface {
 
     pub fn size_in(&self) -> usize {
         self.iter_inputs()
-            .map(|(_, BusRange { end, .. })| end)
+            .map(|(_, ChannelRange { end, .. })| end)
             .max()
             .map(|x| *x as usize)
             .unwrap()
@@ -139,7 +139,7 @@ impl Interface {
 
     pub fn size_out(&self) -> usize {
         self.iter_outputs()
-            .map(|(_, BusRange { end, .. })| end)
+            .map(|(_, ChannelRange { end, .. })| end)
             .max()
             .map(|x| *x as usize)
             .unwrap()
@@ -171,12 +171,12 @@ CHIP test {
             Interface {
                 name: "And16".to_string(),
                 com_in: [
-                    ("a".to_string(), BusRange { start: 0, end: 15 }),
-                    ("b".to_string(), BusRange { start: 16, end: 31 })
+                    ("a".to_string(), ChannelRange { start: 0, end: 15 }),
+                    ("b".to_string(), ChannelRange { start: 16, end: 31 })
                 ]
                 .into_iter()
                 .collect(),
-                com_out: [("out".to_string(), BusRange { start: 0, end: 15 })]
+                com_out: [("out".to_string(), ChannelRange { start: 0, end: 15 })]
                     .into_iter()
                     .collect(),
                 seq_in: Default::default(),
@@ -190,8 +190,8 @@ CHIP test {
             Interface {
                 name: String::from("DFF"),
                 com_in: Default::default(),
-                com_out: once(("out".to_string(), BusRange { start: 0, end: 0 })).collect(),
-                seq_in: once(("in".to_string(), BusRange { start: 0, end: 0 })).collect(),
+                com_out: once(("out".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
+                seq_in: once(("in".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
                 seq_out: Default::default()
             }
         );
@@ -201,11 +201,11 @@ CHIP test {
             example_chip.interface(),
             Interface {
                 name: "test".to_string(),
-                com_in: once(("a".to_string(), BusRange { start: 5, end: 6 })).collect(),
-                com_out: once(("d".to_string(), BusRange { start: 0, end: 0 })).collect(),
+                com_in: once(("a".to_string(), ChannelRange { start: 5, end: 6 })).collect(),
+                com_out: once(("d".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
                 seq_in: [
-                    ("b".to_string(), BusRange { start: 0, end: 1 }),
-                    ("c".to_string(), BusRange { start: 2, end: 4 }),
+                    ("b".to_string(), ChannelRange { start: 0, end: 1 }),
+                    ("c".to_string(), ChannelRange { start: 2, end: 4 }),
                 ]
                 .into_iter()
                 .collect(),
@@ -220,12 +220,12 @@ CHIP test {
         assert_eq!(
             com_chip
                 .interface()
-                .real_range("b", Some(&BusRange { start: 0, end: 7 })),
-            Ok(BusRange { start: 16, end: 23 })
+                .real_range("b", Some(&ChannelRange { start: 0, end: 7 })),
+            Ok(ChannelRange { start: 16, end: 23 })
         );
         assert_eq!(
             com_chip.interface().real_range("b", None),
-            Ok(BusRange { start: 16, end: 31 })
+            Ok(ChannelRange { start: 16, end: 31 })
         )
     }
 }

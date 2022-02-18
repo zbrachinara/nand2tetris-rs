@@ -1,4 +1,4 @@
-use crate::bus_range::BusRange;
+use crate::channel_range::ChannelRange;
 use crate::clock_behavior::ClockBehavior;
 use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
@@ -67,6 +67,6 @@ impl EdgeSetMap {
 #[derive(Debug, Clone)]
 pub struct Endpoint {
     pub index: NodeIndex,
-    pub range: BusRange,
+    pub range: ChannelRange,
     pub clocked: ClockBehavior,
 }
