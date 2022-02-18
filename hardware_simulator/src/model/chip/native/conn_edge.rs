@@ -58,10 +58,17 @@ impl ConnEdge {
         }
     }
 
-    pub fn get_with_range(&self) -> (&[bool], ChannelRange) {
+    pub fn get_with_range_out(&self) -> (&[bool], ChannelRange) {
         match self {
             ConnEdge::Combinatorial { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
             ConnEdge::Sequential { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
+        }
+    }
+
+    pub fn get_range_in(&self) -> &ChannelRange {
+        match self {
+            Self::Combinatorial { in_range, ..} => in_range,
+            Self::Sequential { in_range, ..} => in_range,
         }
     }
 

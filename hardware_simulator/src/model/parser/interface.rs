@@ -134,7 +134,7 @@ impl Interface {
             .map(|(_, ChannelRange { end, .. })| end)
             .max()
             .map(|x| *x as usize)
-            .unwrap()
+            .unwrap_or(0)
     }
 
     pub fn size_out(&self) -> usize {

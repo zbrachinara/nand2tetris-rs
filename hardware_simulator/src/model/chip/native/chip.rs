@@ -24,7 +24,7 @@ impl NativeChip {
         let mut buf = vec![false; size];
 
         for conn_edge in self.conn_graph.edges_directed(ix, Direction::Incoming) {
-            let (conn_buf, range) = conn_edge.weight().get_with_range();
+            let (conn_buf, range) = conn_edge.weight().get_with_range_out();
             assert_eq!(conn_buf.len(), range.size() as usize); // maybe move this assertion somewhere else?
 
             buf[range.as_range()].copy_from_slice(conn_buf);
@@ -34,15 +34,17 @@ impl NativeChip {
     }
 
     pub fn send_output(&mut self, ix: NodeIndex, data: &[bool]) -> Vec<NodeIndex> {
-        self.conn_graph
+        let x = self
+            .conn_graph
             .edges_directed(ix, Direction::Outgoing)
             .map(|conn_edge| {
-                let (_, range) = conn_edge.weight().get_with_range();
+                let range = conn_edge.weight().get_range_in().clone();
                 let ex = conn_edge.id();
                 (range, ex)
             })
-            .collect_vec()
-            .into_iter()
+            .collect_vec();
+        println!("{x:?}");
+        x.into_iter()
             .map(|(range, ex)| {
                 self.conn_graph[ex].set(&data[range.as_range()]);
                 self.conn_graph.edge_endpoints(ex).unwrap().1
@@ -56,6 +58,10 @@ impl NativeChip {
         self.send_output(ix, &output)
     }
 
+    fn step_from_input(&mut self, input: &[bool]) -> Vec<NodeIndex>{
+        self.send_output(self.input_index, &input)
+    }
+
     fn eval_with_beginnings(&mut self, ixs: &[NodeIndex]) -> Vec<bool> {
         let mut set = ixs.iter().cloned().collect::<HashSet<_>>();
         while let Some(ix) = set.iter().nth(0).cloned() {
@@ -67,6 +73,11 @@ impl NativeChip {
             });
         }
         self.synthesize_input(self.output_index)
+    }
+
+    fn eval_from_input(&mut self, input: &[bool]) -> Vec<bool> {
+        let ixs = self.step_from_input(input);
+        self.eval_with_beginnings(&ixs)
     }
 }
 
@@ -89,8 +100,8 @@ impl ChipObject for NativeChip {
         // self.eval(); //TODO: Need to propagate changes after edges change
     }
 
-    fn eval(&mut self, _: &[bool]) -> Vec<bool> {
-        self.eval_with_beginnings(&[self.input_index])
+    fn eval(&mut self, input: &[bool]) -> Vec<bool> {
+        self.eval_from_input(input)
     }
 
     fn chip_clone(&self) -> Box<dyn ChipObject> {

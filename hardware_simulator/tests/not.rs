@@ -3,7 +3,7 @@ use hardware_simulator::model::chip::build_ctx::ChipBuilder;
 #[test]
 fn load_step_not() {
 
-    let hdl_dir = std::env::current_dir().unwrap().join("../test_files");
+    let hdl_dir = std::env::current_dir().unwrap().join("test_files");
     let not_file = hdl_dir.join("Not.hdl");
 
     let mut builder = ChipBuilder::new();
