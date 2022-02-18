@@ -21,7 +21,7 @@ impl ChipObject for Nand {
             ]
             .into_iter()
             .collect(),
-            com_out: once(("out".to_string(), ChannelRange { start: 1, end: 1 })).collect(),
+            com_out: once(("out".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
             seq_in: Default::default(),
             seq_out: Default::default(),
         }
