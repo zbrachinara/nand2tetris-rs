@@ -89,6 +89,8 @@ pub fn native_chip(
         interface: top_interface,
         clocked_chips,
         clocked_edges,
+        input_index,
+        output_index,
     })
 }
 

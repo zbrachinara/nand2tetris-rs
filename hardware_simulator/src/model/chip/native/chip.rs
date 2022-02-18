@@ -5,6 +5,7 @@ use itertools::Itertools;
 use petgraph::graph::{EdgeIndex, NodeIndex};
 use petgraph::prelude::*;
 use petgraph::{Direction, Graph};
+use std::collections::HashSet;
 
 #[derive(Clone, Debug)]
 pub struct NativeChip {
@@ -12,6 +13,8 @@ pub struct NativeChip {
     pub interface: Interface,
     pub clocked_chips: Vec<NodeIndex>,
     pub clocked_edges: Vec<EdgeIndex>,
+    pub input_index: NodeIndex,
+    pub output_index: NodeIndex,
 }
 
 impl NativeChip {
@@ -52,6 +55,19 @@ impl NativeChip {
         let output = self.conn_graph[ix].eval(&input);
         self.send_output(ix, &output)
     }
+
+    fn eval_with_beginnings(&mut self, ixs: &[NodeIndex]) -> Vec<bool> {
+        let mut set = ixs.iter().cloned().collect::<HashSet<_>>();
+        while let Some(ix) = set.iter().nth(0).cloned() {
+            // removal has to occur *before* evaluation because the resultant could have a feedback
+            // loop to itself
+            set.remove(&ix);
+            self.step_through(ix).drain(..).for_each(|new_ix| {
+                set.insert(new_ix);
+            });
+        }
+        self.synthesize_input(self.output_index)
+    }
 }
 
 impl ChipObject for NativeChip {
@@ -74,7 +90,7 @@ impl ChipObject for NativeChip {
     }
 
     fn eval(&mut self, _: &[bool]) -> Vec<bool> {
-        todo!()
+        self.eval_with_beginnings(&[self.input_index])
     }
 
     fn chip_clone(&self) -> Box<dyn ChipObject> {
