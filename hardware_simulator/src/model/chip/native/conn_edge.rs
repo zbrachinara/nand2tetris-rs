@@ -64,4 +64,12 @@ impl ConnEdge {
             ConnEdge::Sequential { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
         }
     }
+
+    pub fn set(&mut self, new_buf: &[bool]) {
+        match self {
+            ConnEdge::Combinatorial { buf, .. } => buf.copy_from_slice(new_buf),
+            ConnEdge::Sequential{ waiting, .. } => waiting.copy_from_slice(new_buf),
+
+        }
+    }
 }

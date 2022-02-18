@@ -1,7 +1,9 @@
 use crate::model::chip::native::conn_edge::ConnEdge;
 use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
+use itertools::Itertools;
 use petgraph::graph::{EdgeIndex, NodeIndex};
+use petgraph::prelude::*;
 use petgraph::{Direction, Graph};
 
 #[derive(Clone, Debug)]
@@ -14,7 +16,6 @@ pub struct NativeChip {
 
 impl NativeChip {
     pub fn synthesize_input(&self, ix: NodeIndex) -> Vec<bool> {
-
         // get the input size of the chip and create a buffer
         let size = self.conn_graph[ix].interface().size_in();
         let mut buf = vec![false; size];
@@ -23,10 +24,33 @@ impl NativeChip {
             let (conn_buf, range) = conn_edge.weight().get_with_range();
             assert_eq!(conn_buf.len(), range.size() as usize); // maybe move this assertion somewhere else?
 
-            buf[(range.start as usize)..(range.end as usize)].copy_from_slice(conn_buf);
+            buf[range.as_range()].copy_from_slice(conn_buf);
         }
 
         buf
+    }
+
+    pub fn send_output(&mut self, ix: NodeIndex, data: &[bool]) -> Vec<NodeIndex> {
+        self.conn_graph
+            .edges_directed(ix, Direction::Outgoing)
+            .map(|conn_edge| {
+                let (_, range) = conn_edge.weight().get_with_range();
+                let ex = conn_edge.id();
+                (range, ex)
+            })
+            .collect_vec()
+            .into_iter()
+            .map(|(range, ex)| {
+                self.conn_graph[ex].set(&data[range.as_range()]);
+                self.conn_graph.edge_endpoints(ex).unwrap().1
+            })
+            .collect_vec()
+    }
+
+    fn step_through(&mut self, ix: NodeIndex) -> Vec<NodeIndex> {
+        let input = self.synthesize_input(ix);
+        let output = self.conn_graph[ix].eval(&input);
+        self.send_output(ix, &output)
     }
 }
 
