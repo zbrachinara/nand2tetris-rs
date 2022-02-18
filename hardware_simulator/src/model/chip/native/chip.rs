@@ -2,7 +2,7 @@ use crate::model::chip::native::conn_edge::ConnEdge;
 use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
 use petgraph::graph::{EdgeIndex, NodeIndex};
-use petgraph::Graph;
+use petgraph::{Direction, Graph};
 
 #[derive(Clone, Debug)]
 pub struct NativeChip {
@@ -10,6 +10,24 @@ pub struct NativeChip {
     pub interface: Interface,
     pub clocked_chips: Vec<NodeIndex>,
     pub clocked_edges: Vec<EdgeIndex>,
+}
+
+impl NativeChip {
+    pub fn synthesize_input(&self, ix: NodeIndex) -> Vec<bool> {
+
+        // get the input size of the chip and create a buffer
+        let size = self.conn_graph[ix].interface().size_in();
+        let mut buf = vec![false; size];
+
+        for conn_edge in self.conn_graph.edges_directed(ix, Direction::Incoming) {
+            let (conn_buf, range) = conn_edge.weight().get_with_range();
+            assert_eq!(conn_buf.len(), range.size() as usize); // maybe move this assertion somewhere else?
+
+            buf[(range.start as usize)..(range.end as usize)].copy_from_slice(conn_buf);
+        }
+
+        buf
+    }
 }
 
 impl ChipObject for NativeChip {

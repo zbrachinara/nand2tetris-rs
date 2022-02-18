@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use crate::bus_range::BusRange;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug)]
 pub enum ConnEdge {
@@ -53,8 +53,15 @@ impl ConnEdge {
     }
 
     pub fn clock(&mut self) {
-        if let Self::Sequential {waiting, buf, ..} = self {
+        if let Self::Sequential { waiting, buf, .. } = self {
             buf.copy_from_slice(waiting);
+        }
+    }
+
+    pub fn get_with_range(&self) -> (&[bool], BusRange) {
+        match self {
+            ConnEdge::Combinatorial { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
+            ConnEdge::Sequential { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
         }
     }
 }
