@@ -356,10 +356,11 @@ mod test {
         }
     }
 
-    #[test]
-    fn test_chip_parser_success() {
-        let res = chip(Span::new(include_str!("../../../../test_files/And16.hdl")));
-        println!("{res:#?}");
-        assert!(matches!(res, Ok(_)))
-    }
+    // TODO: re-enable when intellij wants to cooperate again
+    // #[test]
+    // fn test_chip_parser_success() {
+    //     let res = chip(Span::new(include_str!("../../../../test_files/And16.hdl")));
+    //     println!("{res:#?}");
+    //     assert!(matches!(res, Ok(_)))
+    // }
 }
