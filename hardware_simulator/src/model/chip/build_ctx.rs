@@ -82,7 +82,7 @@ mod test {
     #[test]
     fn general() {
         let mut dir = std::env::current_dir().unwrap();
-        dir.push("../test_files");
+        dir.push("../test_files/01");
 
         let mut ctx = ChipBuilder::new();
         assert!(matches!(ctx.add_hdl(dir.join("Not.hdl")), Ok(_)));
