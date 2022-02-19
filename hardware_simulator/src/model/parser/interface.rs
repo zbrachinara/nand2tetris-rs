@@ -133,7 +133,7 @@ impl Interface {
         self.iter_inputs()
             .map(|(_, ChannelRange { end, .. })| end)
             .max()
-            .map(|x| *x as usize)
+            .map(|x| *x as usize + 1)
             .unwrap_or(0)
     }
 
@@ -141,7 +141,7 @@ impl Interface {
         self.iter_outputs()
             .map(|(_, ChannelRange { end, .. })| end)
             .max()
-            .map(|x| *x as usize)
+            .map(|x| *x as usize + 1)
             .unwrap()
     }
 }

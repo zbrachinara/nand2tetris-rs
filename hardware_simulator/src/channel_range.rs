@@ -8,7 +8,7 @@ pub struct ChannelRange {
 
 impl ChannelRange {
     pub fn size(&self) -> u16 {
-        self.end - self.start
+        self.end - self.start + 1 // TODO: make this operation checked
     }
     pub fn as_range(&self) -> Range<usize> {
         self.clone().into()

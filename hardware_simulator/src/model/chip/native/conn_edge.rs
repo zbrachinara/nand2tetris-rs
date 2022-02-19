@@ -38,7 +38,7 @@ impl ConnEdge {
             name,
             in_range,
             out_range,
-            buf: Vec::with_capacity(size),
+            buf: vec![false; size],
         }
     }
     pub fn new_seq(name: String, in_range: ChannelRange, out_range: ChannelRange) -> Self {
@@ -47,8 +47,8 @@ impl ConnEdge {
             name,
             in_range,
             out_range,
-            waiting: Vec::with_capacity(size),
-            buf: Vec::with_capacity(size),
+            waiting: vec![false; size],
+            buf: vec![false; size],
         }
     }
 

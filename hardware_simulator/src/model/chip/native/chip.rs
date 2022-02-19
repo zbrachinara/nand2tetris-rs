@@ -34,17 +34,15 @@ impl NativeChip {
     }
 
     pub fn send_output(&mut self, ix: NodeIndex, data: &[bool]) -> Vec<NodeIndex> {
-        let x = self
-            .conn_graph
+        self.conn_graph
             .edges_directed(ix, Direction::Outgoing)
             .map(|conn_edge| {
                 let range = conn_edge.weight().get_range_in().clone();
                 let ex = conn_edge.id();
                 (range, ex)
             })
-            .collect_vec();
-        println!("{x:?}");
-        x.into_iter()
+            .collect_vec()
+            .into_iter()
             .map(|(range, ex)| {
                 self.conn_graph[ex].set(&data[range.as_range()]);
                 self.conn_graph.edge_endpoints(ex).unwrap().1
@@ -58,7 +56,7 @@ impl NativeChip {
         self.send_output(ix, &output)
     }
 
-    fn step_from_input(&mut self, input: &[bool]) -> Vec<NodeIndex>{
+    fn step_from_input(&mut self, input: &[bool]) -> Vec<NodeIndex> {
         self.send_output(self.input_index, &input)
     }
 
