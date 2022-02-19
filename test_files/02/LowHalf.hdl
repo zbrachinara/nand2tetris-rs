@@ -1,0 +1,8 @@
+
+CHIP LowHalf {
+    IN in[16];
+    OUT out[8];
+
+    PARTS:
+    And16(a=in, b=true, out[0..7]=out);
+}
