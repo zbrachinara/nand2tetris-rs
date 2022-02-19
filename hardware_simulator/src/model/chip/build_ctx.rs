@@ -63,7 +63,7 @@ impl ChipBuilder {
                 .map(|x| Chip::Native(x))
                 .map_err(|_| {
                     ModelConstructionError::Unk(Some(anyhow!(
-                        "Error somewhere in construction of native chip"
+                        "Error somewhere in construction of native chip {}", chip_repr.name
                     )))
                 }),
             Form::Builtin(Builtin { name, .. }) => get_builtin(*name)
