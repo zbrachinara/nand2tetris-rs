@@ -50,7 +50,7 @@ impl ChipBuilder {
         Ok(())
     }
 
-    pub fn resolve_chip(&mut self, target: &str) -> Result<Chip, ModelConstructionError> {
+    pub fn resolve_chip(&self, target: &str) -> Result<Chip, ModelConstructionError> {
         get_builtin(target)
             .map(|x| Chip::Builtin(x))
             .or_else(|| self.chips.get(&target.to_string()).cloned())
