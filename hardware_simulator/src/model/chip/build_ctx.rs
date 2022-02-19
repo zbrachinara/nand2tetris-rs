@@ -38,7 +38,6 @@ impl ChipBuilder {
                     let chip =
                         create_chip(buf).map_err(|_| ModelConstructionError::HdlParseError)?;
                     ctx.make_hdl(chip)
-                        .map_err(|_| ModelConstructionError::ConstructionError)
                 }
                 Some(_) => Err(ModelConstructionError::ChipNotFound(name)),
                 None => Err(ModelConstructionError::Unk(None)),
