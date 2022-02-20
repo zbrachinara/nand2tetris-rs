@@ -1,12 +1,12 @@
 use crate::Span;
 use nom_supreme::error::ErrorTree;
 
+mod channel;
 mod chip;
 mod connection;
-pub(crate) mod interface;
-mod channel;
-mod symbols;
 pub mod error;
+pub(crate) mod interface;
+mod symbols;
 
 use crate::channel_range::ChannelRange;
 pub use chip::{chip, create_chip};

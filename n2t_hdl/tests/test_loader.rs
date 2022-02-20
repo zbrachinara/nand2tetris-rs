@@ -23,12 +23,9 @@ pub fn hdl_01() -> ChipBuilder {
     let root = std::env::current_dir().unwrap().join("../test_files/01");
 
     let mut builder = ChipBuilder::new();
-    DEP_ORDER
-        .iter()
-        .take(15)
-        .for_each(|x| {
-            builder.add_hdl(root.join(format!("{x}.hdl"))).unwrap();
-        });
+    DEP_ORDER.iter().take(15).for_each(|x| {
+        builder.add_hdl(root.join(format!("{x}.hdl"))).unwrap();
+    });
 
     builder
 }

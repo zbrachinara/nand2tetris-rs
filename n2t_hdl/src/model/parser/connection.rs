@@ -1,5 +1,6 @@
 use super::symbols::{convert_num, generic_space0, name, skip_comma, spaced, symbol};
 use crate::channel_range::ChannelRange;
+use crate::model::parser::error::HdlParseError;
 use nom::branch::alt;
 use nom::bytes::complete::is_not;
 use nom::character::complete::digit1;
@@ -11,7 +12,6 @@ use nom::IResult;
 use nom::Parser;
 use nom_supreme::error::BaseErrorKind;
 use nom_supreme::tag::complete::tag;
-use crate::model::parser::error::HdlParseError;
 
 use super::*;
 

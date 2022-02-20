@@ -94,7 +94,11 @@ impl Interface {
         self.seq_in.iter().chain(self.seq_out.iter())
     }
 
-    pub fn real_range(&self, name: &str, relative: Option<&ChannelRange>) -> Result<ChannelRange, ()> {
+    pub fn real_range(
+        &self,
+        name: &str,
+        relative: Option<&ChannelRange>,
+    ) -> Result<ChannelRange, ()> {
         let raw = self
             .iter_all()
             .find(|(n, _)| n.as_str() == name)

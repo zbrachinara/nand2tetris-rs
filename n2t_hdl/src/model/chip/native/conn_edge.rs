@@ -1,6 +1,6 @@
 use crate::channel_range::ChannelRange;
-use std::fmt::{Display, Formatter};
 use bitvec::prelude::{BitSlice, BitVec};
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug)]
 pub enum ConnEdge {
@@ -68,16 +68,15 @@ impl ConnEdge {
 
     pub fn get_range_in(&self) -> &ChannelRange {
         match self {
-            Self::Combinatorial { in_range, ..} => in_range,
-            Self::Sequential { in_range, ..} => in_range,
+            Self::Combinatorial { in_range, .. } => in_range,
+            Self::Sequential { in_range, .. } => in_range,
         }
     }
 
     pub fn set(&mut self, new_buf: &BitSlice) {
         match self {
             ConnEdge::Combinatorial { buf, .. } => buf.copy_from_bitslice(new_buf),
-            ConnEdge::Sequential{ waiting, .. } => waiting.copy_from_bitslice(new_buf),
-
+            ConnEdge::Sequential { waiting, .. } => waiting.copy_from_bitslice(new_buf),
         }
     }
 }

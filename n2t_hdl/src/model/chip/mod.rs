@@ -1,8 +1,8 @@
 use crate::model::parser::Interface;
+use bitvec::prelude::*;
 use build_ctx::ChipBuilder;
 use native::NativeChip;
 use std::fmt::{Debug, Display, Formatter};
-use bitvec::prelude::*;
 
 pub mod build_ctx;
 mod builtin;
