@@ -72,51 +72,51 @@ impl ChipObject for VirtualBus {
     }
 }
 
-#[derive(Debug, Clone)]
-struct VirtualConst {
-    value: Vec<bool>,
-    interface: Interface,
-}
-
-#[allow(dead_code)]
-impl VirtualConst {
-    fn from_number(mut n: usize, channel_size: u16, name: String) -> Self {
-        // TODO: assert that n fits within the channel
-        let value = {
-            let mut bits = Vec::new();
-            while n > 0 {
-                bits.push(n & 1 == 1);
-                n >>= 1;
-            }
-            bits
-        };
-        VirtualConst {
-            value,
-            interface: all_out(channel_size, name),
-        }
-    }
-    fn from_bool(b: bool, channel_size: u16, name: String) -> Self {
-        VirtualConst {
-            value: vec![b; channel_size as usize],
-            interface: all_out(channel_size, name),
-        }
-    }
-}
-
-impl ChipObject for VirtualConst {
-    fn interface(&self) -> Interface {
-        self.interface.clone()
-    }
-
-    fn clock(&mut self) {
-        // empty
-    }
-
-    fn eval(&mut self, _: &[bool]) -> Vec<bool> {
-        self.value.clone()
-    }
-
-    fn chip_clone(&self) -> Box<dyn ChipObject> {
-        Box::new(self.clone())
-    }
-}
+// #[derive(Debug, Clone)]
+// struct VirtualConst {
+//     value: Vec<bool>,
+//     interface: Interface,
+// }
+//
+// #[allow(dead_code)]
+// impl VirtualConst {
+//     fn from_number(mut n: usize, channel_size: u16, name: String) -> Self {
+//         // TODO: assert that n fits within the channel
+//         let value = {
+//             let mut bits = Vec::new();
+//             while n > 0 {
+//                 bits.push(n & 1 == 1);
+//                 n >>= 1;
+//             }
+//             bits
+//         };
+//         VirtualConst {
+//             value,
+//             interface: all_out(channel_size, name),
+//         }
+//     }
+//     fn from_bool(b: bool, channel_size: u16, name: String) -> Self {
+//         VirtualConst {
+//             value: vec![b; channel_size as usize],
+//             interface: all_out(channel_size, name),
+//         }
+//     }
+// }
+//
+// impl ChipObject for VirtualConst {
+//     fn interface(&self) -> Interface {
+//         self.interface.clone()
+//     }
+//
+//     fn clock(&mut self) {
+//         // empty
+//     }
+//
+//     fn eval(&mut self, _: &[bool]) -> Vec<bool> {
+//         self.value.clone()
+//     }
+//
+//     fn chip_clone(&self) -> Box<dyn ChipObject> {
+//         Box::new(self.clone())
+//     }
+// }
