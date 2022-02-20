@@ -1,4 +1,4 @@
-use hardware_simulator::model::chip::build_ctx::ChipBuilder;
+use n2t_hdl::model::chip::build_ctx::ChipBuilder;
 
 const DEP_ORDER: &[&'static str] = [
     "Not",

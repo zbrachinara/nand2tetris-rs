@@ -85,21 +85,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
-name = "hardware_simulator"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "bitvec",
- "derive_more",
- "itertools",
- "nom",
- "nom-supreme",
- "nom_locate",
- "petgraph",
- "thiserror",
-]
-
-[[package]]
 name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -147,6 +132,21 @@ name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
+name = "n2t_hdl"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "bitvec",
+ "derive_more",
+ "itertools",
+ "nom",
+ "nom-supreme",
+ "nom_locate",
+ "petgraph",
+ "thiserror",
+]
 
 [[package]]
 name = "nom"

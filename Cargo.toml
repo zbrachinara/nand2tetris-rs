@@ -1,2 +1,2 @@
 [workspace]
-members = [ "hardware_simulator" ]
+members = [ "n2t_hdl" ]
