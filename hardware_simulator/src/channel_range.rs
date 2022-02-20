@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::ops::RangeInclusive;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ChannelRange {
@@ -10,14 +10,14 @@ impl ChannelRange {
     pub fn size(&self) -> u16 {
         self.end - self.start + 1 // TODO: make this operation checked
     }
-    pub fn as_range(&self) -> Range<usize> {
+    pub fn as_range(&self) -> RangeInclusive<usize> {
         self.clone().into()
     }
 }
 
-impl From<ChannelRange> for Range<usize> {
+impl From<ChannelRange> for RangeInclusive<usize> {
     fn from(r: ChannelRange) -> Self {
-        (r.start as usize)..(r.end as usize + 1)
+        (r.start as usize)..=(r.end as usize)
     }
 }
 
@@ -27,8 +27,6 @@ mod test {
 
     #[test]
     fn to_std_range() {
-        assert_eq!(ChannelRange {
-            start: 0, end: 10
-        }.as_range(), 0..11)
+        assert_eq!(ChannelRange { start: 0, end: 10 }.as_range(), 0..=10)
     }
 }
