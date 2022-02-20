@@ -2,6 +2,7 @@ use crate::model::parser::Interface;
 use build_ctx::ChipBuilder;
 use native::NativeChip;
 use std::fmt::{Debug, Display, Formatter};
+use bitvec::prelude::*;
 
 pub mod build_ctx;
 mod builtin;
@@ -38,7 +39,7 @@ impl Chip {
             Chip::Builtin(v) => v.clock(),
         }
     }
-    pub fn eval(&mut self, args: &[bool]) -> Vec<bool> {
+    pub fn eval(&mut self, args: &BitSlice) -> BitVec {
         match self {
             Chip::Native(v) => v.eval(args),
             Chip::Builtin(v) => v.eval(args),
@@ -77,6 +78,6 @@ pub trait ChipObject {
     }
 
     fn clock(&mut self);
-    fn eval(&mut self, _: &[bool]) -> Vec<bool>;
+    fn eval(&mut self, _: &BitSlice) -> BitVec;
     fn chip_clone(&self) -> Box<dyn ChipObject>;
 }

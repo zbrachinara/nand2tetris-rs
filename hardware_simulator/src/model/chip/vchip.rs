@@ -6,6 +6,7 @@
 use crate::channel_range::ChannelRange;
 use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
+use bitvec::prelude::*;
 use std::collections::HashMap;
 use std::iter::once;
 
@@ -63,8 +64,8 @@ impl ChipObject for VirtualBus {
         // empty
     }
 
-    fn eval(&mut self, x: &[bool]) -> Vec<bool> {
-        x.to_vec()
+    fn eval(&mut self, x: &BitSlice) -> BitVec {
+        x.to_bitvec()
     }
 
     fn chip_clone(&self) -> Box<dyn ChipObject> {

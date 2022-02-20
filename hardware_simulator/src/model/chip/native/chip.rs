@@ -1,6 +1,7 @@
 use crate::model::chip::native::conn_edge::ConnEdge;
 use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
+use bitvec::prelude::*;
 use itertools::Itertools;
 use petgraph::graph::{EdgeIndex, NodeIndex};
 use petgraph::prelude::*;
@@ -18,22 +19,23 @@ pub struct NativeChip {
 }
 
 impl NativeChip {
-    pub fn synthesize_input(&self, ix: NodeIndex) -> Vec<bool> {
+    pub fn synthesize_input(&self, ix: NodeIndex) -> BitVec {
         // get the input size of the chip and create a buffer
         let size = self.conn_graph[ix].interface().size_in();
-        let mut buf = vec![false; size];
+        let mut buf = BitVec::repeat(false, size);
+        // let mut buf = vec![false; size];
 
         for conn_edge in self.conn_graph.edges_directed(ix, Direction::Incoming) {
             let (conn_buf, range) = conn_edge.weight().get_with_range_out();
             assert_eq!(conn_buf.len(), range.size() as usize); // maybe move this assertion somewhere else?
 
-            buf[range.as_range()].copy_from_slice(conn_buf);
+            buf[range.as_range()].copy_from_bitslice(conn_buf);
         }
 
         buf
     }
 
-    pub fn send_output(&mut self, ix: NodeIndex, data: &[bool]) -> Vec<NodeIndex> {
+    pub fn send_output(&mut self, ix: NodeIndex, data: &BitSlice) -> Vec<NodeIndex> {
         self.conn_graph
             .edges_directed(ix, Direction::Outgoing)
             .map(|conn_edge| {
@@ -56,11 +58,11 @@ impl NativeChip {
         self.send_output(ix, &output)
     }
 
-    fn step_from_input(&mut self, input: &[bool]) -> Vec<NodeIndex> {
+    fn step_from_input(&mut self, input: &BitSlice) -> Vec<NodeIndex> {
         self.send_output(self.input_index, &input)
     }
 
-    fn eval_with_beginnings(&mut self, ixs: &[NodeIndex]) -> Vec<bool> {
+    fn eval_with_beginnings(&mut self, ixs: &[NodeIndex]) -> BitVec {
         let mut set = ixs.iter().cloned().collect::<HashSet<_>>();
         while let Some(ix) = set.iter().nth(0).cloned() {
             // removal has to occur *before* evaluation because the resultant could have a feedback
@@ -73,7 +75,7 @@ impl NativeChip {
         self.synthesize_input(self.output_index)
     }
 
-    fn eval_from_input(&mut self, input: &[bool]) -> Vec<bool> {
+    fn eval_from_input(&mut self, input: &BitSlice) -> BitVec {
         let ixs = self.step_from_input(input);
         self.eval_with_beginnings(&ixs)
     }
@@ -98,7 +100,7 @@ impl ChipObject for NativeChip {
         // self.eval(); //TODO: Need to propagate changes after edges change
     }
 
-    fn eval(&mut self, input: &[bool]) -> Vec<bool> {
+    fn eval(&mut self, input: &BitSlice) -> BitVec {
         self.eval_from_input(input)
     }
 

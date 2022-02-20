@@ -1,6 +1,7 @@
 use crate::channel_range::ChannelRange;
 use crate::model::chip::ChipObject;
 use crate::model::parser::Interface;
+use bitvec::prelude::*;
 use std::iter::once;
 
 pub fn get_builtin(name: &str) -> Option<Box<dyn ChipObject>> {
@@ -30,8 +31,10 @@ impl ChipObject for Nand {
     fn clock(&mut self) {
         // nothing
     }
-    fn eval(&mut self, pins: &[bool]) -> Vec<bool> {
-        vec![!(pins[0] && pins[1])]
+    fn eval(&mut self, pins: &BitSlice) -> BitVec {
+        let expr = !(pins[0] && pins[1]);
+        once(expr).collect()
+        // vec![!(pins[0] && pins[1])]
     }
     fn chip_clone(&self) -> Box<dyn ChipObject> {
         Box::new(Nand)
