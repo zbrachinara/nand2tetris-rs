@@ -8,21 +8,6 @@ use crate::model::chip::{Chip, ChipObject};
 use crate::model::parser::Interface;
 use bitvec::prelude::*;
 use std::collections::HashMap;
-use std::iter::once;
-
-fn all_out(size: u16, name: String) -> Interface {
-    Interface {
-        com_out: once((
-            name,
-            ChannelRange {
-                start: 0,
-                end: size - 1,
-            },
-        ))
-        .collect(),
-        ..Default::default()
-    }
-}
 
 /// Represents a bus. For edges which connect to IN or OUT pins, connect to these instead
 #[derive(Debug, Clone)]
