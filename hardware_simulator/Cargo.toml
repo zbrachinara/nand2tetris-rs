@@ -1,8 +1,11 @@
+cargo-features = ["per-package-target"]
+
 [package]
 name = "hardware_simulator"
 version = "0.1.0"
 authors = ["Eric Yu <zbrachinara@gmail.com>"]
 edition = "2018"
+forced-target = "wasm32-unknown-unknown"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -25,6 +28,7 @@ console_error_panic_hook = { version = "0.1.6", optional = true }
 #
 # Unfortunately, `wee_alloc` requires nightly Rust when targeting wasm for now.
 wee_alloc = { version = "0.4.5", optional = true }
+eframe = "0.16.0"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"
