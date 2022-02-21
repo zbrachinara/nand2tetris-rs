@@ -1,4 +1,5 @@
 mod utils;
+mod app;
 
 use wasm_bindgen::prelude::*;
 
@@ -11,11 +12,13 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
+    pub(crate) fn log(s: &str);
 }
 
 #[wasm_bindgen]
-pub fn start() {
+pub fn start(width: u32, height: u32) -> Result<(), JsValue>{
     utils::set_panic_hook();
-    log("Hello world!");
+
+    log("hello world!");
+    eframe::start_web("main", Box::new(app::App::new(width, height)))
 }
