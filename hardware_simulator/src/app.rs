@@ -3,12 +3,14 @@ use eframe::epi::Frame;
 
 pub struct App {
     size: Vec2,
+    code: String,
 }
 
 impl App {
     pub fn new(width: u32, height: u32) -> Self {
         Self {
             size: Vec2::new(width as f32, height as f32),
+            code: "When the".to_string(),
         }
     }
 }
@@ -21,7 +23,10 @@ impl eframe::epi::App for App {
             let height = size.y;
             let elem_size = Vec2::new(width, height);
             ui.columns(2, |uis| {
-                uis[0].add_sized(elem_size, TextEdit::multiline(&mut "when the"));
+                uis[0].add_sized(
+                    elem_size,
+                    TextEdit::multiline(&mut self.code).code_editor(),
+                );
                 uis[1].allocate_ui_with_layout(
                     elem_size,
                     Layout::top_down_justified(Align::Center),
