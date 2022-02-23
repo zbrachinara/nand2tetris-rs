@@ -1,4 +1,4 @@
-use eframe::egui::{self, Align, CtxRef, Layout, TextEdit, Ui, Vec2};
+use eframe::egui::{self, Align, Context, Layout, TextEdit, Ui, Vec2};
 use eframe::epi::Frame;
 
 pub struct App {
@@ -14,7 +14,7 @@ impl App {
 }
 
 impl eframe::epi::App for App {
-    fn update(&mut self, ctx: &CtxRef, _: &Frame) {
+    fn update(&mut self, ctx: &Context, _: &Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             let size = ui.available_size();
             let width = size.x / 2f32;
