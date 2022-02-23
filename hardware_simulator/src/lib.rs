@@ -16,9 +16,9 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn start(width: u32, height: u32) -> Result<(), JsValue>{
+pub fn start() -> Result<(), JsValue>{
     utils::set_panic_hook();
 
     log("hello world!");
-    eframe::start_web("main", Box::new(app::App::new(width, height)))
+    eframe::start_web("main", Box::new(app::App::new()))
 }

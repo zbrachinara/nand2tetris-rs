@@ -2,14 +2,12 @@ use eframe::egui::{self, Align, Context, Layout, TextEdit, Ui, Vec2};
 use eframe::epi::Frame;
 
 pub struct App {
-    size: Vec2,
     code: String,
 }
 
 impl App {
-    pub fn new(width: u32, height: u32) -> Self {
+    pub fn new() -> Self {
         Self {
-            size: Vec2::new(width as f32, height as f32),
             code: "When the".to_string(),
         }
     }
@@ -35,7 +33,7 @@ impl eframe::epi::App for App {
                         self.pin_table(ui);
                     },
                 );
-            });
+            })
         });
     }
 
@@ -44,7 +42,7 @@ impl eframe::epi::App for App {
     }
 
     fn max_size_points(&self) -> Vec2 {
-        self.size.clone()
+        Vec2::new(f32::INFINITY, f32::INFINITY)
     }
 }
 
