@@ -1,2 +1,2 @@
 [workspace]
-members = [ "n2t_hdl", "hardware_simulator" ]
+members = [ "n2t_hdl", "n2t_server", "hardware_simulator" ]

@@ -996,6 +996,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nand2tetris"
+version = "0.1.0"
+
+[[package]]
 name = "ndk"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
