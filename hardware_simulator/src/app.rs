@@ -38,8 +38,7 @@ impl eframe::epi::App for App {
         // repaint ui
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.columns(2, |uis| {
-                {
-                    let ui = &mut uis[0];
+                uis[0].vertical_centered_justified(|ui| {
                     if ui.button("Load local file").clicked() {
                         self.load_file();
                     }
@@ -47,12 +46,11 @@ impl eframe::epi::App for App {
                         ui.available_size(),
                         TextEdit::multiline(&mut self.code).code_editor(),
                     );
-                }
-                {
-                    let ui = &mut uis[1];
+                });
+                uis[1].vertical_centered_justified(|ui| {
                     ui.heading("Pins");
                     self.pin_table(ui);
-                }
+                });
             });
         });
     }
