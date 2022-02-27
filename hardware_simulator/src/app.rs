@@ -1,7 +1,6 @@
-use eframe::egui::{self, Align, Context, Layout, TextEdit, Ui, Vec2};
+use eframe::egui::{self, Context, TextEdit, Ui, Vec2};
 use eframe::epi::Frame;
 use std::sync::mpsc;
-// use crate::util::columns_equal_space;
 
 struct SendRecvPair<T> {
     tx: mpsc::SyncSender<T>,
