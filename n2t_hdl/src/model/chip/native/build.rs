@@ -1,6 +1,7 @@
 use super::edge_set::{EdgeSetMap, Endpoint};
 use crate::clock_behavior::ClockBehavior;
 use crate::model::chip::build_ctx::ChipBuilder;
+use crate::model::chip::error::ModelConstructionError;
 use crate::model::chip::native::chip::NativeChip;
 use crate::model::chip::native::conn_edge::ConnEdge;
 use crate::model::chip::vchip::VirtualBus;
@@ -20,7 +21,7 @@ pub fn native_chip(
     ctx: &mut ChipBuilder,
     top_interface: Interface,
     connections: Vec<Connection>,
-) -> Result<NativeChip, ()> {
+) -> Result<NativeChip, ModelConstructionError> {
     let Interface {
         com_in, com_out, ..
     } = top_interface.clone();
@@ -33,20 +34,17 @@ pub fn native_chip(
         let mut dependents = vec![];
         let mut clocked_chips = vec![];
         for Connection { chip_name, inputs } in connections {
-            let chip = ctx.resolve_chip(*chip_name).map_err(|_| ())?;
+            let chip = ctx.resolve_chip(*chip_name)?;
             let clocked = chip.is_clocked();
-            let dependency = ctx
-                .resolve_chip(*chip_name)
-                .map(|chip| {
-                    let interface = chip.interface();
-                    let index = conn_graph.add_node(chip);
-                    Dependency {
-                        index,
-                        interface,
-                        connections: inputs,
-                    }
-                })
-                .map_err(|_| ())?;
+            let dependency = ctx.resolve_chip(*chip_name).map(|chip| {
+                let interface = chip.interface();
+                let index = conn_graph.add_node(chip);
+                Dependency {
+                    index,
+                    interface,
+                    connections: inputs,
+                }
+            })?;
             if clocked {
                 clocked_chips.push(dependency.index)
             }
@@ -58,11 +56,12 @@ pub fn native_chip(
     // including the input and output virtual chips
     let (input_index, output_index) = (conn_graph.add_node(input), conn_graph.add_node(output));
 
-    let edge_sets = make_edge_set(input_index, output_index, &mut conn_graph, dependents)?;
+    let edge_sets = make_edge_set(input_index, output_index, &mut conn_graph, dependents)
+        .map_err(|_| ModelConstructionError::Alien)?;
 
     let mut clocked_edges = vec![];
     for (name, set) in edge_sets.iter() {
-        for (input, output) in set.iter()? {
+        for (input, output) in set.iter().map_err(|_| ModelConstructionError::Alien)? {
             (input.range.size() == output.range.size()).then(|| {
                 if matches!(
                     input.clocked.and(&output.clocked),

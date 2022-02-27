@@ -10,4 +10,6 @@ pub enum ModelConstructionError {
     ConstructionError,
     #[error("An unknown error occurred")]
     Unk(Option<anyhow::Error>),
+    #[error("An error occurred (but we can't tell what)")]
+    Alien,
 }
