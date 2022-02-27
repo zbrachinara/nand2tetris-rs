@@ -62,8 +62,8 @@ impl NativeChip {
         self.send_output(self.input_index, &input)
     }
 
-    fn eval_with_beginnings(&mut self, ixs: &[NodeIndex]) -> BitVec {
-        let mut set = ixs.iter().cloned().collect::<HashSet<_>>();
+    fn eval_with_beginnings<'a>(&mut self, ixs: impl IntoIterator<Item = &'a NodeIndex>) -> BitVec {
+        let mut set = ixs.into_iter().cloned().collect::<HashSet<_>>();
         while let Some(ix) = set.iter().nth(0).cloned() {
             // removal has to occur *before* evaluation because the resultant could have a feedback
             // loop to itself
