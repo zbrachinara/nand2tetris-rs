@@ -62,8 +62,8 @@ impl NativeChip {
         self.send_output(self.input_index, &input)
     }
 
-    fn eval_with_beginnings<'a>(&mut self, ixs: impl IntoIterator<Item = &'a NodeIndex>) -> BitVec {
-        let mut set = ixs.into_iter().cloned().collect::<HashSet<_>>();
+    fn eval_with_beginnings(&mut self, ixs: impl IntoIterator<Item = NodeIndex>) -> BitVec {
+        let mut set = ixs.into_iter().collect::<HashSet<_>>();
         while let Some(ix) = set.iter().nth(0).cloned() {
             // removal has to occur *before* evaluation because the resultant could have a feedback
             // loop to itself
@@ -77,7 +77,7 @@ impl NativeChip {
 
     fn eval_from_input(&mut self, input: &BitSlice) -> BitVec {
         let ixs = self.step_from_input(input);
-        self.eval_with_beginnings(&ixs)
+        self.eval_with_beginnings(ixs)
     }
 }
 
@@ -97,7 +97,15 @@ impl ChipObject for NativeChip {
         for edge in &self.clocked_edges {
             self.conn_graph[edge.clone()].clock();
         }
-        // self.eval(); //TODO: Need to propagate changes after edges change
+
+        let next_nodes = self
+            .clocked_edges
+            .iter()
+            .cloned()
+            .filter_map(|ex| self.conn_graph.edge_endpoints(ex).map(|(_, ix)| ix))
+            .chain(self.clocked_chips.iter().cloned())
+            .collect_vec();
+        self.eval_with_beginnings(next_nodes); //TODO: Test
     }
 
     fn eval(&mut self, input: &BitSlice) -> BitVec {
