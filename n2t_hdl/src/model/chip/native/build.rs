@@ -36,15 +36,12 @@ pub fn native_chip(
         for Connection { chip_name, inputs } in connections {
             let chip = ctx.resolve_chip(*chip_name)?;
             let clocked = chip.is_clocked();
-            let dependency = ctx.resolve_chip(*chip_name).map(|chip| {
-                let interface = chip.interface();
-                let index = conn_graph.add_node(chip);
-                Dependency {
-                    index,
-                    interface,
-                    connections: inputs,
-                }
-            })?;
+            // let index = conn_graph.add_node(chip);
+            let dependency = Dependency {
+                interface: chip.interface(),
+                index: conn_graph.add_node(chip),
+                connections: inputs,
+            };
             if clocked {
                 clocked_chips.push(dependency.index)
             }
