@@ -66,18 +66,30 @@ impl eframe::epi::App for App {
 impl App {
     fn load_file(&mut self) {
         let tx = self.code_channel.tx.clone();
+        #[cfg(feature = "web")]
         wasm_bindgen_futures::spawn_local(async move {
             let f = rfd::AsyncFileDialog::new().pick_file().await;
             if let Some(f) = f {
                 let buf = f.read().await;
                 if let Ok(str) = String::from_utf8(buf) {
-                    crate::log(&str);
+                    // crate::log(&str);
                     tx.send(str).unwrap(); //TODO: Find a better way to send info
                 } else {
-                    crate::log(&format!("Could not decode given file"));
+                    // crate::log(&format!("Could not decode given file"));
                 }
             }
         });
+        #[cfg(feature = "native")]
+        futures_lite::future::block_on(async move {
+            let f = rfd::AsyncFileDialog::new().pick_file().await;
+            if let Some(f) = f {
+                let buf = f.read().await;
+                if let Ok(str) = String::from_utf8(buf) {
+                    tx.send(str).unwrap();
+                }
+            }
+        })
+
     }
 
     fn pin_table(&self, ui: &mut Ui) {

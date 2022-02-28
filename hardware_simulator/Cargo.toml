@@ -2,19 +2,20 @@ cargo-features = ["per-package-target"]
 
 [package]
 name = "hardware_simulator"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Eric Yu <zbrachinara@gmail.com>"]
 edition = "2018"
-forced-target = "wasm32-unknown-unknown"
+default-target = "wasm32-unknown-unknown"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["console_error_panic_hook", "wee_alloc"]
+web = ["console_error_panic_hook", "wee_alloc", "wasm-bindgen", "wasm-bindgen-futures"]
+native = ["futures-lite"]
 
 [dependencies]
-wasm-bindgen = "0.2.63"
+wasm-bindgen = { version = "0.2.63", optional = true }
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
@@ -26,9 +27,10 @@ console_error_panic_hook = { version = "0.1.6", optional = true }
 # compared to the default allocator's ~10K. It is slower than the default
 # allocator, however.
 wee_alloc = { version = "0.4.5", optional = true }
-eframe = {version = "0.17.0", default-features = false, features = ["default_fonts", "egui_glium"]}
+wasm-bindgen-futures = { version = "0.4.29", optional = true }
+eframe = { version = "0.17.0", default-features = false, features = ["default_fonts", "egui_glium"] }
 rfd = "0.8.0"
-wasm-bindgen-futures = "0.4.29"
+futures-lite = { version = "1.12.0", optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"

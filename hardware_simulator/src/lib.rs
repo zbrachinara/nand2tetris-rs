@@ -1,3 +1,5 @@
+#![cfg(feature = "web")]
+
 mod utils;
 mod app;
 
