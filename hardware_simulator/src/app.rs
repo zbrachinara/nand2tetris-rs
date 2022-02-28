@@ -1,16 +1,12 @@
 use eframe::egui::{self, Context, TextEdit, Ui, Vec2};
 use eframe::epi::Frame;
 use std::sync::mpsc;
+use derive_more::*;
 
+#[derive(From)]
 struct SendRecvPair<T> {
     tx: mpsc::SyncSender<T>,
     rx: mpsc::Receiver<T>,
-}
-
-impl<T> From<(mpsc::SyncSender<T>, mpsc::Receiver<T>)> for SendRecvPair<T> {
-    fn from(x: (mpsc::SyncSender<T>, mpsc::Receiver<T>)) -> Self {
-        Self { tx: x.0, rx: x.1 }
-    }
 }
 
 pub struct App {
