@@ -13,6 +13,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 web = ["console_error_panic_hook", "wee_alloc", "wasm-bindgen", "wasm-bindgen-futures"]
 native = ["futures-lite"]
+compile_resources = []
 
 [dependencies]
 wasm-bindgen = { version = "0.2.63", optional = true }
