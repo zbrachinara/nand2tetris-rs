@@ -35,7 +35,7 @@ impl eframe::epi::App for App {
             self.code = str;
         }
 
-        const BUTTON_SIZE: f32 = 50f32;
+        const BUTTON_SIZE: f32 = 30f32;
 
         // repaint ui
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -48,7 +48,22 @@ impl eframe::epi::App for App {
                             // .with_main_justify(true),
                         |ui| {
                             ui.add(Button::image_and_text(
+                                self.textures.get("vcrrewind").unwrap().into(),
+                                Vec2::splat(BUTTON_SIZE),
+                                "",
+                            ));
+                            ui.add(Button::image_and_text(
+                                self.textures.get("vcrstop").unwrap().into(),
+                                Vec2::splat(BUTTON_SIZE),
+                                "",
+                            ));
+                            ui.add(Button::image_and_text(
                                 self.textures.get("vcrforward").unwrap().into(),
+                                Vec2::splat(BUTTON_SIZE),
+                                "",
+                            ));
+                            ui.add(Button::image_and_text(
+                                self.textures.get("vcrfastforward").unwrap().into(),
                                 Vec2::splat(BUTTON_SIZE),
                                 "",
                             ));
