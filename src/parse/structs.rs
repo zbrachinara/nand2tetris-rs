@@ -5,12 +5,12 @@ use derive_more::Deref;
 pub struct Program(pub Vec<Instruction>);
 
 pub enum Instruction {
-    AInstruction(Ident),
-    CInstruction {
+    A(Ident),
+    C {
         source: Src,
         dst: Dst,
         jump: JumpCondition,
-    }
+    },
 }
 
 pub enum Ident {
