@@ -1,4 +1,8 @@
 use bitflags::bitflags;
+use derive_more::Deref;
+
+#[derive(Deref)]
+pub struct Program(Vec<Instruction>);
 
 pub enum Instruction {
     AInstruction(Ident),
