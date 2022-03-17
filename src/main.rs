@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod parse;
 
 fn main() {
