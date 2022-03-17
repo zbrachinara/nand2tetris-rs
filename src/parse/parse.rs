@@ -1,7 +1,9 @@
 use crate::parse::space::spaced;
 use crate::parse::{Ident, Instruction, Program};
 use nom::multi::many1;
+use nom::sequence::preceded;
 use nom::{IResult, Parser};
+use nom_supreme::tag::complete::tag;
 
 type PResult<'a, T> = IResult<&'a str, T>;
 
@@ -20,8 +22,11 @@ fn instruction(instruction_line: &str) -> PResult<Instruction> {
     }
 }
 
+// in an a-instruction, the @ and identifier must not be separated by any kind of space
 fn a_instruction(instruction: &str) -> PResult<Instruction> {
-    todo!()
+    preceded(tag("@"), identifier)
+        .map(|ident| Instruction::A(ident))
+        .parse(instruction)
 }
 
 fn c_instruction(instruction: &str) -> PResult<Instruction> {
