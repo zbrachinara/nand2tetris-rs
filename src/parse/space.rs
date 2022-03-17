@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, take_until};
-use nom::character::complete::multispace1;
+use nom::character::complete::{multispace1, space1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded};
@@ -9,8 +9,7 @@ use nom_supreme::tag::complete::tag;
 
 fn generic_space1(arg: &str) -> IResult<&str, ()> {
     many0(alt((
-        multispace1,
-        complete(delimited(tag("/*"), take_until("*/"), tag("*/"))),
+        space1,
         complete(preceded(tag("//"), is_not("\n"))),
     )))
     .map(|_| ())
