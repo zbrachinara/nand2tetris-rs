@@ -1,8 +1,10 @@
+use crate::parse::cinstr::CTriple;
 use crate::parse::space::line_spaced;
 use crate::parse::{Ident, Instruction, PResult, Program};
 use nom::multi::many1;
 use nom::sequence::preceded;
 use nom::{IResult, Parser};
+use nom::error::ErrorKind;
 use nom_supreme::tag::complete::tag;
 
 pub fn program(program: &str) -> PResult<Program> {
@@ -28,7 +30,12 @@ fn a_instruction(instruction: &str) -> PResult<Instruction> {
 }
 
 fn c_instruction(instruction: &str) -> PResult<Instruction> {
-    todo!()
+    CTriple::from_string(instruction).and_then(|(x, triple)| { // TODO: change weird error message
+        triple.to_cinstr().map_err(|_| nom::Err::Error(nom::error::Error {
+            input: "",
+            code: ErrorKind::Many0
+        })).map(|triple| (x, triple))
+    })
 }
 
 fn identifier(ident: &str) -> PResult<Ident> {
