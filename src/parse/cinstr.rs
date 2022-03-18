@@ -8,6 +8,7 @@ use nom::combinator::opt;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::{AsChar, Parser};
 use nom_supreme::tag::complete::tag;
+use std::str::FromStr;
 
 fn aexpr(str: &str) -> PResult<&str> {
     fn is_aexpr_char(c: char) -> bool {
@@ -62,11 +63,15 @@ impl CTriple {
 
     pub fn to_cinstr(&self) -> Result<Instruction, String> {
         // convert destination
-        let dst = self.dst.as_ref().map(|str| {
-            str.contains("A").then(|| Dst::A).unwrap_or(Dst::empty())
-                | str.contains("M").then(|| Dst::M).unwrap_or(Dst::empty())
-                | str.contains("D").then(|| Dst::D).unwrap_or(Dst::empty())
-        });
+        let dst = self
+            .dst
+            .as_ref()
+            .map(|str| {
+                str.contains("A").then(|| Dst::A).unwrap_or(Dst::empty())
+                    | str.contains("M").then(|| Dst::M).unwrap_or(Dst::empty())
+                    | str.contains("D").then(|| Dst::D).unwrap_or(Dst::empty())
+            })
+            .unwrap_or(Dst::empty());
 
         use CExpr::*;
         use Source::*;
@@ -120,9 +125,13 @@ impl CTriple {
         }?;
 
         // convert jump directive
-        
+        let jump = self
+            .jmp
+            .as_ref()
+            .map(|s| JumpCondition::from_str(s.as_str()).map_err(|_| "Malformed jump expression"))
+            .unwrap_or(Ok(JumpCondition::Never))?;
 
-        todo!()
+        Ok(Instruction::C { dst, expr, jump })
     }
 }
 

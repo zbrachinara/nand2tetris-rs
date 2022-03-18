@@ -1,5 +1,6 @@
 use bitflags::bitflags;
 use derive_more::Deref;
+use strum_macros::EnumString;
 
 #[derive(Deref)]
 pub struct Program(pub Vec<Instruction>);
@@ -53,13 +54,23 @@ bitflags! {
     }
 }
 
+
+#[derive(EnumString)]
 pub enum JumpCondition {
+    #[strum(disabled)]
     Never,
+    #[strum(serialize = "jmp")]
     Always,
+    #[strum(serialize = "jgt")]
     GreaterThan,
+    #[strum(serialize = "jlt")]
     LessThan,
+    #[strum(serialize = "jge")]
     GreaterEqual,
+    #[strum(serialize = "jle")]
     LessEqual,
+    #[strum(serialize = "jeq")]
     Equal,
+    #[strum(serialize = "jne")]
     NEqual,
 }
