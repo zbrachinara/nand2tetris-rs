@@ -2,9 +2,10 @@ use bitflags::bitflags;
 use derive_more::Deref;
 use strum_macros::EnumString;
 
-#[derive(Deref)]
+#[derive(Deref, Debug)]
 pub struct Program(pub Vec<Instruction>);
 
+#[derive(Debug)]
 pub enum Instruction {
     A(Ident),
     C {
@@ -14,11 +15,13 @@ pub enum Instruction {
     },
 }
 
+#[derive(Debug)]
 pub enum Ident {
     Name(String),
     Addr(u16),
 }
 
+#[derive(Debug)]
 pub enum CExpr {
     Zero,
     One,
@@ -41,6 +44,7 @@ pub enum CExpr {
     DOrX(Source),
 }
 
+#[derive(Debug)]
 pub enum Source {
     Register,
     Memory,
@@ -54,8 +58,7 @@ bitflags! {
     }
 }
 
-
-#[derive(EnumString)]
+#[derive(EnumString, Debug)]
 pub enum JumpCondition {
     #[strum(disabled)]
     Never,
