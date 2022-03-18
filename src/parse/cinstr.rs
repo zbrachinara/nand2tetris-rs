@@ -26,8 +26,8 @@ fn jexpr(str: &str) -> PResult<&str> {
 /// A representation of a compute instruction triple in string form
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CTriple {
-    src: Option<String>,
-    dst: String,
+    dst: Option<String>,
+    expr: String,
     jmp: Option<String>,
 }
 
@@ -38,28 +38,9 @@ impl CTriple {
             spaced(cexpr),
             opt(preceded(tag(";"), spaced(jexpr))),
         ))
-        // tuple((
-        //     terminated(spaced(alphanumeric1), tag("=")),
-        //     alt((
-        //         tuple((
-        //             terminated(spaced(cexpr), tag(";")),
-        //             terminated(spaced(jexpr), opt(tag("\n"))).map(|x| Some(x)),
-        //         )),
-        //         terminated(
-        //             spaced(cexpr),
-        //             tuple((opt(spaced(tag(";"))), opt(spaced(tag("\n"))))),
-        //         )
-        //         .map(|s| (s, None)),
-        //     )),
-        // ))
-        // .map(|(src, (dst, jmp))| Self {
-        //     src: src.to_string(),
-        //     dst: dst.to_string(),
-        //     jmp: jmp.map(str::to_string),
-        // })
         .map(|(src, dst, jmp)| Self {
-            src: src.map(str::to_string),
-            dst: dst.to_string(),
+            dst: src.map(str::to_string),
+            expr: dst.to_string(),
             jmp: jmp.map(str::to_string),
         })
         .parse(str)
@@ -82,8 +63,8 @@ mod test {
             Ok((
                 "",
                 CTriple {
-                    src: Some("DM".to_string()),
-                    dst: "M+D".to_string(),
+                    dst: Some("DM".to_string()),
+                    expr: "M+D".to_string(),
                     jmp: None,
                 }
             ))
@@ -95,8 +76,8 @@ mod test {
             Ok((
                 "",
                 CTriple {
-                    src: Some("DM".to_string()),
-                    dst: "M+D".to_string(),
+                    dst: Some("DM".to_string()),
+                    expr: "M+D".to_string(),
                     jmp: Some("jmp".to_string())
                 }
             ))
@@ -107,8 +88,8 @@ mod test {
             Ok((
                 "\n dee",
                 CTriple {
-                    src: Some("DM".to_string()),
-                    dst: "M+D".to_string(),
+                    dst: Some("DM".to_string()),
+                    expr: "M+D".to_string(),
                     jmp: Some("jmp".to_string())
                 }
             ))
@@ -120,8 +101,8 @@ mod test {
             Ok((
                 "",
                 CTriple {
-                    src: None,
-                    dst: "M".to_string(),
+                    dst: None,
+                    expr: "M".to_string(),
                     jmp: None,
                 }
             ))
