@@ -26,8 +26,8 @@ fn instruction(instruction_line: &str) -> PResult<Instruction> {
 }
 
 fn label(lb: &str) -> PResult<Instruction> {
-    delimited(spaced(tag("(")), alphanumeric1, spaced(tag(")")))
-        .map(|lb_str| Instruction::Label(Ident::Name(lb_str.to_string())))
+    delimited(spaced(tag("(")), identifier_name_only, spaced(tag(")")))
+        .map(|lb_str| Instruction::Label(lb_str))
         .parse(lb)
 }
 
@@ -66,6 +66,19 @@ fn identifier(ident: &str) -> PResult<Ident> {
     }
 }
 
+fn identifier_name_only(ident: &str) -> PResult<Ident> {
+    identifier(ident).and_then(|(x, id)| {
+        match id {
+            Ident::Name(_) => Ok((x, id)),
+            Ident::Addr(_) => Err(nom::Err::Error(nom::error::Error {
+                // TODO: Fix this weird error message too
+                input: "",
+                code: ErrorKind::Tag,
+            }))
+        }
+    })
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -73,6 +86,8 @@ mod test {
     #[test]
     fn test_identifier() {
         assert!(matches!(identifier("MAIN_LOOP"), Ok((_, Ident::Name(x))) if x == "MAIN_LOOP"));
+
+        label("(WHEN_DEEZ)").unwrap();
     }
 
     #[test]
