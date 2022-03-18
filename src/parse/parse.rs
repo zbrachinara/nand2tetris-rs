@@ -58,13 +58,22 @@ fn identifier(ident: &str) -> PResult<Ident> {
         // numeric constant
         Ok((x, c)) => Ok((x, Ident::Addr(u16::from_str(c).unwrap()))),
         // symbol
-        Err(_) => alphanumeric1(ident).map(|(x, sym)| (x, Ident::Name(sym.to_string()))),
+        Err(_) => many1(alt((alphanumeric1, tag("_"))))
+            .map(|v| v.join(""))
+            .map(|sym| Ident::Name(sym.to_string()))
+            .parse(ident),
+        // Err(_) => alphanumeric1(ident).map(|(x, sym)| (x, Ident::Name(sym.to_string()))),
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_identifier() {
+        assert!(matches!(identifier("MAIN_LOOP"), Ok((_, Ident::Name(x))) if x == "MAIN_LOOP"));
+    }
 
     #[test]
     fn theoretical() {
