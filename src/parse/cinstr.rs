@@ -9,6 +9,13 @@ use nom::sequence::{preceded, terminated, tuple};
 use nom::{AsChar, Parser};
 use nom_supreme::tag::complete::tag;
 
+fn aexpr(str: &str) -> PResult<&str> {
+    fn is_aexpr_char(c: char) -> bool {
+        matches!(c, 'A' | 'M' | 'D' | ' ')
+    }
+    take_while1(is_aexpr_char).parse(str)
+}
+
 fn cexpr(str: &str) -> PResult<&str> {
     fn is_cexpr_char(c: char) -> bool {
         matches!(c, 'A' | 'M' | 'D' | '+' | '-' | ' ')
@@ -23,6 +30,10 @@ fn jexpr(str: &str) -> PResult<&str> {
     take_while1(is_jexpr_char)(str)
 }
 
+fn remove_whitespace(s: &str) -> String {
+    s.chars().filter(|c| !c.is_whitespace()).collect()
+}
+
 /// A representation of a compute instruction triple in string form
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CTriple {
@@ -34,15 +45,18 @@ pub struct CTriple {
 impl CTriple {
     pub fn from_string(str: &str) -> PResult<CTriple> {
         tuple((
-            opt(terminated(spaced(alphanumeric1), tag("="))),
+            opt(terminated(spaced(aexpr), tag("="))),
             spaced(cexpr),
             opt(preceded(tag(";"), spaced(jexpr))),
         ))
-        .map(|(src, dst, jmp)| Self {
-            dst: src.map(str::to_string),
-            expr: dst.to_string(),
-            jmp: jmp.map(str::to_string),
+        .map(|(dst, expr, jmp)| {
+            (
+                dst.map(remove_whitespace),
+                remove_whitespace(expr),
+                jmp.map(remove_whitespace),
+            )
         })
+        .map(|(dst, expr, jmp)| Self { dst, expr, jmp })
         .parse(str)
     }
 
@@ -72,7 +86,7 @@ mod test {
 
         // check that a c instruction with jmp works
         assert_eq!(
-            CTriple::from_string("DM=M+D;jmp"),
+            CTriple::from_string("   D   M     =M+D;jmp"),
             Ok((
                 "",
                 CTriple {
@@ -84,7 +98,7 @@ mod test {
         );
 
         assert_eq!(
-            CTriple::from_string("DM=M+D;jmp\n dee"),
+            CTriple::from_string("DM=    M    +   D  \t;jmp\n dee"),
             Ok((
                 "\n dee",
                 CTriple {
