@@ -1,11 +1,14 @@
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::line_spaced;
 use crate::parse::{Ident, Instruction, PResult, Program};
+use nom::branch::alt;
+use nom::character::complete::{alphanumeric1, digit1};
+use nom::error::ErrorKind;
 use nom::multi::many1;
 use nom::sequence::preceded;
 use nom::{IResult, Parser};
-use nom::error::ErrorKind;
 use nom_supreme::tag::complete::tag;
+use std::str::FromStr;
 
 pub fn program(program: &str) -> PResult<Program> {
     many1(line_spaced(instruction))
@@ -30,14 +33,25 @@ fn a_instruction(instruction: &str) -> PResult<Instruction> {
 }
 
 fn c_instruction(instruction: &str) -> PResult<Instruction> {
-    CTriple::from_string(instruction).and_then(|(x, triple)| { // TODO: change weird error message
-        triple.to_cinstr().map_err(|_| nom::Err::Error(nom::error::Error {
-            input: "",
-            code: ErrorKind::Many0
-        })).map(|triple| (x, triple))
+    CTriple::from_string(instruction).and_then(|(x, triple)| {
+        // TODO: change weird error message
+        triple
+            .to_cinstr()
+            .map_err(|_| {
+                nom::Err::Error(nom::error::Error {
+                    input: "",
+                    code: ErrorKind::Many0,
+                })
+            })
+            .map(|triple| (x, triple))
     })
 }
 
 fn identifier(ident: &str) -> PResult<Ident> {
-    todo!()
+    match digit1::<_, nom::error::Error<_>>(ident) {
+        // numeric constant
+        Ok((x, c)) => Ok((x, Ident::Addr(u16::from_str(c).unwrap()))),
+        // symbol
+        Err(_) => alphanumeric1(ident).map(|(x, sym)| (x, Ident::Name(sym.to_string()))),
+    }
 }
