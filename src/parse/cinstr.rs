@@ -19,14 +19,14 @@ fn aexpr(str: &str) -> PResult<&str> {
 
 fn cexpr(str: &str) -> PResult<&str> {
     fn is_cexpr_char(c: char) -> bool {
-        matches!(c, 'A' | 'M' | 'D' | '+' | '-' | ' ')
+        matches!(c, 'A' | 'M' | 'D' | '+' | '-' | ' ' | '0' | '1' | '|' | '&')
     }
     take_while1(is_cexpr_char).parse(str)
 }
 
 fn jexpr(str: &str) -> PResult<&str> {
     fn is_jexpr_char(c: char) -> bool {
-        c.is_alphanum() || c == ' '
+        matches!(c, 'j' | 'm' | 'p' | 'g' | 'e' | 'q' | 'n')
     }
     take_while1(is_jexpr_char)(str)
 }
@@ -198,6 +198,19 @@ mod test {
                     jmp: None,
                 }
             ))
-        )
+        );
+
+        // some other test cases
+        assert_eq!(
+            CTriple::from_string("M=0"),
+            Ok((
+                "",
+                CTriple {
+                    dst: Some("M".to_string()),
+                    expr: "0".to_string(),
+                    jmp: None,
+                }
+            ))
+        );
     }
 }
