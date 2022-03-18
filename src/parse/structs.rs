@@ -7,7 +7,7 @@ pub struct Program(pub Vec<Instruction>);
 pub enum Instruction {
     A(Ident),
     C {
-        source: Src,
+        expr: CExpr,
         dst: Dst,
         jump: JumpCondition,
     },
@@ -18,7 +18,33 @@ pub enum Ident {
     Addr(u16),
 }
 
-pub enum Src {
+struct CExpr {
+    src: Source,
+    op: Operation,
+}
+
+enum Operation {
+    Zero,
+    One,
+    MinusOne,
+    D,
+    X,
+    NotD,
+    NotX,
+    NegD,
+    NegX,
+    DPlusOne,
+    DMinusOne,
+    XPlusOne,
+    XMinusOne,
+    DPlusX,
+    DMinusX,
+    XMinusD,
+    DAndX,
+    DOrX,
+}
+
+pub enum Source {
     Register,
     Memory,
 }
