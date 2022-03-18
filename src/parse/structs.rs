@@ -51,9 +51,9 @@ pub enum Source {
 
 bitflags! {
     pub struct Dst: u8 {
-        const A = 0b001;
+        const M = 0b001;
         const D = 0b010;
-        const MEM = 0b100;
+        const A = 0b100;
     }
 }
 
