@@ -1,14 +1,12 @@
-use crate::parse::space::spaced;
-use crate::parse::{Ident, Instruction, Program};
+use crate::parse::space::line_spaced;
+use crate::parse::{Ident, Instruction, PResult, Program};
 use nom::multi::many1;
 use nom::sequence::preceded;
 use nom::{IResult, Parser};
 use nom_supreme::tag::complete::tag;
 
-type PResult<'a, T> = IResult<&'a str, T>;
-
 pub fn program(program: &str) -> PResult<Program> {
-    many1(spaced(instruction))
+    many1(line_spaced(instruction))
         .map(|vec| Program(vec))
         .parse(program)
 }
