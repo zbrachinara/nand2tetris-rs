@@ -1,5 +1,5 @@
 use crate::parse::space::spaced;
-use crate::parse::{Instruction, JumpCondition, PResult};
+use crate::parse::{CExpr, Dst, Instruction, JumpCondition, PResult, Source};
 use nom::branch::alt;
 use nom::bytes::complete::{take_until, take_while1};
 use nom::character::complete::{alphanumeric1, char};
@@ -60,7 +60,68 @@ impl CTriple {
         .parse(str)
     }
 
-    pub fn to_cinstr(&self) -> Instruction {
+    pub fn to_cinstr(&self) -> Result<Instruction, String> {
+        // convert destination
+        let dst = self.dst.as_ref().map(|str| {
+            str.contains("A").then(|| Dst::A).unwrap_or(Dst::empty())
+                | str.contains("M").then(|| Dst::M).unwrap_or(Dst::empty())
+                | str.contains("D").then(|| Dst::D).unwrap_or(Dst::empty())
+        });
+
+        use CExpr::*;
+        use Source::*;
+        // convert expression
+        let expr = match self.expr.as_str() {
+            // constants
+            "0" => Ok(Zero),
+            "1" => Ok(One),
+            "-1" => Ok(NegOne),
+
+            // evaluate to value
+            "D" => Ok(D),
+            "A" => Ok(X(Register)),
+            "M" => Ok(X(Memory)),
+
+            // unary operation
+            "!D" => Ok(NotD),
+            "!A" => Ok(NotX(Register)),
+            "!M" => Ok(NotX(Memory)),
+
+            "-D" => Ok(NegD),
+            "-A" => Ok(NegX(Register)),
+            "-M" => Ok(NegX(Memory)),
+
+            // inc/decrement (for some reason can't specify them backward)
+            "D+1" => Ok(DPlusOne),
+            "A+1" => Ok(XPlusOne(Register)),
+            "M+1" => Ok(XPlusOne(Memory)),
+
+            "D-1" => Ok(DMinusOne),
+            "A-1" => Ok(XMinusOne(Register)),
+            "M-1" => Ok(XMinusOne(Memory)),
+
+            // binary operators
+            "D+A" | "A+D" => Ok(DPlusX(Register)),
+            "D+M" | "M+D" => Ok(DPlusX(Memory)),
+
+            "D-A" => Ok(DMinusX(Register)),
+            "D-M" => Ok(DMinusX(Memory)),
+
+            "A-D" => Ok(XMinusD(Register)),
+            "M-D" => Ok(XMinusD(Memory)),
+
+            "D&A" | "A&D" => Ok(DAndX(Register)),
+            "D&M" | "M&D" => Ok(DAndX(Memory)),
+
+            "D|A" | "A|D" => Ok(DOrX(Register)),
+            "D|M" | "M|D" => Ok(DOrX(Memory)),
+
+            _ => Err("Malformed Compute expression"),
+        }?;
+
+        // convert jump directive
+        
+
         todo!()
     }
 }
