@@ -18,30 +18,25 @@ pub enum Ident {
     Addr(u16),
 }
 
-struct CExpr {
-    src: Source,
-    op: Operation,
-}
-
-enum Operation {
+pub enum CExpr {
     Zero,
     One,
     MinusOne,
     D,
-    X,
+    X(Source),
     NotD,
-    NotX,
+    NotX(Source),
     NegD,
-    NegX,
+    NegX(Source),
     DPlusOne,
     DMinusOne,
-    XPlusOne,
-    XMinusOne,
-    DPlusX,
-    DMinusX,
-    XMinusD,
-    DAndX,
-    DOrX,
+    XPlusOne(Source),
+    XMinusOne(Source),
+    DPlusX(Source),
+    DMinusX(Source),
+    XMinusD(Source),
+    DAndX(Source),
+    DOrX(Source),
 }
 
 pub enum Source {
