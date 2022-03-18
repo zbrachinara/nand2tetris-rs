@@ -1,11 +1,11 @@
 use crate::parse::cinstr::CTriple;
-use crate::parse::space::line_spaced;
+use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, PResult, Program};
 use nom::branch::alt;
 use nom::character::complete::{alphanumeric1, digit1};
 use nom::error::ErrorKind;
 use nom::multi::many1;
-use nom::sequence::preceded;
+use nom::sequence::{delimited, preceded};
 use nom::{IResult, Parser};
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
@@ -18,11 +18,17 @@ pub fn program(program: &str) -> PResult<Program> {
 
 // instruction line must begin on the first character of the instruction
 fn instruction(instruction_line: &str) -> PResult<Instruction> {
-    if instruction_line.chars().nth(0) == Some('@') {
-        a_instruction(instruction_line)
-    } else {
-        c_instruction(instruction_line)
+    match instruction_line.chars().nth(0) {
+        Some('@') => a_instruction(instruction_line),
+        Some('(') => label(instruction_line),
+        _ => c_instruction(instruction_line),
     }
+}
+
+fn label(lb: &str) -> PResult<Instruction> {
+    delimited(spaced(tag("(")), alphanumeric1, spaced(tag(")")))
+        .map(|lb_str| Instruction::Label(Ident::Name(lb_str.to_string())))
+        .parse(lb)
 }
 
 // in an a-instruction, the @ and identifier must not be separated by any kind of space
@@ -62,30 +68,36 @@ mod test {
 
     #[test]
     fn theoretical() {
-
-        let single_instruction = program(r#"
+        let single_instruction = program(
+            r#"
 
         DM=M+D
 
-        "#).unwrap().1;
+        "#,
+        )
+        .unwrap()
+        .1;
 
         println!("{single_instruction:#?}");
 
-        let a_c_instruction = program(r#"
+        let a_c_instruction = program(
+            r#"
 
         @42069
         DM=M+D
 
-        "#).unwrap().1;
+        "#,
+        )
+        .unwrap()
+        .1;
 
         println!("{a_c_instruction:#?}");
-
     }
 
     #[test]
     fn practical() {
-
-        let mult = program(r#"
+        let mult = program(
+            r#"
 
 @R2
 M=0
@@ -115,9 +127,11 @@ M=M-1
 (EXIT)
 @EXIT
 0;JMP
-        "#).unwrap().1;
+        "#,
+        )
+        .unwrap()
+        .1;
 
         println!("{mult:#?}")
-
     }
 }
