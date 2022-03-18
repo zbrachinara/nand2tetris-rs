@@ -5,7 +5,7 @@ use nom::bytes::complete::{take_until, take_while1};
 use nom::character::complete::{alphanumeric1, char};
 use nom::character::is_alphabetic;
 use nom::combinator::opt;
-use nom::sequence::{terminated, tuple};
+use nom::sequence::{preceded, terminated, tuple};
 use nom::{AsChar, Parser};
 use nom_supreme::tag::complete::tag;
 
@@ -26,30 +26,39 @@ fn jexpr(str: &str) -> PResult<&str> {
 /// A representation of a compute instruction triple in string form
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct CTriple {
-    src: String,
+    src: Option<String>,
     dst: String,
     jmp: Option<String>,
 }
 
 impl CTriple {
     pub fn from_string(str: &str) -> PResult<CTriple> {
-
         tuple((
-            terminated(spaced(alphanumeric1), tag("=")),
-            alt((
-                tuple((
-                    terminated(spaced(cexpr), tag(";")),
-                    terminated(spaced(jexpr), opt(tag("\n"))).map(|x| Some(x)),
-                )),
-                terminated(
-                    spaced(cexpr),
-                    tuple((opt(spaced(tag(";"))), opt(spaced(tag("\n"))))),
-                )
-                .map(|s| (s, None)),
-            )),
+            opt(terminated(spaced(alphanumeric1), tag("="))),
+            spaced(cexpr),
+            opt(preceded(tag(";"), spaced(jexpr))),
         ))
-        .map(|(src, (dst, jmp))| Self {
-            src: src.to_string(),
+        // tuple((
+        //     terminated(spaced(alphanumeric1), tag("=")),
+        //     alt((
+        //         tuple((
+        //             terminated(spaced(cexpr), tag(";")),
+        //             terminated(spaced(jexpr), opt(tag("\n"))).map(|x| Some(x)),
+        //         )),
+        //         terminated(
+        //             spaced(cexpr),
+        //             tuple((opt(spaced(tag(";"))), opt(spaced(tag("\n"))))),
+        //         )
+        //         .map(|s| (s, None)),
+        //     )),
+        // ))
+        // .map(|(src, (dst, jmp))| Self {
+        //     src: src.to_string(),
+        //     dst: dst.to_string(),
+        //     jmp: jmp.map(str::to_string),
+        // })
+        .map(|(src, dst, jmp)| Self {
+            src: src.map(str::to_string),
             dst: dst.to_string(),
             jmp: jmp.map(str::to_string),
         })
@@ -73,7 +82,7 @@ mod test {
             Ok((
                 "",
                 CTriple {
-                    src: "DM".to_string(),
+                    src: Some("DM".to_string()),
                     dst: "M+D".to_string(),
                     jmp: None,
                 }
@@ -86,24 +95,36 @@ mod test {
             Ok((
                 "",
                 CTriple {
-                    src: "DM".to_string(),
+                    src: Some("DM".to_string()),
                     dst: "M+D".to_string(),
                     jmp: Some("jmp".to_string())
                 }
             ))
         );
-
 
         assert_eq!(
             CTriple::from_string("DM=M+D;jmp\n dee"),
             Ok((
-                " dee",
+                "\n dee",
                 CTriple {
-                    src: "DM".to_string(),
+                    src: Some("DM".to_string()),
                     dst: "M+D".to_string(),
                     jmp: Some("jmp".to_string())
                 }
             ))
         );
+
+        // nothing except for expression
+        assert_eq!(
+            CTriple::from_string("M"),
+            Ok((
+                "",
+                CTriple {
+                    src: None,
+                    dst: "M".to_string(),
+                    jmp: None,
+                }
+            ))
+        )
     }
 }
