@@ -18,7 +18,8 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    let file = fs::read_to_string(opt.file_name);
+    let file = fs::read_to_string(opt.file_name).expect("File not found");
 
+    let program = parse::program(&file);
 
 }
