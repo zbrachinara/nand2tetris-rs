@@ -26,7 +26,7 @@ fn cexpr(str: &str) -> PResult<&str> {
 
 fn jexpr(str: &str) -> PResult<&str> {
     fn is_jexpr_char(c: char) -> bool {
-        matches!(c, 'j' | 'm' | 'p' | 'g' | 'e' | 'q' | 'n')
+        matches!(c, 'J' | 'M' | 'P' | 'G' | 'E' | 'Q' | 'N')
     }
     take_while1(is_jexpr_char)(str)
 }
@@ -164,25 +164,25 @@ mod test {
 
         // check that a c instruction with jmp works
         assert_eq!(
-            CTriple::from_string("   D   M     =M+D;jmp"),
+            CTriple::from_string("   D   M     =M+D;JMP"),
             Ok((
                 "",
                 CTriple {
                     dst: Some("DM".to_string()),
                     expr: "M+D".to_string(),
-                    jmp: Some("jmp".to_string())
+                    jmp: Some("JMP".to_string())
                 }
             ))
         );
 
         assert_eq!(
-            CTriple::from_string("DM=    M    +   D  \t;jmp\n dee"),
+            CTriple::from_string("DM=    M    +   D  \t;JMP\n dee"),
             Ok((
                 "\n dee",
                 CTriple {
                     dst: Some("DM".to_string()),
                     expr: "M+D".to_string(),
-                    jmp: Some("jmp".to_string())
+                    jmp: Some("JMP".to_string())
                 }
             ))
         );
@@ -212,5 +212,17 @@ mod test {
                 }
             ))
         );
+
+        assert_eq!(
+            CTriple::from_string("D;JMP"),
+            Ok((
+                "",
+                CTriple {
+                    dst: None,
+                    expr: "D".to_string(),
+                    jmp: Some("JMP".to_string())
+                }
+            ))
+        )
     }
 }

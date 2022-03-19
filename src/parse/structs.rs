@@ -63,18 +63,18 @@ bitflags! {
 pub enum JumpCondition {
     #[strum(disabled)]
     Never,
-    #[strum(serialize = "jmp")]
+    #[strum(serialize = "JMP")]
     Always,
-    #[strum(serialize = "jgt")]
+    #[strum(serialize = "JGT")]
     GreaterThan,
-    #[strum(serialize = "jlt")]
+    #[strum(serialize = "JLT")]
     LessThan,
-    #[strum(serialize = "jge")]
+    #[strum(serialize = "JGE")]
     GreaterEqual,
-    #[strum(serialize = "jle")]
+    #[strum(serialize = "JLE")]
     LessEqual,
-    #[strum(serialize = "jeq")]
+    #[strum(serialize = "JEQ")]
     Equal,
-    #[strum(serialize = "jne")]
+    #[strum(serialize = "JNE")]
     NEqual,
 }
