@@ -74,7 +74,7 @@ fn identifier_name_only(ident: &str) -> PResult<Ident> {
                 // TODO: Fix this weird error message too
                 input: "",
                 code: ErrorKind::Tag,
-            }))
+            })),
         }
     })
 }

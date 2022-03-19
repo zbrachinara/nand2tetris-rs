@@ -1,7 +1,7 @@
-mod structs;
-mod space;
-mod parse;
 mod cinstr;
+mod parse;
+mod space;
+mod structs;
 
 use nom::IResult;
 pub use structs::*;
