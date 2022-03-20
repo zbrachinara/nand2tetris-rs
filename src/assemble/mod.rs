@@ -5,7 +5,11 @@ mod symbol_table;
 use crate::parse::{Ident, Instruction, Program};
 use symbol_table::{Address, SymbolTable};
 
-pub fn assemble_program(program: Program) -> Vec<u16> {
+pub fn assemble_to_string(program: Program) -> String {
+    assemble_to_vec(program).into_iter().map(|n| n.to_string()).collect::<Vec<_>>().join("\n")
+}
+
+pub fn assemble_to_vec(program: Program) -> Vec<u16> {
     let mut symbol_table = SymbolTable::new();
 
     // populate symbol table with rom addresses
@@ -81,7 +85,7 @@ M=M-1
         )
         .unwrap();
 
-        let mult_code = assemble_program(mult);
+        let mult_code = assemble_to_vec(mult);
 
         let compare = &[
             0b0000000000000010,
