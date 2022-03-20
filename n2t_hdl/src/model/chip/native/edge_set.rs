@@ -2,8 +2,7 @@ use crate::channel_range::ChannelRange;
 use crate::clock_behavior::ClockBehavior;
 use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::hash_map::{HashMap, Entry};
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct EdgeSetMap(HashMap<String, EdgeSet>);
@@ -26,7 +25,7 @@ impl EdgeSet {
 
     pub fn add(&mut self, endpoint: Endpoint, as_input: bool) -> Result<(), ()> {
         if as_input {
-            if matches!(self.input, Some(_)) {
+            if self.input.is_some() {
                 return Err(());
             } else {
                 self.input = Some(endpoint)

@@ -22,27 +22,27 @@ impl Chip {
 
     pub fn is_clocked(&self) -> bool {
         match self {
-            Chip::Native(n) => n.is_clocked(),
-            Chip::Builtin(b) => b.is_clocked(),
+            Self::Native(n) => n.is_clocked(),
+            Self::Builtin(b) => b.is_clocked(),
         }
     }
 
     pub fn interface(&self) -> Interface {
         match self {
-            Chip::Native(v) => v.interface(),
-            Chip::Builtin(v) => v.interface(),
+            Self::Native(v) => v.interface(),
+            Self::Builtin(v) => v.interface(),
         }
     }
     pub fn clock(&mut self) {
         match self {
-            Chip::Native(v) => v.clock(),
-            Chip::Builtin(v) => v.clock(),
+            Self::Native(v) => v.clock(),
+            Self::Builtin(v) => v.clock(),
         }
     }
     pub fn eval(&mut self, args: &BitSlice) -> BitVec {
         match self {
-            Chip::Native(v) => v.eval(args),
-            Chip::Builtin(v) => v.eval(args),
+            Self::Native(v) => v.eval(args),
+            Self::Builtin(v) => v.eval(args),
         }
     }
 }
@@ -50,8 +50,8 @@ impl Chip {
 impl Clone for Chip {
     fn clone(&self) -> Self {
         match self {
-            Chip::Native(v) => Chip::Native(v.clone()),
-            Chip::Builtin(v) => Chip::Builtin(v.chip_clone()),
+            Self::Native(v) => Self::Native(v.clone()),
+            Self::Builtin(v) => Self::Builtin(v.chip_clone()),
         }
     }
 }
@@ -73,11 +73,14 @@ impl Display for Chip {
 
 pub trait ChipObject {
     fn interface(&self) -> Interface;
+
     fn is_clocked(&self) -> bool {
         self.interface().has_clocked()
     }
 
     fn clock(&mut self);
+
     fn eval(&mut self, _: &BitSlice) -> BitVec;
+
     fn chip_clone(&self) -> Box<dyn ChipObject>;
 }

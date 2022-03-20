@@ -153,7 +153,7 @@ fn make_edge_set(
                                 false,
                             )?;
                         } else {
-                            if matches!(external_bus, Some(_)) {
+                            if external_bus.is_some() {
                                 return Err(());
                             }
                         }
