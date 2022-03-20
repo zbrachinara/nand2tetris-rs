@@ -22,7 +22,6 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
         for instr in program.iter() {
             match instr {
                 Instruction::Label(str) => {
-                    println!("inserting key {str}");
                     symbol_table.insert(str.clone(), Address::Rom(instr_count))
                 }
                 _ => instr_count += 1,
@@ -38,10 +37,7 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
                 Instruction::A(ident) => Some(
                     0b0111_1111_1111_1111
                         & match ident {
-                            Ident::Name(str) => {
-                                println!("matching key {str}");
-                                symbol_table[str].unwrap()
-                            },
+                            Ident::Name(str) => symbol_table[str].unwrap(),
                             Ident::Addr(addr) => *addr,
                         },
                 ),
