@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::{ErrorKind, Write};
@@ -39,7 +37,7 @@ fn main() {
     let dest_name = opt
         .dest_name
         .map(PathBuf::from)
-        .unwrap_or(source_dir.join(PathBuf::from(format!("./{source_name}.hack"))));
+        .unwrap_or_else(|| source_dir.join(PathBuf::from(format!("./{source_name}.hack"))));
 
     let file = fs::read_to_string(file_name).unwrap_or_else(|file_name| {
         eprintln!("File not found: {file_name:?}");

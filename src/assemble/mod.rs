@@ -31,6 +31,7 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
 
     // final processing
     program
+        .0
         .iter()
         .filter_map(|instr| {
             match instr {
@@ -41,7 +42,7 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
                             Ident::Addr(addr) => *addr,
                         },
                 ),
-                Instruction::C { expr, dst, jump } => Some(convert::cinstr(&expr, &dst, &jump)),
+                Instruction::C { expr, dst, jump } => Some(convert::cinstr(expr, dst, jump)),
                 _ => None, // ignore
             }
         })
@@ -203,8 +204,9 @@ M=M-1
             0b1110101010000111,
         ];
 
-        assemble_to_vec(fill).iter().enumerate().for_each(|(i, n)| {
-            assert_eq!(&compare[i], n, "assertion failed on instruction {i}")
-        });
+        assemble_to_vec(fill)
+            .iter()
+            .enumerate()
+            .for_each(|(i, n)| assert_eq!(&compare[i], n, "assertion failed on instruction {i}"));
     }
 }

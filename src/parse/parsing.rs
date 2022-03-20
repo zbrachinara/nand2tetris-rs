@@ -12,13 +12,13 @@ use std::str::FromStr;
 
 pub fn program(program: &str) -> PResult<Program> {
     many1(line_spaced(instruction))
-        .map(|vec| Program(vec))
+        .map(Program)
         .parse(program)
 }
 
 // instruction line must begin on the first character of the instruction
 fn instruction(instruction_line: &str) -> PResult<Instruction> {
-    match instruction_line.chars().nth(0) {
+    match instruction_line.chars().next() {
         Some('@') => a_instruction(instruction_line),
         Some('(') => label(instruction_line),
         _ => c_instruction(instruction_line),
@@ -27,14 +27,14 @@ fn instruction(instruction_line: &str) -> PResult<Instruction> {
 
 fn label(lb: &str) -> PResult<Instruction> {
     delimited(spaced(tag("(")), identifier_name_only, spaced(tag(")")))
-        .map(|lb_str| Instruction::Label(lb_str))
+        .map(Instruction::Label)
         .parse(lb)
 }
 
 // in an a-instruction, the @ and identifier must not be separated by any kind of space
 fn a_instruction(instruction: &str) -> PResult<Instruction> {
     preceded(tag("@"), identifier)
-        .map(|ident| Instruction::A(ident))
+        .map(Instruction::A)
         .parse(instruction)
 }
 
@@ -60,9 +60,8 @@ fn identifier(ident: &str) -> PResult<Ident> {
         // symbol
         Err(_) => many1(alt((alphanumeric1, tag("_"))))
             .map(|v| v.join(""))
-            .map(|sym| Ident::Name(sym.to_string()))
+            .map(Ident::Name)
             .parse(ident),
-        // Err(_) => alphanumeric1(ident).map(|(x, sym)| (x, Ident::Name(sym.to_string()))),
     }
 }
 

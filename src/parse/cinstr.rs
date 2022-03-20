@@ -62,13 +62,13 @@ impl CTriple {
             .as_ref()
             .map(|str| {
                 let mut flags = Dst::empty();
-                if str.contains("A") {
+                if str.contains('A') {
                     flags |= Dst::A
                 }
-                if str.contains("M") {
+                if str.contains('M') {
                     flags |= Dst::M
                 }
-                if str.contains("D") {
+                if str.contains('D') {
                     flags |= Dst::D
                 }
                 flags

@@ -26,7 +26,7 @@ pub struct SymbolTable {
 impl SymbolTable {
     pub fn new() -> Self {
         let map = SYMBOLS
-            .into_iter()
+            .iter()
             .map(|(s, x)| (s.to_string(), x.clone()))
             .collect::<HashMap<_, _>>();
         let value_set = map.values().cloned().collect::<HashSet<_>>();
@@ -48,7 +48,8 @@ impl SymbolTable {
 
     pub fn available_ram(&mut self) -> Option<Address> {
         while self.value_set.contains(&Address::Ram(self.next_ram)) {
-            if self.next_ram.checked_add(1).is_none() {
+            #[allow(clippy::question_mark)]
+            if self.next_ram.checked_add(1).map(|n| self.next_ram = n).is_none() {
                 // TODO: Return to beginning to check for holes
                 return None;
             }
@@ -62,7 +63,7 @@ impl SymbolTable {
         }
         self.available_ram()
             .map(|index| self.insert(name, index))
-            .ok_or("Could not detect any available RAM".to_string())
+            .ok_or_else(|| "Could not detect any available RAM".to_string())
     }
 }
 

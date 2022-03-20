@@ -1,7 +1,7 @@
 use crate::assemble::symbol_table::Address;
 use crate::parse::{CExpr, Dst, JumpCondition, Source};
 
-pub const SYMBOLS: &[(&'static str, Address)] = &[
+pub const SYMBOLS: &[(&str, Address)] = &[
     ("R0", Address::Ram(0)),
     ("R1", Address::Ram(1)),
     ("R2", Address::Ram(2)),
@@ -28,6 +28,7 @@ pub const SYMBOLS: &[(&'static str, Address)] = &[
 ];
 
 impl CExpr {
+    #[allow(clippy::unusual_byte_groupings)]
     pub const fn as_bits(&self) -> u16 {
         let raw_bits = match self {
             CExpr::Zero => 0b0_101010,
