@@ -11,7 +11,7 @@ pub fn assemble_program(program: Program) -> Vec<u16> {
     // populate symbol table with rom addresses
     {
         let mut instr_count = 0;
-        for instr in program {
+        for instr in program.iter() {
             match instr {
                 Instruction::Label(str) => {
                     symbol_table.insert(str.clone(), Address::Rom(instr_count))
@@ -21,7 +21,7 @@ pub fn assemble_program(program: Program) -> Vec<u16> {
         }
     }
 
-    for instr in program {
+    for instr in program.iter() {
         match instr {
             Instruction::A(_) => todo!(),
             Instruction::C{ .. } => todo!(),

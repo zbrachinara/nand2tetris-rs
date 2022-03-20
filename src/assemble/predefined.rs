@@ -1,4 +1,5 @@
 use crate::assemble::symbol_table::Address;
+use crate::parse::{CExpr, Source};
 
 pub const SYMBOLS: &[(&'static str, Address)] = &[
     ("R0", Address::Ram(0)),
@@ -25,3 +26,40 @@ pub const SYMBOLS: &[(&'static str, Address)] = &[
     ("SCREEN", Address::Ram(0x4000)),
     ("KBD", Address::Ram(0x6000)),
 ];
+
+impl CExpr {
+    const fn as_bits(&self) -> u16 {
+        let raw_bits = match self {
+            CExpr::Zero => 0b0_101010,
+            CExpr::One => 0b0_111111,
+            CExpr::NegOne => 0b0_111010,
+            CExpr::D => 0b0_001100,
+            CExpr::X(Source::Register) => 0b0_110000,
+            CExpr::X(Source::Memory) => 0b1_110000,
+            CExpr::NotD => 0b0_001101,
+            CExpr::NotX(Source::Register) => 0b0_110001,
+            CExpr::NotX(Source::Memory) => 0b1_110001,
+            CExpr::NegD => 0b0_001111,
+            CExpr::NegX(Source::Register) => 0b0_110011,
+            CExpr::NegX(Source::Memory) => 0b1_110011,
+            CExpr::DPlusOne => 0b0_011111,
+            CExpr::DMinusOne => 0b0_001110,
+            CExpr::XPlusOne(Source::Register) => 0b0_110111,
+            CExpr::XPlusOne(Source::Memory) => 0b1_110111,
+            CExpr::XMinusOne(Source::Register) => 0b0_110010,
+            CExpr::XMinusOne(Source::Memory) => 0b1_110010,
+            CExpr::DPlusX(Source::Register) => 0b0_000010,
+            CExpr::DPlusX(Source::Memory) => 0b1_000010,
+            CExpr::DMinusX(Source::Register) => 0b0_010011,
+            CExpr::DMinusX(Source::Memory) => 0b1_010011,
+            CExpr::XMinusD(Source::Register) => 0b0_000111,
+            CExpr::XMinusD(Source::Memory) => 0b1_000111,
+            CExpr::DAndX(Source::Register) => 0b0_000000,
+            CExpr::DAndX(Source::Memory) => 0b1_000000,
+            CExpr::DOrX(Source::Register) => 0b0_010101,
+            CExpr::DOrX(Source::Memory) => 0b1_010101,
+        };
+
+        raw_bits << 6
+    }
+}
