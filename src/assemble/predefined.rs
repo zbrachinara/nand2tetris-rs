@@ -28,7 +28,7 @@ pub const SYMBOLS: &[(&'static str, Address)] = &[
 ];
 
 impl CExpr {
-    const fn as_bits(&self) -> u16 {
+    pub const fn as_bits(&self) -> u16 {
         let raw_bits = match self {
             CExpr::Zero => 0b0_101010,
             CExpr::One => 0b0_111111,
@@ -65,13 +65,13 @@ impl CExpr {
 }
 
 impl Dst {
-    const fn as_bits(&self) -> u16 {
+    pub const fn as_bits(&self) -> u16 {
         (self.bits() as u16) << 3
     }
 }
 
 impl JumpCondition {
-    const fn as_bits(&self) -> u16 {
+    pub const fn as_bits(&self) -> u16 {
         match self {
             JumpCondition::Never => 0b000,
             JumpCondition::Always => 0b111,

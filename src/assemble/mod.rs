@@ -1,5 +1,6 @@
 mod predefined;
 mod symbol_table;
+mod convert;
 
 use symbol_table::{Address, SymbolTable};
 use crate::parse::{Instruction, Program};
