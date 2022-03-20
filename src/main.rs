@@ -9,11 +9,21 @@ mod parse;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "nand2tetris-assembler",
-    about = "assembles assembly written for the nand2tetris vm into hardware language"
+    about = "assembles assembly written for the nand2tetris vm into hardware language",
+    author = "ZBrachinara (github.com/zbrachinara)",
+    rename_all = "kebab"
 )]
 struct Opt {
-    #[structopt(name = "FILE")]
+    #[structopt(about = "The file to be compiled")]
     file_name: String,
+    #[structopt(about = "The file to which to push the output")]
+    dest_name: Option<String>,
+    #[structopt(
+        short,
+        long,
+        about = "Specify this flag to confirm overwriting the destination file"
+    )]
+    overwrite: bool,
 }
 
 fn main() {
@@ -21,5 +31,4 @@ fn main() {
     let file = fs::read_to_string(opt.file_name).expect("File not found");
 
     let program = parse::program(&file);
-
 }
