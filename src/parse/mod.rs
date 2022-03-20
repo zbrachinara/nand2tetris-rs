@@ -43,6 +43,11 @@ mod test {
     }
 
     #[test]
+    fn problems() {
+        println!("{:?}", program("D;JGT\n").unwrap());
+    }
+
+    #[test]
     fn practical() {
         let mult = program(
             r#"

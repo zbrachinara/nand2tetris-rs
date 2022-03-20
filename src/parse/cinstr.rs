@@ -25,10 +25,7 @@ fn cexpr(str: &str) -> PResult<&str> {
 }
 
 fn jexpr(str: &str) -> PResult<&str> {
-    fn is_jexpr_char(c: char) -> bool {
-        matches!(c, 'J' | 'M' | 'P' | 'G' | 'E' | 'Q' | 'N')
-    }
-    take_while1(is_jexpr_char)(str)
+    take_while1(|c: char| c.is_ascii_uppercase())(str)
 }
 
 fn remove_whitespace(s: &str) -> String {
