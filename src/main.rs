@@ -37,12 +37,10 @@ fn main() {
     let source_name = file_name.file_stem().unwrap().to_string_lossy();
     let source_dir = file_name.parent().unwrap();
     // default destination name should be the same as source name, but .hack
-    let dest_name = opt.dest_name.unwrap_or(
-        source_dir
-            .join(PathBuf::from(format!("./{source_name}.hack")))
-            .to_string_lossy()
-            .to_string(),
-    );
+    let dest_name = opt
+        .dest_name
+        .map(PathBuf::from)
+        .unwrap_or(source_dir.join(PathBuf::from(format!("./{source_name}.hack"))));
 
     let file = fs::read_to_string(file_name).unwrap_or_else(|file_name| {
         eprintln!("File not found: {file_name:?}");
