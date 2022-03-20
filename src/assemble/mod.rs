@@ -11,9 +11,14 @@ pub fn assemble_program(program: Program) -> Vec<u16> {
         .into_iter()
         .partition::<Vec<_>, _>(|instr| matches!(instr, Instruction::Label(_)));
 
-    let symbol_table = SymbolTable::new();
+    let mut symbol_table = SymbolTable::new();
+    for label in labels {
+        symbol_table.assign_available_ram(label.label());
+    }
 
-    for instr in instructions {}
+    for instr in instructions {
+
+    }
 
     output
 }

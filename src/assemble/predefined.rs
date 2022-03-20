@@ -1,10 +1,16 @@
 use std::collections::{HashMap, HashSet};
 use std::ops::Index;
 
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub enum Address {
+    Rom(u16),
+    Ram(u16),
+}
+
 pub struct SymbolTable {
-    next_available: u16,
-    value_set: HashSet<u16>,
-    map: HashMap<String, u16>,
+    value_set: HashSet<Address>,
+    map: HashMap<String, Address>,
+    next_ram: u16,
 }
 
 impl SymbolTable {
@@ -17,65 +23,69 @@ impl SymbolTable {
         Self {
             map,
             value_set,
-            next_available: 0,
+            next_ram: 0,
         }
     }
 
-    pub fn set(&mut self, index: String, value: u16) {
-        self.map.insert(index, value);
+    pub fn set(&mut self, index: String, value: Address) {
+        self.map.insert(index, value.clone());
         self.value_set.insert(value);
     }
 
-    pub fn contains(&self, value: &u16) -> bool {
+    pub fn contains(&self, value: &Address) -> bool {
         self.value_set.contains(value)
     }
 
-    pub fn next_available(&mut self) -> Option<u16> {
-        while self.value_set.contains(&self.next_available) {
-            if self.next_available.checked_add(1).is_none() {
+    pub fn available_ram(&mut self) -> Option<Address> {
+        while self.value_set.contains(&Address::Ram(self.next_ram)) {
+            if self.next_ram.checked_add(1).is_none() {
+                // TODO: Return to beginning to check for holes
                 return None;
             }
         }
-        Some(self.next_available)
+        Some(Address::Ram(self.next_ram))
     }
 
-    pub fn assign_next_available(&mut self, name: String) -> bool {
-        self.next_available().map(|index| {
-            self.set(name, index)
-        }).is_some()
+    pub fn assign_available_ram(&mut self, name: String) -> Result<(), String> {
+        if matches!(self.map[name.as_str()], Address::Rom(_)) {
+            return Err("The given name is associated with a ROM address".to_string());
+        }
+        self.available_ram()
+            .map(|index| self.set(name, index))
+            .ok_or("Could not detect any available RAM".to_string())
     }
 }
 
 impl Index<&str> for SymbolTable {
-    type Output = u16;
+    type Output = Address;
 
     fn index(&self, index: &str) -> &Self::Output {
         &self.map[index]
     }
 }
 
-pub const SYMBOLS: &[(&'static str, u16)] = &[
-    ("R0", 0),
-    ("R1", 1),
-    ("R2", 2),
-    ("R3", 3),
-    ("R4", 4),
-    ("R5", 5),
-    ("R6", 6),
-    ("R7", 7),
-    ("R8", 8),
-    ("R9", 9),
-    ("R10", 10),
-    ("R11", 11),
-    ("R12", 12),
-    ("R13", 13),
-    ("R14", 14),
-    ("R15", 15),
-    ("SP", 0),
-    ("LCL", 1),
-    ("ARG", 2),
-    ("THIS", 3),
-    ("THAT", 4),
-    ("SCREEN", 0x4000),
-    ("KBD", 0x6000),
+pub const SYMBOLS: &[(&'static str, Address)] = &[
+    ("R0", Address::Ram(0)),
+    ("R1", Address::Ram(1)),
+    ("R2", Address::Ram(2)),
+    ("R3", Address::Ram(3)),
+    ("R4", Address::Ram(4)),
+    ("R5", Address::Ram(5)),
+    ("R6", Address::Ram(6)),
+    ("R7", Address::Ram(7)),
+    ("R8", Address::Ram(8)),
+    ("R9", Address::Ram(9)),
+    ("R10", Address::Ram(10)),
+    ("R11", Address::Ram(11)),
+    ("R12", Address::Ram(12)),
+    ("R13", Address::Ram(13)),
+    ("R14", Address::Ram(14)),
+    ("R15", Address::Ram(15)),
+    ("SP", Address::Ram(0)),
+    ("LCL", Address::Ram(1)),
+    ("ARG", Address::Ram(2)),
+    ("THIS", Address::Ram(3)),
+    ("THAT", Address::Ram(4)),
+    ("SCREEN", Address::Ram(0x4000)),
+    ("KBD", Address::Ram(0x6000)),
 ];

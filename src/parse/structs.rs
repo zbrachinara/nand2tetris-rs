@@ -16,6 +16,15 @@ pub enum Instruction {
     },
 }
 
+impl Instruction {
+    pub fn label(self) -> String {
+        match self {
+            Self::Label(x) => x,
+            _ => panic!("The instruction is not a label")
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum Ident {
     Name(String),
