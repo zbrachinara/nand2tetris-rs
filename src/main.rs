@@ -1,9 +1,8 @@
 #![allow(dead_code)]
 
-use derive_more::Error;
 use std::fs;
 use std::fs::OpenOptions;
-use std::io::{Error, Write};
+use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
 use structopt::*;
 
@@ -63,8 +62,18 @@ fn main() {
             .write(true)
             .create_new(true)
             .open(dest_name)
-            .unwrap()
+            .unwrap_or_else(|e| match e.kind() {
+                ErrorKind::AlreadyExists => {
+                    eprintln!(
+                        "The destination file already exists.\n\
+                        Pass in a different destination file or specify -o to confirm overwrite\n\n\
+                        --help for more info"
+                    );
+                    std::process::exit(-1)
+                }
+                _ => panic!(),
+            })
     };
 
-    dest_file.write_all(code.as_bytes());
+    dest_file.write_all(code.as_bytes()).expect("Failed to produce output for an unknown reason")
 }
