@@ -1,11 +1,20 @@
+use crate::assemble::predefined::SYMBOLS;
 use std::collections::{HashMap, HashSet};
 use std::ops::Index;
-use crate::assemble::predefined::SYMBOLS;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Address {
     Rom(u16),
     Ram(u16),
+}
+
+impl Address {
+    pub fn unwrap(&self) -> u16 {
+        match self {
+            Self::Ram(x) => *x,
+            Self::Rom(x) => *x,
+        }
+    }
 }
 
 pub struct SymbolTable {

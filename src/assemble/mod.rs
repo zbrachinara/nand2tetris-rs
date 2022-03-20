@@ -1,12 +1,11 @@
+mod convert;
 mod predefined;
 mod symbol_table;
-mod convert;
 
+use crate::parse::{Ident, Instruction, Program};
 use symbol_table::{Address, SymbolTable};
-use crate::parse::{Instruction, Program};
 
 pub fn assemble_program(program: Program) -> Vec<u16> {
-    let output = vec![];
     let mut symbol_table = SymbolTable::new();
 
     // populate symbol table with rom addresses
@@ -22,13 +21,26 @@ pub fn assemble_program(program: Program) -> Vec<u16> {
         }
     }
 
-    for instr in program.iter() {
+    // final processing
+    program.iter().filter_map(|instr| {
         match instr {
-            Instruction::A(_) => todo!(),
-            Instruction::C{ .. } => todo!(),
-            _ => () // ignore
+            Instruction::A(ident) => Some(
+                0b0111_1111_1111_1111
+                    & match ident {
+                        Ident::Name(str) => symbol_table[str].unwrap(),
+                        Ident::Addr(addr) => *addr,
+                    },
+            ),
+            Instruction::C { expr, dst, jump } => Some(convert::cinstr(&expr, &dst, &jump)),
+            _ => None, // ignore
         }
-    }
+    }).collect()
+}
 
-    output
+#[cfg(test)]
+mod test {
+    #[test]
+    fn practical() {
+
+    }
 }
