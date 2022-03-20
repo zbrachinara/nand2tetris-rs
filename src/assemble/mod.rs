@@ -1,6 +1,7 @@
 mod predefined;
+mod symbol_table;
 
-use crate::assemble::predefined::{Address, SymbolTable};
+use symbol_table::{Address, SymbolTable};
 use crate::parse::{Instruction, Program};
 
 pub fn assemble_program(program: Program) -> Vec<u16> {
