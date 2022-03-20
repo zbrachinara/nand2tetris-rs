@@ -20,12 +20,13 @@ pub fn assemble_program(program: Program) -> Vec<u16> {
         }
     }
 
-    let Program(program) = program;
-    let (_, instructions) = program
-        .into_iter()
-        .partition::<Vec<_>, _>(|instr| matches!(instr, Instruction::Label(_)));
-
-    for instr in instructions {}
+    for instr in program {
+        match instr {
+            Instruction::A(_) => todo!(),
+            Instruction::C{ .. } => todo!(),
+            _ => () // ignore
+        }
+    }
 
     output
 }
