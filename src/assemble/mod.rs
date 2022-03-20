@@ -6,7 +6,11 @@ use crate::parse::{Ident, Instruction, Program};
 use symbol_table::{Address, SymbolTable};
 
 pub fn assemble_to_string(program: Program) -> String {
-    assemble_to_vec(program).into_iter().map(|n| n.to_string()).collect::<Vec<_>>().join("\n")
+    assemble_to_vec(program)
+        .into_iter()
+        .map(|n| n.to_string())
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 pub fn assemble_to_vec(program: Program) -> Vec<u16> {
@@ -18,6 +22,7 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
         for instr in program.iter() {
             match instr {
                 Instruction::Label(str) => {
+                    println!("inserting key {str}");
                     symbol_table.insert(str.clone(), Address::Rom(instr_count))
                 }
                 _ => instr_count += 1,
@@ -33,7 +38,10 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
                 Instruction::A(ident) => Some(
                     0b0111_1111_1111_1111
                         & match ident {
-                            Ident::Name(str) => symbol_table[str].unwrap(),
+                            Ident::Name(str) => {
+                                println!("matching key {str}");
+                                symbol_table[str].unwrap()
+                            },
                             Ident::Addr(addr) => *addr,
                         },
                 ),
@@ -110,5 +118,67 @@ M=M-1
             assert_eq!(&compare[i], n, "assertion failed on instruction {i}");
             println!("{n:#b}")
         });
+    }
+
+    #[test]
+    fn fill() {
+        let fill = program(
+            r#"
+
+(ELOOP)
+
+    @24576 //keyboard signal
+    D=M
+
+    @KY
+    D;JGT
+
+    @NOKY
+    1; JGT
+
+(KY)
+
+    @8192
+    D=A // initialize counter to "end" of screen buffer
+    (SET)
+        @SCREEN
+        D=D-1 // advance to next iteration
+        A=A+D // jump ptr to pixel in current iteration
+        M=-1  // color current string
+
+        // condition: The page clear has visited the last string (0)
+        @ELOOP
+        D;JEQ
+
+        @SET
+        0;JMP
+
+(NOKY)
+
+    @SCREEN
+    M=0
+
+    @8192
+    D=A // initialize counter to "end" of screen buffer
+    (USET)
+        @SCREEN
+        D=D-1 // advance to next iteration
+        A=A+D // jump ptr to pixel in current iteration
+        M=0  // color current string
+
+        // condition: The page clear has visited the last string (0)
+        @ELOOP
+        D;JEQ
+
+        @USET
+        0;JMP
+
+        "#,
+        )
+        .unwrap();
+
+        println!("{fill:#?}");
+
+        let fill_code = assemble_to_vec(fill);
     }
 }
