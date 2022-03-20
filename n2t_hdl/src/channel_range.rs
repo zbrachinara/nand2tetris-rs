@@ -1,5 +1,8 @@
 use ::std::ops::RangeInclusive;
 
+/// The range of a sub-bus of a non-internal bus (i.e., specified as IN or OUT)
+///
+/// Inclusive on `start` and `end`
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub struct ChannelRange {
     pub(crate) start: u16,
@@ -7,33 +10,52 @@ pub struct ChannelRange {
 }
 
 impl ChannelRange {
+    /// Creates a new `ChannelRange` with the specified start and end 
+    ///
+    /// # Panics
+    ///
+    /// Panics if `start` > `end`
     pub fn new(start: u16, end: u16) -> Self {
         assert!(start <= end, "Channel range start can't be past end");
         Self { start, end }
     }
 
+    /// Returns the width of the sub-bus
     pub fn size(&self) -> usize {
         // Can't underflow because `self.start` <= `self.end`
         usize::from(self.end - self.start + 1)
     }
 
+    /// Returns a range from `start` to `end`
     pub fn as_range(&self) -> RangeInclusive<usize> {
         (*self).into()
     }
 
+    /// Returns the value of `start`
     pub fn start(&self) -> u16 {
         self.start
     }
 
+    /// Returns the value of `end`
     pub fn end(&self) -> u16 {
         self.end
     }
 
+    /// Sets the value of `start` to the specified value
+    ///
+    /// # Panics
+    ///
+    /// Panics if `start` > `end`
     pub fn set_start(&mut self, start: u16) {
         assert!(start <= self.end, "Channel range start can't be past end");
         self.start = start;
     }
 
+    /// Sets the value of `end` to the specified value
+    ///
+    /// # Panics
+    ///
+    /// Panics if `start` > `end`
     pub fn set_end(&mut self, end: u16) {
         assert!(self.start <= end, "Channel range start can't be past end");
         self.end = end;
