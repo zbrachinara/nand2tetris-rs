@@ -52,7 +52,7 @@ impl SymbolTable {
             return Err("The given name is associated with a ROM address".to_string());
         }
         self.available_ram()
-            .map(|index| self.set(name, index))
+            .map(|index| self.insert(name, index))
             .ok_or("Could not detect any available RAM".to_string())
     }
 }
