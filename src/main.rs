@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 
 use std::fs;
+use std::fs::OpenOptions;
+use std::path::PathBuf;
+use std::io::{Error, Write};
+use derive_more::Error;
 use structopt::*;
 
 mod assemble;
@@ -28,7 +32,36 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    let file = fs::read_to_string(opt.file_name).expect("File not found");
 
-    let program = parse::program(&file);
+    let file_name = PathBuf::from(opt.file_name);
+    let source_name = file_name.file_stem().unwrap().to_string_lossy();
+    // default destination name should be the same as source name, but .hack
+    let dest_name = opt.dest_name.unwrap_or(format!("./{source_name}.hack"));
+
+    let file = fs::read_to_string(file_name).unwrap_or_else(|file_name| {
+        eprintln!("File not found: {file_name:?}");
+        std::process::exit(-1)
+    });
+    let program = parse::program(&file).unwrap_or_else(|_| {
+        eprintln!("The given asm code is malformed");
+        std::process::exit(-1)
+    });
+    let code = assemble::assemble_to_string(program);
+
+    let mut dest_file = if opt.overwrite {
+        OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(dest_name)
+            .unwrap()
+    } else {
+        OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(dest_name)
+            .unwrap()
+    };
+
+    dest_file.write_all(code.as_bytes());
+
 }
