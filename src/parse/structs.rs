@@ -36,7 +36,6 @@ pub enum CExpr {
     Zero,
     One,
     NegOne,
-    MinusOne,
     D,
     X(Source),
     NotD,
