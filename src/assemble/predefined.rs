@@ -1,5 +1,5 @@
 use crate::assemble::symbol_table::Address;
-use crate::parse::{CExpr, Source};
+use crate::parse::{CExpr, Dst, JumpCondition, Source};
 
 pub const SYMBOLS: &[(&'static str, Address)] = &[
     ("R0", Address::Ram(0)),
@@ -61,5 +61,26 @@ impl CExpr {
         };
 
         raw_bits << 6
+    }
+}
+
+impl Dst {
+    const fn as_bits(&self) -> u16 {
+        (self.bits() as u16) << 3
+    }
+}
+
+impl JumpCondition {
+    const fn as_bits(&self) -> u16 {
+        match self {
+            JumpCondition::Never => 0b000,
+            JumpCondition::Always => 0b111,
+            JumpCondition::GreaterThan => 0b001,
+            JumpCondition::LessThan => 0b100,
+            JumpCondition::GreaterEqual => 0b011,
+            JumpCondition::LessEqual => 0b110,
+            JumpCondition::Equal => 0b010,
+            JumpCondition::NEqual => 0b101,
+        }
     }
 }
