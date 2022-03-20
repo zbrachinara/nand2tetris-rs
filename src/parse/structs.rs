@@ -8,7 +8,7 @@ pub struct Program(pub Vec<Instruction>);
 #[derive(Debug)]
 pub enum Instruction {
     A(Ident),
-    Label(Ident),
+    Label(String),
     C {
         expr: CExpr,
         dst: Dst,

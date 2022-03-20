@@ -66,10 +66,10 @@ fn identifier(ident: &str) -> PResult<Ident> {
     }
 }
 
-fn identifier_name_only(ident: &str) -> PResult<Ident> {
+fn identifier_name_only(ident: &str) -> PResult<String> {
     identifier(ident).and_then(|(x, id)| {
         match id {
-            Ident::Name(_) => Ok((x, id)),
+            Ident::Name(id) => Ok((x, id)),
             Ident::Addr(_) => Err(nom::Err::Error(nom::error::Error {
                 // TODO: Fix this weird error message too
                 input: "",
