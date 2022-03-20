@@ -6,7 +6,7 @@ use nom::character::complete::{alphanumeric1, digit1};
 use nom::error::ErrorKind;
 use nom::multi::many1;
 use nom::sequence::{delimited, preceded};
-use nom::{IResult, Parser};
+use nom::Parser;
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
 

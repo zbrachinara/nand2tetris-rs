@@ -1,12 +1,9 @@
 use crate::parse::space::spaced;
 use crate::parse::{CExpr, Dst, Instruction, JumpCondition, PResult, Source};
-use nom::branch::alt;
-use nom::bytes::complete::{take_until, take_while1};
-use nom::character::complete::{alphanumeric1, char};
-use nom::character::is_alphabetic;
+use nom::bytes::complete::take_while1;
 use nom::combinator::opt;
 use nom::sequence::{preceded, terminated, tuple};
-use nom::{AsChar, Parser};
+use nom::Parser;
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
 

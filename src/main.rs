@@ -75,5 +75,7 @@ fn main() {
             })
     };
 
-    dest_file.write_all(code.as_bytes()).expect("Failed to produce output for an unknown reason")
+    dest_file
+        .write_all(code.as_bytes())
+        .expect("Failed to produce output for an unknown reason")
 }

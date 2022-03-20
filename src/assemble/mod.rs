@@ -8,10 +8,7 @@ use symbol_table::{Address, SymbolTable};
 pub fn assemble_to_string(program: Program) -> String {
     assemble_to_vec(program)
         .into_iter()
-        .map(|n| {
-
-            format!("{n:016b}")
-        })
+        .map(|n| format!("{n:016b}"))
         .collect::<Vec<_>>()
         .join("\n")
 }
