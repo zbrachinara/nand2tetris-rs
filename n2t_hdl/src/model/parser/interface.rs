@@ -149,7 +149,6 @@ impl Interface {
 mod test {
     use super::*;
     use crate::model::parser::chip;
-    use std::iter::once;
 
     const COM_CHIP: &'static str = include_str!("../../../../test_files/01/And16.hdl");
     const SEQ_CHIP: &'static str = include_str!("../../../../test_files/DFF.hdl");
@@ -175,8 +174,7 @@ CHIP test {
                 ]
                 .into(),
                 com_out: [("out".to_string(), ChannelRange::new(0, 15))].into(),
-                seq_in: Default::default(),
-                seq_out: Default::default()
+                ..Default::default()
             }
         );
 
@@ -185,10 +183,9 @@ CHIP test {
             seq_chip.interface(),
             Interface {
                 name: String::from("DFF"),
-                com_in: Default::default(),
                 com_out: [("out".to_string(), ChannelRange::new(0, 0))].into(),
                 seq_in: [("in".to_string(), ChannelRange::new(0, 0))].into(),
-                seq_out: Default::default()
+                ..Default::default()
             }
         );
 
@@ -204,7 +201,7 @@ CHIP test {
                     ("c".to_string(), ChannelRange::new(2, 4)),
                 ]
                 .into(),
-                seq_out: Default::default()
+                ..Default::default()
             }
         )
     }

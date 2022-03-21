@@ -78,10 +78,11 @@ impl ChipBuilder {
 mod test {
     use super::*;
     use petgraph::dot::Dot;
+    use std::env;
 
     #[test]
     fn general() {
-        let mut dir = std::env::current_dir().unwrap();
+        let mut dir = env::current_dir().unwrap();
         dir.push("../test_files/01");
 
         let mut ctx = ChipBuilder::new();
