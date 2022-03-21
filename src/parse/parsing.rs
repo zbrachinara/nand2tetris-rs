@@ -1,9 +1,9 @@
+use crate::error::AssemblyError;
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, PResult, Program};
 use nom::branch::alt;
 use nom::character::complete::{alphanumeric1, digit1};
-use nom::error::ErrorKind;
 use nom::multi::many1;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
@@ -41,12 +41,7 @@ fn c_instruction(instruction: &str) -> PResult<Instruction> {
         // TODO: change weird error message
         triple
             .to_cinstr()
-            .map_err(|_| {
-                nom::Err::Error(nom::error::Error {
-                    input: "",
-                    code: ErrorKind::Many0,
-                })
-            })
+            .map_err(|_| nom::Err::Error(AssemblyError::InvalidCExpr))
             .map(|triple| (x, triple))
     })
 }
@@ -64,15 +59,9 @@ fn identifier(ident: &str) -> PResult<Ident> {
 }
 
 fn identifier_name_only(ident: &str) -> PResult<String> {
-    identifier(ident).and_then(|(x, id)| {
-        match id {
-            Ident::Name(id) => Ok((x, id)),
-            Ident::Addr(_) => Err(nom::Err::Error(nom::error::Error {
-                // TODO: Fix this weird error message too
-                input: "",
-                code: ErrorKind::Tag,
-            })),
-        }
+    identifier(ident).and_then(|(x, id)| match id {
+        Ident::Name(id) => Ok((x, id)),
+        Ident::Addr(_) => Err(nom::Err::Error(AssemblyError::InvalidIdentifier)),
     })
 }
 

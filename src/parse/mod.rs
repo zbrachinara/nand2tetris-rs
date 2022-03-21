@@ -5,12 +5,13 @@ mod structs;
 
 use nom::IResult;
 pub use structs::*;
+use crate::error::AssemblyError;
 
-pub fn program(program: &str) -> Result<Program, nom::Err<nom::error::Error<&str>>> {
-    parsing::program(program).map(|(_, program)| program)
+pub fn program(program: &str) -> Result<Program, AssemblyError> {
+    parsing::program(program).map(|(_, program)| program).map_err(nom::Err::into)
 }
 
-type PResult<'a, T> = IResult<&'a str, T>;
+type PResult<'a, T> = IResult<&'a str, T, AssemblyError>;
 
 #[cfg(test)]
 mod test {

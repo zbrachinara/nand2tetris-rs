@@ -1,13 +1,24 @@
 use nom::Err;
 use nom::error::ErrorKind;
+use nom_supreme::tag::TagError;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, PartialEq, thiserror::Error)]
 #[allow(clippy::module_name_repetitions)]
 pub enum AssemblyError {
+    #[error("A problem was encountered while parsing an identifier")]
+    InvalidIdentifier,
+    #[error("A problem was detected while parsing a compute instruction")]
+    InvalidCExpr,
     #[error("The assembler had an internal problem -- please report")]
     Incomplete,
     #[error("The assembler had an internal problem -- please report")]
     Internal(String, ErrorKind, Option<Box<Self>>),
+}
+
+impl TagError<&str, &str> for AssemblyError {
+    fn from_tag(input: &str, _: &str) -> Self {
+        Self::Internal(input.to_string(), ErrorKind::Tag, None)
+    }
 }
 
 impl nom::error::ParseError<&str> for AssemblyError {
