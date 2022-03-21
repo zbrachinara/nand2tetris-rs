@@ -52,7 +52,7 @@ fn main() {
     let mut dest_file = if opt.overwrite {
         OpenOptions::new()
             .write(true)
-            .truncate(true)
+            .create(true)
             .open(dest_name)
             .unwrap()
     } else {
