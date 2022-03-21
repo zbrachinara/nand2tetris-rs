@@ -41,7 +41,7 @@ fn main() {
         PathBuf::from,
     );
 
-    let file = fs::read_to_string(file_name).unwrap_or_else(|file_name| {
+    let file = fs::read_to_string(file_name.clone()).unwrap_or_else(|_| {
         eprintln!("File not found: {file_name:?}");
         std::process::exit(-1)
     });
