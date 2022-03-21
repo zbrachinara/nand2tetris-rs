@@ -46,8 +46,8 @@ fn main() {
         eprintln!("File not found: {file_name:?}");
         std::process::exit(-1)
     });
-    let program = parse::program(&file).unwrap_or_else(|_| {
-        eprintln!("The given asm code is malformed");
+    let program = parse::program(&file).unwrap_or_else(|e| {
+        eprintln!("{e:?}");
         std::process::exit(-1)
     });
     let code = assemble::to_string(&program);
