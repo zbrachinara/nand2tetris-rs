@@ -8,6 +8,7 @@ use structopt::StructOpt;
 
 mod assemble;
 mod parse;
+mod error;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
