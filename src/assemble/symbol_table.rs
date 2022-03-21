@@ -45,16 +45,19 @@ impl SymbolTable {
     }
 
     pub fn available_ram(&mut self) -> Option<Address> {
+        let mut second_chance = false;
         while self.value_set.contains(&Address::Ram(self.next_ram)) {
-            #[allow(clippy::question_mark)]
             if self
                 .next_ram
                 .checked_add(1)
                 .map(|n| self.next_ram = n)
                 .is_none()
             {
-                // TODO: Return to beginning to check for holes
-                return None;
+                if second_chance {
+                    return None;
+                }
+                second_chance = true;
+                self.next_ram = 0;
             }
         }
         Some(Address::Ram(self.next_ram))
