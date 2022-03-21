@@ -1,3 +1,4 @@
+use crate::assemble::predefined;
 use crate::assemble::predefined::SYMBOLS;
 use std::collections::{HashMap, HashSet};
 
@@ -47,12 +48,8 @@ impl SymbolTable {
     pub fn available_ram(&mut self) -> Option<Address> {
         let mut second_chance = false;
         while self.value_set.contains(&Address::Ram(self.next_ram)) {
-            if self
-                .next_ram
-                .checked_add(1)
-                .map(|n| self.next_ram = n)
-                .is_none()
-            {
+            self.next_ram += 1;
+            if self.next_ram > predefined::LAST_PHYSICAL_ADDRESS {
                 if second_chance {
                     return None;
                 }

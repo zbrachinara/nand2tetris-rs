@@ -1,6 +1,8 @@
 use crate::assemble::symbol_table::Address;
 use crate::parse::{CExpr, Dst, JumpCondition, Source};
 
+pub const LAST_PHYSICAL_ADDRESS: u16 = 0x4000 - 1;
+
 pub const SYMBOLS: &[(&str, Address)] = &[
     ("R0", Address::Ram(0)),
     ("R1", Address::Ram(1)),
