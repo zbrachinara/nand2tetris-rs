@@ -66,7 +66,7 @@ impl CExpr {
 }
 
 impl Dst {
-    pub const fn as_bits(&self) -> u16 {
+    pub const fn as_bits(self) -> u16 {
         (self.bits() as u16) << 3
     }
 }

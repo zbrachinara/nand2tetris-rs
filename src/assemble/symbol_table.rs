@@ -10,8 +10,7 @@ pub enum Address {
 impl Address {
     pub fn unwrap(&self) -> u16 {
         match self {
-            Self::Ram(x) => *x,
-            Self::Rom(x) => *x,
+            Self::Ram(x) | Self::Rom(x) => *x,
         }
     }
 }
@@ -26,7 +25,7 @@ impl SymbolTable {
     pub fn new() -> Self {
         let map = SYMBOLS
             .iter()
-            .map(|(s, x)| (s.to_string(), x.clone()))
+            .map(|(s, x)| ((*s).to_string(), x.clone()))
             .collect::<HashMap<_, _>>();
         let value_set = map.values().cloned().collect::<HashSet<_>>();
         Self {

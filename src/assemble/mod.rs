@@ -5,15 +5,15 @@ mod symbol_table;
 use crate::parse::{Ident, Instruction, Program};
 use symbol_table::{Address, SymbolTable};
 
-pub fn assemble_to_string(program: Program) -> String {
-    assemble_to_vec(program)
+pub fn to_string(program: &Program) -> String {
+    to_vec(program)
         .into_iter()
         .map(|n| format!("{n:016b}"))
         .collect::<Vec<_>>()
         .join("\n")
 }
 
-pub fn assemble_to_vec(program: Program) -> Vec<u16> {
+pub fn to_vec(program: &Program) -> Vec<u16> {
     let mut symbol_table = SymbolTable::new();
 
     // populate symbol table with rom addresses
@@ -37,16 +37,18 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
                 Instruction::A(ident) => Some(
                     0b0111_1111_1111_1111
                         & match ident {
-                            Ident::Name(str) => {
-                                symbol_table.get(str.as_str()).cloned().unwrap_or_else(|| {
+                            Ident::Name(str) => symbol_table
+                                .get(str.as_str())
+                                .cloned()
+                                .unwrap_or_else(|| {
                                     symbol_table.assign_available_ram(str.clone()).unwrap()
-                                }).unwrap()
-                            }
+                                })
+                                .unwrap(),
                             Ident::Addr(addr) => *addr,
                         },
                 ),
                 Instruction::C { expr, dst, jump } => Some(convert::cinstr(expr, dst, jump)),
-                _ => None, // ignore
+                Instruction::Label(_) => None, // ignore
             }
         })
         .collect()
@@ -93,25 +95,25 @@ M=M-1
         )
         .unwrap();
 
-        let mult_code = assemble_to_vec(mult);
+        let mult_code = to_vec(&mult);
 
         let compare = &[
-            0b0000000000000010,
-            0b1110101010001000,
-            0b0000000000000000,
-            0b1111110000010000,
-            0b0000000000001110,
-            0b1110001100000010,
-            0b0000000000000001,
-            0b1111110000010000,
-            0b0000000000000010,
-            0b1111000010001000,
-            0b0000000000000000,
-            0b1111110010001000,
-            0b0000000000000010,
-            0b1110101010000111,
-            0b0000000000001110,
-            0b1110101010000111,
+            0b0000_0000_0000_0010,
+            0b1110_1010_1000_1000,
+            0b0000_0000_0000_0000,
+            0b1111_1100_0001_0000,
+            0b0000_0000_0000_1110,
+            0b1110_0011_0000_0010,
+            0b0000_0000_0000_0001,
+            0b1111_1100_0001_0000,
+            0b0000_0000_0000_0010,
+            0b1111_0000_1000_1000,
+            0b0000_0000_0000_0000,
+            0b1111_1100_1000_1000,
+            0b0000_0000_0000_0010,
+            0b1110_1010_1000_0111,
+            0b0000_0000_0000_1110,
+            0b1110_1010_1000_0111,
         ];
 
         mult_code.iter().enumerate().for_each(|(i, n)| {
@@ -177,37 +179,37 @@ M=M-1
         .unwrap();
 
         let compare = &[
-            0b0110000000000000,
-            0b1111110000010000,
-            0b0000000000000110,
-            0b1110001100000001,
-            0b0000000000010000,
-            0b1110111111000001,
-            0b0010000000000000,
-            0b1110110000010000,
-            0b0100000000000000,
-            0b1110001110010000,
-            0b1110000010100000,
-            0b1110111010001000,
-            0b0000000000000000,
-            0b1110001100000010,
-            0b0000000000001000,
-            0b1110101010000111,
-            0b0100000000000000,
-            0b1110101010001000,
-            0b0010000000000000,
-            0b1110110000010000,
-            0b0100000000000000,
-            0b1110001110010000,
-            0b1110000010100000,
-            0b1110101010001000,
-            0b0000000000000000,
-            0b1110001100000010,
-            0b0000000000010100,
-            0b1110101010000111,
+            0b0110_0000_0000_0000,
+            0b1111_1100_0001_0000,
+            0b0000_0000_0000_0110,
+            0b1110_0011_0000_0001,
+            0b0000_0000_0001_0000,
+            0b1110_1111_1100_0001,
+            0b0010_0000_0000_0000,
+            0b1110_1100_0001_0000,
+            0b0100_0000_0000_0000,
+            0b1110_0011_1001_0000,
+            0b1110_0000_1010_0000,
+            0b1110_1110_1000_1000,
+            0b0000_0000_0000_0000,
+            0b1110_0011_0000_0010,
+            0b0000_0000_0000_1000,
+            0b1110_1010_1000_0111,
+            0b0100_0000_0000_0000,
+            0b1110_1010_1000_1000,
+            0b0010_0000_0000_0000,
+            0b1110_1100_0001_0000,
+            0b0100_0000_0000_0000,
+            0b1110_0011_1001_0000,
+            0b1110_0000_1010_0000,
+            0b1110_1010_1000_1000,
+            0b0000_0000_0000_0000,
+            0b1110_0011_0000_0010,
+            0b0000_0000_0001_0100,
+            0b1110_1010_1000_0111,
         ];
 
-        assemble_to_vec(fill)
+        to_vec(&fill)
             .iter()
             .enumerate()
             .for_each(|(i, n)| assert_eq!(&compare[i], n, "assertion failed on instruction {i}"));

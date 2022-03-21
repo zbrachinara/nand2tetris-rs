@@ -1,8 +1,10 @@
+#![warn(clippy::pedantic)]
+
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
-use structopt::*;
+use structopt::StructOpt;
 
 mod assemble;
 mod parse;
@@ -34,10 +36,10 @@ fn main() {
     let source_name = file_name.file_stem().unwrap().to_string_lossy();
     let source_dir = file_name.parent().unwrap();
     // default destination name should be the same as source name, but .hack
-    let dest_name = opt
-        .dest_name
-        .map(PathBuf::from)
-        .unwrap_or_else(|| source_dir.join(PathBuf::from(format!("./{source_name}.hack"))));
+    let dest_name = opt.dest_name.map_or_else(
+        || source_dir.join(PathBuf::from(format!("./{source_name}.hack"))),
+        PathBuf::from,
+    );
 
     let file = fs::read_to_string(file_name).unwrap_or_else(|file_name| {
         eprintln!("File not found: {file_name:?}");
@@ -47,7 +49,7 @@ fn main() {
         eprintln!("The given asm code is malformed");
         std::process::exit(-1)
     });
-    let code = assemble::assemble_to_string(program);
+    let code = assemble::to_string(&program);
 
     let mut dest_file = if opt.overwrite {
         OpenOptions::new()
@@ -75,5 +77,5 @@ fn main() {
 
     dest_file
         .write_all(code.as_bytes())
-        .expect("Failed to produce output for an unknown reason")
+        .expect("Failed to produce output for an unknown reason");
 }

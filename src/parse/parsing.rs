@@ -11,9 +11,7 @@ use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
 
 pub fn program(program: &str) -> PResult<Program> {
-    many1(line_spaced(instruction))
-        .map(Program)
-        .parse(program)
+    many1(line_spaced(instruction)).map(Program).parse(program)
 }
 
 // instruction line must begin on the first character of the instruction

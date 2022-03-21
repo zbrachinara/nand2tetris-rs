@@ -6,6 +6,11 @@ use nom::sequence::{preceded, terminated, tuple};
 use nom::Parser;
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
+use CExpr::{
+    DAndX, DMinusOne, DMinusX, DOrX, DPlusOne, DPlusX, NegD, NegOne, NegX, NotD, NotX, One,
+    XMinusD, XMinusOne, XPlusOne, Zero, D, X,
+};
+use Source::{Memory, Register};
 
 fn aexpr(str: &str) -> PResult<&str> {
     fn is_aexpr_char(c: char) -> bool {
@@ -57,26 +62,20 @@ impl CTriple {
 
     pub fn to_cinstr(&self) -> Result<Instruction, String> {
         // convert destination
-        let dst = self
-            .dst
-            .as_ref()
-            .map(|str| {
-                let mut flags = Dst::empty();
-                if str.contains('A') {
-                    flags |= Dst::A
-                }
-                if str.contains('M') {
-                    flags |= Dst::M
-                }
-                if str.contains('D') {
-                    flags |= Dst::D
-                }
-                flags
-            })
-            .unwrap_or(Dst::empty());
+        let dst = self.dst.as_ref().map_or(Dst::empty(), |str| {
+            let mut flags = Dst::empty();
+            if str.contains('A') {
+                flags |= Dst::A;
+            }
+            if str.contains('M') {
+                flags |= Dst::M;
+            }
+            if str.contains('D') {
+                flags |= Dst::D;
+            }
+            flags
+        });
 
-        use CExpr::*;
-        use Source::*;
         // convert expression
         let expr = match self.expr.as_str() {
             // constants
@@ -127,11 +126,9 @@ impl CTriple {
         }?;
 
         // convert jump directive
-        let jump = self
-            .jmp
-            .as_ref()
-            .map(|s| JumpCondition::from_str(s.as_str()).map_err(|_| "Malformed jump expression"))
-            .unwrap_or(Ok(JumpCondition::Never))?;
+        let jump = self.jmp.as_ref().map_or(Ok(JumpCondition::Never), |s| {
+            JumpCondition::from_str(s.as_str()).map_err(|_| "Malformed jump expression")
+        })?;
 
         Ok(Instruction::C { dst, expr, jump })
     }
@@ -217,6 +214,6 @@ mod test {
                     jmp: Some("JMP".to_string())
                 }
             ))
-        )
+        );
     }
 }
