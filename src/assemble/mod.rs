@@ -22,7 +22,7 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
         for instr in program.iter() {
             match instr {
                 Instruction::Label(str) => {
-                    symbol_table.insert(str.clone(), Address::Rom(instr_count))
+                    symbol_table.insert(str.clone(), Address::Rom(instr_count));
                 }
                 _ => instr_count += 1,
             }
@@ -31,14 +31,17 @@ pub fn assemble_to_vec(program: Program) -> Vec<u16> {
 
     // final processing
     program
-        .0
         .iter()
         .filter_map(|instr| {
             match instr {
                 Instruction::A(ident) => Some(
                     0b0111_1111_1111_1111
                         & match ident {
-                            Ident::Name(str) => symbol_table[str].unwrap(),
+                            Ident::Name(str) => {
+                                symbol_table.get(str.as_str()).cloned().unwrap_or_else(|| {
+                                    symbol_table.assign_available_ram(str.clone()).unwrap()
+                                }).unwrap()
+                            }
                             Ident::Addr(addr) => *addr,
                         },
                 ),

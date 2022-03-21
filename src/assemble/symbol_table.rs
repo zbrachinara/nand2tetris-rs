@@ -1,8 +1,7 @@
 use crate::assemble::predefined::SYMBOLS;
 use std::collections::{HashMap, HashSet};
-use std::ops::Index;
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Address {
     Rom(u16),
     Ram(u16),
@@ -37,19 +36,24 @@ impl SymbolTable {
         }
     }
 
-    pub fn insert(&mut self, index: String, value: Address) {
-        self.map.insert(index, value.clone());
-        self.value_set.insert(value);
+    pub fn get(&mut self, k: &str) -> Option<&Address> {
+        self.map.get(k)
     }
 
-    pub fn contains(&self, value: &Address) -> bool {
-        self.value_set.contains(value)
+    pub fn insert(&mut self, index: String, value: Address) -> Option<Address> {
+        self.value_set.insert(value.clone());
+        self.map.insert(index, value)
     }
 
     pub fn available_ram(&mut self) -> Option<Address> {
         while self.value_set.contains(&Address::Ram(self.next_ram)) {
             #[allow(clippy::question_mark)]
-            if self.next_ram.checked_add(1).map(|n| self.next_ram = n).is_none() {
+            if self
+                .next_ram
+                .checked_add(1)
+                .map(|n| self.next_ram = n)
+                .is_none()
+            {
                 // TODO: Return to beginning to check for holes
                 return None;
             }
@@ -57,20 +61,18 @@ impl SymbolTable {
         Some(Address::Ram(self.next_ram))
     }
 
-    pub fn assign_available_ram(&mut self, name: String) -> Result<(), String> {
-        if matches!(self.map[name.as_str()], Address::Rom(_)) {
+    pub fn assign_available_ram(&mut self, name: String) -> Result<Address, String> {
+        if matches!(self.map.get(name.as_str()), Some(Address::Rom(_))) {
             return Err("The given name is associated with a ROM address".to_string());
         }
         self.available_ram()
-            .map(|index| self.insert(name, index))
+            .and_then(|address| {
+                if self.insert(name, address.clone()).is_some() {
+                    None
+                } else {
+                    Some(address)
+                }
+            })
             .ok_or_else(|| "Could not detect any available RAM".to_string())
-    }
-}
-
-impl Index<&str> for SymbolTable {
-    type Output = Address;
-
-    fn index(&self, index: &str) -> &Self::Output {
-        &self.map[index]
     }
 }
