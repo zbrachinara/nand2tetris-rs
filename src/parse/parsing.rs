@@ -38,7 +38,6 @@ fn a_instruction(instruction: &str) -> PResult<Instruction> {
 
 fn c_instruction(instruction: &str) -> PResult<Instruction> {
     CTriple::from_string(instruction).and_then(|(x, triple)| {
-        // TODO: change weird error message
         triple
             .to_cinstr()
             .map_err(|_| nom::Err::Error(AssemblyError::InvalidCExpr))
