@@ -20,7 +20,7 @@ pub struct VirtualBus {
 impl VirtualBus {
     pub fn new_in(h: HashMap<String, ChannelRange>) -> Chip {
         Chip::Builtin(Box::new(Self {
-            size: h.iter().map(|(_, x)| x.size()).sum(),
+            size: h.iter().map(|(_, x)| x.size() as u16).sum(),
             interface: Interface {
                 name: "_Input".to_string(),
                 com_out: h,
@@ -28,9 +28,10 @@ impl VirtualBus {
             },
         }))
     }
+
     pub fn new_out(h: HashMap<String, ChannelRange>) -> Chip {
         Chip::Builtin(Box::new(Self {
-            size: h.iter().map(|(_, x)| x.size()).sum(),
+            size: h.iter().map(|(_, x)| x.size() as u16).sum(),
             interface: Interface {
                 name: "_Output".to_string(),
                 com_in: h,

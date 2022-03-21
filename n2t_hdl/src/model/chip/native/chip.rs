@@ -27,7 +27,7 @@ impl NativeChip {
 
         for conn_edge in self.conn_graph.edges_directed(ix, Direction::Incoming) {
             let (conn_buf, range) = conn_edge.weight().get_with_range_out();
-            assert_eq!(conn_buf.len(), range.size() as usize); // maybe move this assertion somewhere else?
+            assert_eq!(conn_buf.len(), range.size()); // maybe move this assertion somewhere else?
 
             buf[range.as_range()].copy_from_bitslice(conn_buf);
         }

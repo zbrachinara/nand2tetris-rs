@@ -12,17 +12,17 @@ pub fn get_builtin(name: &str) -> Option<Box<dyn ChipObject>> {
 }
 
 struct Nand;
+
 impl ChipObject for Nand {
     fn interface(&self) -> Interface {
         Interface {
             name: "Nand".to_string(),
             com_in: [
-                ("a".to_string(), ChannelRange { start: 0, end: 0 }),
-                ("b".to_string(), ChannelRange { start: 1, end: 1 }),
+                ("a".to_string(), ChannelRange::new(0, 0)),
+                ("b".to_string(), ChannelRange::new(1, 1)),
             ]
-            .into_iter()
-            .collect(),
-            com_out: once(("out".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
+            .into(),
+            com_out: [("out".to_string(), ChannelRange::new(0, 0))].into(),
             seq_in: Default::default(),
             seq_out: Default::default(),
         }
@@ -31,11 +31,13 @@ impl ChipObject for Nand {
     fn clock(&mut self) {
         // nothing
     }
+
     fn eval(&mut self, pins: &BitSlice) -> BitVec {
         let expr = !(pins[0] && pins[1]);
         once(expr).collect()
         // vec![!(pins[0] && pins[1])]
     }
+
     fn chip_clone(&self) -> Box<dyn ChipObject> {
         Box::new(Nand)
     }
