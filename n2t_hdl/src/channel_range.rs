@@ -92,7 +92,7 @@ mod test {
 
     #[test]
     fn access_range_bounds() {
-        let range = ChannelRange::new(0, 5);
+        let mut range = ChannelRange::new(0, 5);
         assert_eq!(range.start(), 0);
         assert_eq!(range.end(), 5);
         range.set_start(4);
@@ -106,14 +106,14 @@ mod test {
     #[test]
     #[should_panic]
     fn set_invalid_range_start() {
-        let range = ChannelRange::new(0, 5);
+        let mut range = ChannelRange::new(0, 5);
         range.set_start(6);
     }
 
     #[test]
     #[should_panic]
     fn set_invalid_range_end() {
-        let range = ChannelRange::new(5, 5);
+        let mut range = ChannelRange::new(5, 5);
         range.set_end(4);
     }
 
