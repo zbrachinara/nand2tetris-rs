@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod assemble;
-mod error;
 mod parse;
+mod err;
 
 #[derive(Debug, StructOpt)]
 #[structopt(

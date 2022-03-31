@@ -1,4 +1,4 @@
-use crate::error::AssemblyError;
+use crate::err::AssemblyError;
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, PResult, Program};

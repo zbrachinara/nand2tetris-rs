@@ -5,7 +5,7 @@ mod structs;
 
 use nom::IResult;
 pub use structs::*;
-use crate::error::AssemblyError;
+use crate::err::AssemblyError;
 
 pub fn program(program: &str) -> Result<Program, AssemblyError> {
     parsing::program(program).map(|(_, program)| program).map_err(nom::Err::into)

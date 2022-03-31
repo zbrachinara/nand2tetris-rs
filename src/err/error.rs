@@ -1,5 +1,5 @@
-use nom::Err;
 use nom::error::ErrorKind;
+use nom::Err;
 use nom_supreme::tag::TagError;
 
 #[derive(Debug, PartialEq, thiserror::Error)]
@@ -31,6 +31,24 @@ impl nom::error::ParseError<&str> for AssemblyError {
     }
 }
 
+fn legible_string(s: &str) -> String {
+    let modified_s = s
+        .chars()
+        .map(|c| match c {
+            '\n' => "\\n".to_string(),
+            '\r' => "\\r".to_string(),
+            _ => c.to_string(),
+        })
+        .take(200)
+        .collect::<String>();
+
+    if s.len() > 200 {
+        modified_s + "..."
+    } else {
+        modified_s
+    }
+}
+
 impl AssemblyError {
     pub fn raise(self) -> Self {
         match self {
@@ -42,12 +60,12 @@ impl AssemblyError {
     pub fn trace(&self) {
         match self {
             Self::Internal(str, err, x) => {
-                eprintln!("Internal error: {str}, {err:?}");
+                eprintln!("Internal error: {str:.200}, {err:?}");
                 if let Some(this) = x {
                     this.trace();
                 }
             }
-            x => eprintln!("{x}")
+            x => eprintln!("{x}"),
         }
     }
 }
