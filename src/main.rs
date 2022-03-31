@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod assemble;
-mod parse;
 mod error;
+mod parse;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -28,6 +28,12 @@ struct Opt {
         about = "Specify this flag to confirm overwriting the destination file"
     )]
     overwrite: bool,
+    #[structopt(
+        short,
+        long,
+        about = "Specify this flag to see a backtrace and error details"
+    )]
+    debug: bool,
 }
 
 fn main() {
@@ -47,7 +53,10 @@ fn main() {
         std::process::exit(-1)
     });
     let program = parse::program(&file).unwrap_or_else(|e| {
-        eprintln!("{e}");
+        if opt.debug {
+            e.trace();
+        }
+        eprintln!("{}", e.raise());
         std::process::exit(-1)
     });
     let code = assemble::to_string(&program);

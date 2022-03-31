@@ -31,6 +31,27 @@ impl nom::error::ParseError<&str> for AssemblyError {
     }
 }
 
+impl AssemblyError {
+    pub fn raise(self) -> Self {
+        match self {
+            Self::Internal(_, _, Some(inner)) => inner.raise(),
+            x => x,
+        }
+    }
+
+    pub fn trace(&self) {
+        match self {
+            Self::Internal(str, err, x) => {
+                eprintln!("Internal error: {str}, {err:?}");
+                if let Some(this) = x {
+                    this.trace();
+                }
+            }
+            x => eprintln!("{x}")
+        }
+    }
+}
+
 impl From<nom::Err<AssemblyError>> for AssemblyError {
     fn from(nom_error: Err<AssemblyError>) -> Self {
         match nom_error {
