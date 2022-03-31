@@ -50,7 +50,7 @@ fn identifier(ident: &str) -> PResult<Ident> {
         // numeric constant
         Ok((x, c)) => Ok((x, Ident::Addr(u16::from_str(c).unwrap()))),
         // symbol
-        Err(_) => many1(alt((alphanumeric1, tag("_"))))
+        Err(_) => many1(alt((alphanumeric1, tag("_"), tag("."), tag("$"))))
             .map(|v| v.join(""))
             .map(Ident::Name)
             .parse(ident),
