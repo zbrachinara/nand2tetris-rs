@@ -1,3 +1,4 @@
+use flexstr::{local_str, ToLocalStr};
 use nom::error::ErrorKind;
 use nom::Err;
 use nom_supreme::tag::TagError;
@@ -32,15 +33,24 @@ impl nom::error::ParseError<&str> for AssemblyError {
 }
 
 fn legible_string(s: &str) -> String {
+
+    let mut len = 0;
+
     let modified_s = s
         .chars()
         .map(|c| match c {
-            '\n' => "\\n".to_string(),
-            '\r' => "\\r".to_string(),
-            _ => c.to_string(),
+            '\n' => local_str!(","),
+            '\r' => local_str!(""),
+            x => x.to_local_str(),
         })
-        .take(200)
-        .collect::<String>();
+        .take_while(|s| {
+            len += s.len();
+            len < 200
+        })
+        .fold(String::with_capacity(205), |mut acc, c| {
+            acc.push_str(c.as_str());
+            acc
+        });
 
     if s.len() > 200 {
         modified_s + "..."
@@ -60,7 +70,7 @@ impl AssemblyError {
     pub fn trace(&self) {
         match self {
             Self::Internal(str, err, x) => {
-                eprintln!("Internal error: {str:.200}, {err:?}");
+                eprintln!("Internal error: {}, {err:?}", legible_string(str));
                 if let Some(this) = x {
                     this.trace();
                 }
