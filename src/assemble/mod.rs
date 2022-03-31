@@ -9,8 +9,7 @@ pub fn to_string(program: &Program) -> String {
     to_vec(program)
         .into_iter()
         .map(|n| format!("{n:016b}"))
-        .collect::<Vec<_>>()
-        .join("\n")
+        .fold("".to_string(), |acc, s| format!("{acc}{s}\n"))
 }
 
 pub fn to_vec(program: &Program) -> Vec<u16> {
