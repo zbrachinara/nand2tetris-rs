@@ -47,7 +47,7 @@ fn main() {
         std::process::exit(-1)
     });
     let program = parse::program(&file).unwrap_or_else(|e| {
-        eprintln!("{e:?}");
+        eprintln!("{e}");
         std::process::exit(-1)
     });
     let code = assemble::to_string(&program);
