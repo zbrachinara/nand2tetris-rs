@@ -4,14 +4,17 @@ use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, PResult, Program};
 use nom::branch::alt;
 use nom::character::complete::{alphanumeric1, digit1};
-use nom::multi::many1;
+use nom::combinator::eof;
+use nom::multi::{many1, many_till};
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
 
 pub fn program(program: &str) -> PResult<Program> {
-    many1(line_spaced(instruction)).map(Program).parse(program)
+    many_till(line_spaced(instruction), eof)
+        .map(|(program, _)| Program(program))
+        .parse(program)
 }
 
 // instruction line must begin on the first character of the instruction
