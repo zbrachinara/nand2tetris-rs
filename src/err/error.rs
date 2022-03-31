@@ -2,6 +2,7 @@ use flexstr::{local_str, ToLocalStr};
 use nom::error::ErrorKind;
 use nom::Err;
 use nom_supreme::tag::TagError;
+use crate::err::str;
 
 #[derive(Debug, PartialEq, thiserror::Error)]
 #[allow(clippy::module_name_repetitions)]
@@ -32,33 +33,6 @@ impl nom::error::ParseError<&str> for AssemblyError {
     }
 }
 
-fn legible_string(s: &str) -> String {
-
-    let mut len = 0;
-
-    let modified_s = s
-        .chars()
-        .map(|c| match c {
-            '\n' => local_str!(","),
-            '\r' => local_str!(""),
-            x => x.to_local_str(),
-        })
-        .take_while(|s| {
-            len += s.len();
-            len < 200
-        })
-        .fold(String::with_capacity(205), |mut acc, c| {
-            acc.push_str(c.as_str());
-            acc
-        });
-
-    if s.len() > 200 {
-        modified_s + "..."
-    } else {
-        modified_s
-    }
-}
-
 impl AssemblyError {
     pub fn raise(self) -> Self {
         match self {
@@ -70,7 +44,7 @@ impl AssemblyError {
     pub fn trace(&self) {
         match self {
             Self::Internal(str, err, x) => {
-                eprintln!("Internal error: {}, {err:?}", legible_string(str));
+                eprintln!("Internal error: {}, {err:?}", str::legible_string(str));
                 if let Some(this) = x {
                     this.trace();
                 }
