@@ -31,7 +31,7 @@ pub fn to_vec(program: &Program) -> Vec<u16> {
     // final processing
     program
         .iter()
-        .filter_map(|instr| {
+        .filter_map(|instr: &Instruction| {
             match instr {
                 Instruction::A(ident) => Some(
                     0b0111_1111_1111_1111
