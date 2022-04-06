@@ -46,6 +46,7 @@ impl AssemblyError {
             Self::Internal(str, err, x) => {
                 eprintln!("Internal error: {}, {err:?}", str::legible_string(str));
                 if let Some(this) = x {
+                    eprint!("Caused by: ");
                     this.trace();
                 }
             }

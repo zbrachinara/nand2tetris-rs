@@ -1,6 +1,8 @@
 use flexstr::ToLocalStr;
 use flexstr::local_str;
 
+const MAX_CONTEXT_LEN: usize = 20;
+
 pub fn legible_string(s: &str) -> String {
 
     let mut len = 0;
@@ -14,14 +16,14 @@ pub fn legible_string(s: &str) -> String {
         })
         .take_while(|s| {
             len += s.len();
-            len < 200
+            len < MAX_CONTEXT_LEN
         })
-        .fold(String::with_capacity(205), |mut acc, c| {
+        .fold(String::with_capacity(MAX_CONTEXT_LEN), |mut acc, c| {
             acc.push_str(c.as_str());
             acc
         });
 
-    if s.len() > 200 {
+    if s.len() > MAX_CONTEXT_LEN {
         modified_s + "..."
     } else {
         modified_s
