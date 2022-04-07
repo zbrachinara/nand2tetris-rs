@@ -50,14 +50,14 @@ fn main() {
 
     let file = fs::read_to_string(file_name.clone()).unwrap_or_else(|_| {
         eprintln!("File not found: {file_name:?}");
-        std::process::exit(-1)
+        std::process::exit(1)
     });
     let program = parse::program(&file).unwrap_or_else(|e| {
         if opt.debug {
             e.trace();
         }
         eprintln!("{}", e.raise());
-        std::process::exit(-1)
+        std::process::exit(1)
     });
     let code = assemble::to_string(&program);
 
@@ -79,7 +79,7 @@ fn main() {
                         Pass in a different destination file or specify -o to confirm overwrite\n\n\
                         --help for more info"
                     );
-                    std::process::exit(-1)
+                    std::process::exit(1)
                 }
                 _ => panic!("{e:?}"),
             })
