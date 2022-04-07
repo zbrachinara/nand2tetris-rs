@@ -84,15 +84,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flexstr"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d96279ad58510e7e5b90d2924e3d75f1ccb85df6c5f3410ada3d412281c18cf1"
-dependencies = [
- "static_assertions",
-]
-
-[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -146,7 +137,6 @@ version = "0.3.2"
 dependencies = [
  "bitflags",
  "derive_more",
- "flexstr",
  "nom",
  "nom-supreme",
  "nom_locate",
@@ -250,12 +240,6 @@ name = "semver"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4a3381e03edd24287172047536f20cabde766e2cd3e65e6b00fb3af51c4f38d"
-
-[[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "strsim"
