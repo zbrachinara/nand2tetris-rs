@@ -21,7 +21,10 @@ fn aexpr(str: &str) -> PResult<&str> {
 
 fn cexpr(str: &str) -> PResult<&str> {
     fn is_cexpr_char(c: char) -> bool {
-        matches!(c, 'A' | 'M' | 'D' | '+' | '-' | ' ' | '0' | '1' | '|' | '&' | '!')
+        matches!(
+            c,
+            'A' | 'M' | 'D' | '+' | '-' | ' ' | '0' | '1' | '|' | '&' | '!'
+        )
     }
     take_while1(is_cexpr_char).parse(str)
 }
