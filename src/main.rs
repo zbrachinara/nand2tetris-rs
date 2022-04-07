@@ -81,7 +81,7 @@ fn main() {
                     );
                     std::process::exit(-1)
                 }
-                _ => panic!(),
+                _ => panic!("{e:?}"),
             })
     };
 
