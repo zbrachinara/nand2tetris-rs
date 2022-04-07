@@ -19,10 +19,11 @@ pub fn program(program: &str) -> PResult<Program> {
 
 // instruction line must begin on the first character of the instruction
 fn instruction(instruction_line: &str) -> PResult<Instruction> {
-    match instruction_line.chars().next() {
-        Some('@') => a_instruction(instruction_line),
-        Some('(') => label(instruction_line),
-        _ => c_instruction(instruction_line),
+    match instruction_line.bytes().next() {
+        Some(b'@') => a_instruction(instruction_line),
+        Some(b'(') => label(instruction_line),
+        Some(_) => c_instruction(instruction_line),
+        _ => unreachable!("instruction line must begin with @, (, or a letter"),
     }
 }
 
