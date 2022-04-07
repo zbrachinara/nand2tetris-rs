@@ -3,12 +3,18 @@ mod parsing;
 mod space;
 mod structs;
 
+use crate::err::AssemblyError;
 use nom::IResult;
 pub use structs::*;
-use crate::err::AssemblyError;
 
 pub fn program(program: &str) -> Result<Program, AssemblyError> {
-    parsing::program(program).map(|(_, program)| program).map_err(nom::Err::into)
+    if program.trim().is_empty() {
+        Ok(Program(Vec::new()))
+    } else {
+        parsing::program(program)
+            .map(|(_, program)| program)
+            .map_err(nom::Err::into)
+    }
 }
 
 type PResult<'a, T> = IResult<&'a str, T, AssemblyError>;
