@@ -1,8 +1,7 @@
-use flexstr::{local_str, ToLocalStr};
+use crate::err::str;
 use nom::error::ErrorKind;
 use nom::Err;
 use nom_supreme::tag::TagError;
-use crate::err::str;
 
 #[derive(Debug, PartialEq, thiserror::Error)]
 #[allow(clippy::module_name_repetitions)]
