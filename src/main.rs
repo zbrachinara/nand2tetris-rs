@@ -7,8 +7,9 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod assemble;
-mod parse;
+mod debug;
 mod err;
+mod parse;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -48,10 +49,12 @@ fn main() {
         PathBuf::from,
     );
 
+    dprintln!("Reading file...");
     let file = fs::read_to_string(file_name.clone()).unwrap_or_else(|_| {
         eprintln!("File not found: {file_name:?}");
         std::process::exit(1)
     });
+    dprintln!("File read.\nParsing program...");
     let program = parse::program(&file).unwrap_or_else(|e| {
         if opt.debug {
             e.trace();
@@ -59,7 +62,9 @@ fn main() {
         eprintln!("{}", e.raise());
         std::process::exit(1)
     });
+    dprintln!("Program parsed.\nAssembling...");
     let code = assemble::to_string(&program);
+    dprintln!("Assembled.");
 
     let mut dest_file = if opt.overwrite {
         OpenOptions::new()

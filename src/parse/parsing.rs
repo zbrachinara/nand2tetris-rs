@@ -2,6 +2,7 @@ use crate::err::AssemblyError;
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, PResult, Program};
+use crate::time;
 use nom::branch::alt;
 use nom::character::complete::{alphanumeric1, digit1};
 use nom::combinator::eof;
@@ -19,6 +20,14 @@ pub fn program(program: &str) -> PResult<Program> {
 
 // instruction line must begin on the first character of the instruction
 fn instruction(instruction_line: &str) -> PResult<Instruction> {
+    #[cfg(debug_assertions)]
+    match instruction_line.bytes().next() {
+        Some(b'@') => time!(a_instruction(instruction_line)),
+        Some(b'(') => time!(label(instruction_line)),
+        Some(_) => time!(c_instruction(instruction_line)),
+        _ => unreachable!("instruction line must begin with @, (, or a letter"),
+    }
+    #[cfg(not(debug_assertions))]
     match instruction_line.bytes().next() {
         Some(b'@') => a_instruction(instruction_line),
         Some(b'(') => label(instruction_line),
