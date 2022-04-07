@@ -1,3 +1,4 @@
+#![feature(iterator_try_collect)]
 #![warn(clippy::pedantic)]
 
 use std::fs;

@@ -12,10 +12,11 @@ use nom::Parser;
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
 
-pub fn program(program: &str) -> PResult<Program> {
-    many_till(line_spaced(instruction), eof)
-        .map(|(program, _)| Program(program))
-        .parse(program)
+pub fn program(program: &str) -> impl Iterator<Item = PResult<Instruction>> {
+    program
+        .split('\n')
+        .filter(|s| s.trim_start() != "" && !s.trim_start().starts_with("//"))
+        .map(|s| line_spaced(instruction).parse(s))
 }
 
 // instruction line must begin on the first character of the instruction

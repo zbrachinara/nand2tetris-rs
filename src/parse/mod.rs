@@ -12,8 +12,9 @@ pub fn program(program: &str) -> Result<Program, AssemblyError> {
         Ok(Program(Vec::new()))
     } else {
         parsing::program(program)
-            .map(|(_, program)| program)
-            .map_err(nom::Err::into)
+            .map(|res| res.map_err(nom::Err::into).map(|(_, p)| p))
+            .try_collect::<Vec<_>>()
+            .map(Program)
     }
 }
 
