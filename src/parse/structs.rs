@@ -1,8 +1,7 @@
 use bitflags::bitflags;
-use derive_more::Deref;
 use strum_macros::EnumString;
 
-#[derive(Deref, Debug)]
+#[derive(Debug)]
 pub struct Program(pub Vec<Instruction>);
 
 pub enum Item {

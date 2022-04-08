@@ -13,7 +13,7 @@ pub fn to_string(sym_table: &mut SymbolTable, program: &Program) -> String {
         .map(|n| format!("{n:016b}"))
         .intersperse(String::from("\n"))
         .collect()
-        // .fold("".to_string(), |acc, s| format!("{acc}{s}\n"))
+    // .fold("".to_string(), |acc, s| format!("{acc}{s}\n"))
 }
 
 pub fn to_vec(symbol_table: &mut SymbolTable, program: &Program) -> Vec<u16> {
@@ -24,7 +24,7 @@ fn to_raw<'a>(
     sym_table: &'a mut SymbolTable,
     program: &'a Program,
 ) -> impl Iterator<Item = u16> + 'a {
-    program.iter().map(|instr: &Instruction| match instr {
+    program.0.iter().map(|instr: &Instruction| match instr {
         Instruction::A(ident) => {
             0b0111_1111_1111_1111
                 & match ident {
