@@ -1,12 +1,12 @@
 use crate::parse::PResult;
 use nom::branch::alt;
 use nom::bytes::complete::is_not;
+use nom::bytes::complete::tag;
 use nom::character::complete::{line_ending, space1};
 use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
-use nom::bytes::complete::tag;
 
 fn generic_space1(arg: &str) -> PResult<()> {
     many0(alt((space1, complete(preceded(tag("//"), is_not("\n"))))))

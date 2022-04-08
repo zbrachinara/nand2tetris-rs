@@ -1,11 +1,11 @@
 use crate::parse::space::spaced;
 use crate::parse::{CExpr, Dst, Instruction, JumpCondition, PResult, Source};
 use nom::bytes::complete::take_while1;
+use nom::character::complete::char;
 use nom::combinator::opt;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::Parser;
 use std::str::FromStr;
-use nom::character::complete::char;
 #[allow(clippy::enum_glob_use)]
 use CExpr::*;
 use Source::{Memory, Register};
