@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod convert;
 mod predefined;
 mod symbol_table;
@@ -6,30 +8,35 @@ use crate::parse::{Ident, Instruction, Program};
 pub use symbol_table::{Address, SymbolTable};
 
 pub fn to_string(sym_table: &mut SymbolTable, program: &Program) -> String {
-    to_vec(sym_table, program)
+    to_raw(sym_table, program)
         .into_iter()
         .map(|n| format!("{n:016b}"))
         .fold("".to_string(), |acc, s| format!("{acc}{s}\n"))
 }
 
-pub fn to_vec(sym_table: &mut SymbolTable, program: &Program) -> Vec<u16> {
-    program
-        .iter()
-        .map(|instr: &Instruction| match instr {
-            Instruction::A(ident) => {
-                0b0111_1111_1111_1111
-                    & match ident {
-                        Ident::Name(str) => sym_table
-                            .get(str.as_str())
-                            .cloned()
-                            .unwrap_or_else(|| sym_table.assign_available_ram(str.clone()).unwrap())
-                            .unwrap(),
-                        Ident::Addr(addr) => *addr,
-                    }
-            }
-            Instruction::C { expr, dst, jump } => convert::cinstr(expr, dst, jump),
-        })
-        .collect()
+pub fn to_vec(symbol_table: &mut SymbolTable, program: &Program) -> Vec<u16> {
+    to_raw(symbol_table, program).collect()
+}
+
+fn to_raw<'a>(
+    sym_table: &'a mut SymbolTable,
+    program: &'a Program,
+) -> impl Iterator<Item = u16> + 'a {
+    program.iter().map(|instr: &Instruction| match instr {
+        Instruction::A(ident) => {
+            0b0111_1111_1111_1111
+                & match ident {
+                    Ident::Name(str) => sym_table
+                        .get(str.as_str())
+                        .cloned()
+                        .unwrap_or_else(|| sym_table.assign_available_ram(str.clone()).unwrap())
+                        .unwrap(),
+                    Ident::Addr(addr) => *addr,
+                }
+        }
+        Instruction::C { expr, dst, jump } => convert::cinstr(expr, dst, jump),
+    })
+    // .collect()
 }
 
 #[cfg(test)]
