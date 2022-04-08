@@ -17,22 +17,9 @@ pub fn program(program: Span) -> impl Iterator<Item = PResult<Item>> {
         .map(|s| line_spaced(instruction).parse(s))
 }
 
-// instruction line must begin on the first character of the instruction
+/// instruction line must begin on the first character of the instruction
 fn instruction(instruction_line: &str) -> PResult<Item> {
-    #[cfg(debug_assertions)]
-    match instruction_line.bytes().next() {
-        Some(b'@') => crate::time!(a_instruction(instruction_line)),
-        Some(b'(') => crate::time!(label(instruction_line)),
-        Some(_) => crate::time!(c_instruction(instruction_line)),
-        _ => unreachable!("instruction line must begin with @, (, or a letter"),
-    }
-    #[cfg(not(debug_assertions))]
-    match instruction_line.bytes().next() {
-        Some(b'@') => a_instruction(instruction_line),
-        Some(b'(') => label(instruction_line),
-        Some(_) => c_instruction(instruction_line),
-        _ => unreachable!("instruction line must begin with @, (, or a letter"),
-    }
+    alt((a_instruction, label, c_instruction)).parse(instruction_line)
 }
 
 fn label(lb: &str) -> PResult<Item> {
