@@ -3,7 +3,7 @@ use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, Item, PResult};
 use nom::branch::alt;
-use nom::bytes::complete::tag;
+use nom::bytes::complete::is_a;
 use nom::character::complete::{alphanumeric1, char, digit1};
 use nom::multi::many1;
 use nom::sequence::{delimited, preceded};
@@ -63,7 +63,7 @@ fn identifier(ident: &str) -> PResult<Ident> {
         // numeric constant
         Ok((x, c)) => Ok((x, Ident::Addr(u16::from_str(c).unwrap()))),
         // symbol
-        Err(_) => many1(alt((alphanumeric1, tag("_"), tag("."), tag("$"))))
+        Err(_) => many1(alt((alphanumeric1, is_a("_.$"))))
             .map(|v| v.join(""))
             .map(Ident::Name)
             .parse(ident),

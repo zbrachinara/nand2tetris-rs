@@ -1,7 +1,7 @@
 use crate::parse::space::spaced;
 use crate::parse::{CExpr, Dst, Instruction, JumpCondition, PResult, Source};
-use nom::bytes::complete::take_while1;
-use nom::character::complete::char;
+use nom::bytes::complete::{is_a, take_while1};
+use nom::character::complete::{alpha1, char};
 use nom::combinator::opt;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::Parser;
@@ -9,27 +9,6 @@ use std::str::FromStr;
 #[allow(clippy::enum_glob_use)]
 use CExpr::*;
 use Source::{Memory, Register};
-
-fn aexpr(str: &str) -> PResult<&str> {
-    fn is_aexpr_char(c: char) -> bool {
-        matches!(c, 'A' | 'M' | 'D' | ' ')
-    }
-    take_while1(is_aexpr_char).parse(str)
-}
-
-fn cexpr(str: &str) -> PResult<&str> {
-    fn is_cexpr_char(c: char) -> bool {
-        matches!(
-            c,
-            'A' | 'M' | 'D' | '+' | '-' | ' ' | '0' | '1' | '|' | '&' | '!'
-        )
-    }
-    take_while1(is_cexpr_char).parse(str)
-}
-
-fn jexpr(str: &str) -> PResult<&str> {
-    take_while1(|c: char| c.is_ascii_uppercase())(str)
-}
 
 fn remove_whitespace(s: &str) -> String {
     s.chars().filter(|c| !c.is_whitespace()).collect()
@@ -46,9 +25,9 @@ pub struct CTriple {
 impl CTriple {
     pub fn from_string(str: &str) -> PResult<CTriple> {
         tuple((
-            opt(terminated(spaced(aexpr), char('='))),
-            spaced(cexpr),
-            opt(preceded(char(';'), spaced(jexpr))),
+            opt(terminated(spaced(is_a("AMD ")), char('='))),
+            spaced(is_a("AMD+-01|&! ")),
+            opt(preceded(char(';'), spaced(alpha1))),
         ))
         .map(|(dst, expr, jmp)| {
             (
