@@ -1,6 +1,6 @@
 use crate::parse::space::spaced;
 use crate::parse::{CExpr, Dst, Instruction, JumpCondition, PResult, Source};
-use nom::bytes::complete::{is_a, take_while1};
+use nom::bytes::complete::is_a;
 use nom::character::complete::{alpha1, char};
 use nom::combinator::opt;
 use nom::sequence::{preceded, terminated, tuple};
