@@ -16,7 +16,7 @@ mod parse;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "nand2tetris-assembler",
-    about = "assembles assembly written for the nand2tetris vm into hardware language",
+    about = "assembles assembly language written for the nand2tetris VM",
     author = "ZBrachinara (github.com/zbrachinara)",
     rename_all = "kebab"
 )]
@@ -28,13 +28,13 @@ struct Opt {
     #[structopt(
         short,
         long,
-        about = "Specify this flag to confirm overwriting the destination file"
+        about = "Confirm overwriting the destination file"
     )]
     overwrite: bool,
     #[structopt(
         short,
         long,
-        about = "Specify this flag to see a backtrace and error details"
+        about = "Display backtrace and error details"
     )]
     debug: bool,
 }
