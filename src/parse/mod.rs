@@ -11,27 +11,23 @@ pub use structs::*;
 pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
     let mut sym_table = SymbolTable::new();
 
-    let program = if program.trim().is_empty() {
-        Ok(Program(Vec::new()))
-    } else {
-        let mut line = 0;
+    let mut line = 0;
 
-        parsing::program(program)
-            .map(|res| res.map_err(nom::Err::into).map(|(_, p)| p))
-            .filter_map(|item| match item {
-                Ok(Item::Label(lb)) => {
-                    sym_table.insert(lb, Address::Rom(line));
-                    None
-                }
-                Ok(Item::Instruction(x)) => {
-                    line += 1;
-                    Some(Ok(x))
-                }
-                Err(x) => Some(Err(x)),
-            })
-            .try_collect::<Vec<_>>()
-            .map(Program)
-    };
+    let program = parsing::program(program)
+        .map(|res| res.map_err(nom::Err::into).map(|(_, p)| p))
+        .filter_map(|item| match item {
+            Ok(Item::Label(lb)) => {
+                sym_table.insert(lb, Address::Rom(line));
+                None
+            }
+            Ok(Item::Instruction(x)) => {
+                line += 1;
+                Some(Ok(x))
+            }
+            Err(x) => Some(Err(x)),
+        })
+        .try_collect::<Vec<_>>()
+        .map(Program);
 
     program.map(|p| (p, sym_table))
 }
