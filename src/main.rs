@@ -1,3 +1,4 @@
+#![feature(iter_intersperse)]
 #![feature(iterator_try_collect)]
 #![warn(clippy::pedantic)]
 

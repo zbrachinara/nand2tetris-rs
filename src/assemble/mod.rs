@@ -11,7 +11,9 @@ pub fn to_string(sym_table: &mut SymbolTable, program: &Program) -> String {
     to_raw(sym_table, program)
         .into_iter()
         .map(|n| format!("{n:016b}"))
-        .fold("".to_string(), |acc, s| format!("{acc}{s}\n"))
+        .intersperse(String::from("\n"))
+        .collect()
+        // .fold("".to_string(), |acc, s| format!("{acc}{s}\n"))
 }
 
 pub fn to_vec(symbol_table: &mut SymbolTable, program: &Program) -> Vec<u16> {
