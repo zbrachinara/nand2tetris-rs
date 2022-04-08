@@ -5,10 +5,15 @@ use strum_macros::EnumString;
 #[derive(Deref, Debug)]
 pub struct Program(pub Vec<Instruction>);
 
+pub enum Item {
+    Label(String),
+    Instruction(Instruction),
+}
+
 #[derive(Debug)]
 pub enum Instruction {
     A(Ident),
-    Label(String),
+    // Label(String),
     C {
         expr: CExpr,
         dst: Dst,

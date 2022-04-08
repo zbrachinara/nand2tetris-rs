@@ -1,7 +1,7 @@
 use crate::err::AssemblyError;
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
-use crate::parse::{Ident, Instruction, PResult};
+use crate::parse::{Ident, Instruction, Item, PResult};
 use crate::time;
 use nom::branch::alt;
 use nom::character::complete::{alphanumeric1, digit1};
@@ -11,7 +11,7 @@ use nom::Parser;
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
 
-pub fn program(program: &str) -> impl Iterator<Item = PResult<Instruction>> {
+pub fn program(program: &str) -> impl Iterator<Item = PResult<Item>> {
     program
         .split('\n')
         .filter(|s| s.trim_start() != "" && !s.trim_start().starts_with("//"))
@@ -19,7 +19,7 @@ pub fn program(program: &str) -> impl Iterator<Item = PResult<Instruction>> {
 }
 
 // instruction line must begin on the first character of the instruction
-fn instruction(instruction_line: &str) -> PResult<Instruction> {
+fn instruction(instruction_line: &str) -> PResult<Item> {
     #[cfg(debug_assertions)]
     match instruction_line.bytes().next() {
         Some(b'@') => time!(a_instruction(instruction_line)),
@@ -36,24 +36,25 @@ fn instruction(instruction_line: &str) -> PResult<Instruction> {
     }
 }
 
-fn label(lb: &str) -> PResult<Instruction> {
+fn label(lb: &str) -> PResult<Item> {
     delimited(spaced(tag("(")), identifier_name_only, spaced(tag(")")))
-        .map(Instruction::Label)
+        .map(Item::Label)
         .parse(lb)
 }
 
 // in an a-instruction, the @ and identifier must not be separated by any kind of space
-fn a_instruction(instruction: &str) -> PResult<Instruction> {
+fn a_instruction(instruction: &str) -> PResult<Item> {
     preceded(tag("@"), identifier)
-        .map(Instruction::A)
+        .map(|x| Item::Instruction(Instruction::A(x)))
         .parse(instruction)
 }
 
-fn c_instruction(instruction: &str) -> PResult<Instruction> {
+fn c_instruction(instruction: &str) -> PResult<Item> {
     CTriple::from_string(instruction).and_then(|(x, triple)| {
         triple
             .to_cinstr()
             .map_err(|_| nom::Err::Error(AssemblyError::InvalidCExpr))
+            .map(|triple| Item::Instruction(triple))
             .map(|triple| (x, triple))
     })
 }

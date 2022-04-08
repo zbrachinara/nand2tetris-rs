@@ -3,19 +3,37 @@ mod parsing;
 mod space;
 mod structs;
 
+use crate::assemble::{Address, SymbolTable};
 use crate::err::AssemblyError;
 use nom::IResult;
 pub use structs::*;
 
-pub fn program(program: &str) -> Result<Program, AssemblyError> {
-    if program.trim().is_empty() {
+pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
+    let mut sym_table = SymbolTable::new();
+
+    let program = if program.trim().is_empty() {
         Ok(Program(Vec::new()))
     } else {
+        let mut line = 0;
+
         parsing::program(program)
             .map(|res| res.map_err(nom::Err::into).map(|(_, p)| p))
+            .filter_map(|item| match item {
+                Ok(Item::Label(lb)) => {
+                    sym_table.insert(lb, Address::Rom(line));
+                    None
+                }
+                Ok(Item::Instruction(x)) => {
+                    line += 1;
+                    Some(Ok(x))
+                }
+                Err(x) => Some(Err(x)),
+            })
             .try_collect::<Vec<_>>()
             .map(Program)
-    }
+    };
+
+    program.map(|p| (p, sym_table))
 }
 
 type PResult<'a, T> = IResult<&'a str, T, AssemblyError>;
@@ -26,7 +44,7 @@ mod test {
 
     #[test]
     fn theoretical() {
-        let single_instruction = program(
+        let (single_instruction, _) = program(
             r#"
 
         DM=M+D
@@ -37,7 +55,7 @@ mod test {
 
         println!("{single_instruction:#?}");
 
-        let a_c_instruction = program(
+        let (a_c_instruction, _) = program(
             r#"
 
         @42069
@@ -52,7 +70,7 @@ mod test {
 
     #[test]
     fn problems() {
-        println!("{:?}", program("D;JGT\n").unwrap());
+        println!("{:?}", program("D;JGT\n").unwrap().0);
     }
 
     #[test]
@@ -90,8 +108,9 @@ M=M-1
 0;JMP
         "#,
         )
-        .unwrap();
+        .unwrap()
+        .0;
 
-        println!("{mult:#?}")
+        println!("{mult:#?}");
     }
 }

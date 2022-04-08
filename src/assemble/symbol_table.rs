@@ -36,8 +36,12 @@ impl SymbolTable {
         }
     }
 
-    pub fn get(&mut self, k: &str) -> Option<&Address> {
+    pub fn get(&self, k: &str) -> Option<&Address> {
         self.map.get(k)
+    }
+
+    pub fn contains(&self, k: &str) -> bool {
+        self.map.contains_key(k)
     }
 
     pub fn insert(&mut self, index: String, value: Address) -> Option<Address> {

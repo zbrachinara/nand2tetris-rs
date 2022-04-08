@@ -56,7 +56,7 @@ fn main() {
         std::process::exit(1)
     });
     dprintln!("File read.\nParsing program...");
-    let program = parse::program(&file).unwrap_or_else(|e| {
+    let (program, mut symbols) = parse::program(&file).unwrap_or_else(|e| {
         if opt.debug {
             e.trace();
         }
@@ -64,7 +64,7 @@ fn main() {
         std::process::exit(1)
     });
     dprintln!("Program parsed.\nAssembling...");
-    let code = assemble::to_string(&program);
+    let code = assemble::to_string(&mut symbols, &program);
     dprintln!("Assembled.");
 
     let mut dest_file = if opt.overwrite {

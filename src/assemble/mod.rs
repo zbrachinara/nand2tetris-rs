@@ -3,32 +3,16 @@ mod predefined;
 mod symbol_table;
 
 use crate::parse::{Ident, Instruction, Program};
-use symbol_table::{Address, SymbolTable};
+pub use symbol_table::{SymbolTable, Address};
 
-pub fn to_string(program: &Program) -> String {
-    to_vec(program)
+pub fn to_string(sym_table: &mut SymbolTable, program: &Program) -> String {
+    to_vec(sym_table, program)
         .into_iter()
         .map(|n| format!("{n:016b}"))
         .fold("".to_string(), |acc, s| format!("{acc}{s}\n"))
 }
 
-pub fn to_vec(program: &Program) -> Vec<u16> {
-    let mut symbol_table = SymbolTable::new();
-
-    // populate symbol table with rom addresses
-    {
-        let mut instr_count = 0;
-        for instr in program.iter() {
-            match instr {
-                Instruction::Label(str) => {
-                    symbol_table.insert(str.clone(), Address::Rom(instr_count));
-                }
-                _ => instr_count += 1,
-            }
-        }
-    }
-
-    // final processing
+pub fn to_vec(sym_table: &mut SymbolTable, program: &Program) -> Vec<u16> {
     program
         .iter()
         .filter_map(|instr: &Instruction| {
@@ -36,18 +20,17 @@ pub fn to_vec(program: &Program) -> Vec<u16> {
                 Instruction::A(ident) => Some(
                     0b0111_1111_1111_1111
                         & match ident {
-                            Ident::Name(str) => symbol_table
+                            Ident::Name(str) => sym_table
                                 .get(str.as_str())
                                 .cloned()
                                 .unwrap_or_else(|| {
-                                    symbol_table.assign_available_ram(str.clone()).unwrap()
+                                    sym_table.assign_available_ram(str.clone()).unwrap()
                                 })
                                 .unwrap(),
                             Ident::Addr(addr) => *addr,
                         },
                 ),
                 Instruction::C { expr, dst, jump } => Some(convert::cinstr(expr, dst, jump)),
-                Instruction::Label(_) => None, // ignore
             }
         })
         .collect()
@@ -60,7 +43,7 @@ mod test {
 
     #[test]
     fn mult() {
-        let mult = program(
+        let (mult, mut mult_symbols) = program(
             r#"
 @R2
 M=0
@@ -94,7 +77,7 @@ M=M-1
         )
         .unwrap();
 
-        let mult_code = to_vec(&mult);
+        let mult_code = to_vec(&mut mult_symbols, &mult);
 
         let compare = &[
             0b0000_0000_0000_0010,
@@ -122,7 +105,7 @@ M=M-1
 
     #[test]
     fn fill() {
-        let fill = program(
+        let (fill, mut fill_symbols) = program(
             r#"
 
 (ELOOP)
@@ -208,7 +191,7 @@ M=M-1
             0b1110_1010_1000_0111,
         ];
 
-        to_vec(&fill)
+        to_vec(&mut fill_symbols, &fill)
             .iter()
             .enumerate()
             .for_each(|(i, n)| assert_eq!(&compare[i], n, "assertion failed on instruction {i}"));
