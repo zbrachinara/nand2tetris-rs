@@ -6,6 +6,7 @@ mod structs;
 use crate::assemble::{Address, SymbolTable};
 use crate::err::AssemblyError;
 use nom::IResult;
+use nom_locate::LocatedSpan;
 pub use structs::*;
 
 pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
@@ -13,7 +14,7 @@ pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
 
     let mut line = 0;
 
-    let program = parsing::program(program)
+    let program = parsing::program(Span::from(program))
         .map(|res| res.map_err(nom::Err::into).map(|(_, p)| p))
         .filter_map(|item| match item {
             Ok(Item::Label(lb)) => {
@@ -33,6 +34,7 @@ pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
 }
 
 type PResult<'a, T> = IResult<&'a str, T, AssemblyError>;
+type Span<'a> = LocatedSpan<&'a str>;
 
 #[cfg(test)]
 mod test {

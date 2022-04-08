@@ -1,7 +1,7 @@
 use crate::err::AssemblyError;
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
-use crate::parse::{Ident, Instruction, Item, PResult};
+use crate::parse::{Ident, Instruction, Item, PResult, Span};
 use nom::branch::alt;
 use nom::bytes::complete::is_a;
 use nom::character::complete::{alphanumeric1, char, digit1};
@@ -10,7 +10,7 @@ use nom::sequence::{delimited, preceded};
 use nom::Parser;
 use std::str::FromStr;
 
-pub fn program(program: &str) -> impl Iterator<Item = PResult<Item>> {
+pub fn program(program: Span) -> impl Iterator<Item = PResult<Item>> {
     program
         .split('\n')
         .filter(|s| s.trim_start() != "" && !s.trim_start().starts_with("//"))
