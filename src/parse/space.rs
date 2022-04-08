@@ -6,7 +6,7 @@ use nom::combinator::{complete, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
-use nom_supreme::tag::complete::tag;
+use nom::bytes::complete::tag;
 
 fn generic_space1(arg: &str) -> PResult<()> {
     many0(alt((space1, complete(preceded(tag("//"), is_not("\n"))))))

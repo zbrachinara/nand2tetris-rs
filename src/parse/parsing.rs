@@ -7,7 +7,7 @@ use nom::character::complete::{alphanumeric1, digit1};
 use nom::multi::many1;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
-use nom_supreme::tag::complete::tag;
+use nom::bytes::complete::tag;
 use std::str::FromStr;
 
 pub fn program(program: &str) -> impl Iterator<Item = PResult<Item>> {

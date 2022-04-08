@@ -1,7 +1,6 @@
 use crate::err::str;
 use nom::error::ErrorKind;
 use nom::Err;
-use nom_supreme::tag::TagError;
 
 #[derive(Debug, PartialEq, thiserror::Error)]
 #[allow(clippy::module_name_repetitions)]
@@ -14,12 +13,6 @@ pub enum AssemblyError {
     Incomplete,
     #[error("The assembler had an internal problem -- please report")]
     Internal(String, ErrorKind, Option<Box<Self>>),
-}
-
-impl TagError<&str, &str> for AssemblyError {
-    fn from_tag(input: &str, _: &str) -> Self {
-        Self::Internal(input.to_string(), ErrorKind::Tag, None)
-    }
 }
 
 impl nom::error::ParseError<&str> for AssemblyError {

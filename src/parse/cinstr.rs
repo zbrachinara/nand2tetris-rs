@@ -4,7 +4,7 @@ use nom::bytes::complete::take_while1;
 use nom::combinator::opt;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::Parser;
-use nom_supreme::tag::complete::tag;
+use nom::bytes::complete::tag;
 use std::str::FromStr;
 #[allow(clippy::enum_glob_use)]
 use CExpr::*;
