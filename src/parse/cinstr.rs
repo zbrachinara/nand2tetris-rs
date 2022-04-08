@@ -4,8 +4,8 @@ use nom::bytes::complete::take_while1;
 use nom::combinator::opt;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::Parser;
-use nom::bytes::complete::tag;
 use std::str::FromStr;
+use nom::character::complete::char;
 #[allow(clippy::enum_glob_use)]
 use CExpr::*;
 use Source::{Memory, Register};
@@ -46,9 +46,9 @@ pub struct CTriple {
 impl CTriple {
     pub fn from_string(str: &str) -> PResult<CTriple> {
         tuple((
-            opt(terminated(spaced(aexpr), tag("="))),
+            opt(terminated(spaced(aexpr), char('='))),
             spaced(cexpr),
-            opt(preceded(tag(";"), spaced(jexpr))),
+            opt(preceded(char(';'), spaced(jexpr))),
         ))
         .map(|(dst, expr, jmp)| {
             (

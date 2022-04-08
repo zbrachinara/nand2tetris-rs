@@ -3,7 +3,7 @@ use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, Item, PResult};
 use nom::branch::alt;
-use nom::character::complete::{alphanumeric1, digit1};
+use nom::character::complete::{alphanumeric1, char, digit1};
 use nom::multi::many1;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
@@ -36,14 +36,14 @@ fn instruction(instruction_line: &str) -> PResult<Item> {
 }
 
 fn label(lb: &str) -> PResult<Item> {
-    delimited(spaced(tag("(")), identifier_name_only, spaced(tag(")")))
+    delimited(spaced(char('(')), identifier_name_only, spaced(char(')')))
         .map(Item::Label)
         .parse(lb)
 }
 
 // in an a-instruction, the @ and identifier must not be separated by any kind of space
 fn a_instruction(instruction: &str) -> PResult<Item> {
-    preceded(tag("@"), identifier)
+    preceded(char('@'), identifier)
         .map(|x| Item::Instruction(Instruction::A(x)))
         .parse(instruction)
 }
