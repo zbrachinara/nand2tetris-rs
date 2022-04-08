@@ -2,7 +2,6 @@ use crate::err::AssemblyError;
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
 use crate::parse::{Ident, Instruction, Item, PResult};
-use crate::time;
 use nom::branch::alt;
 use nom::character::complete::{alphanumeric1, digit1};
 use nom::multi::many1;
@@ -21,12 +20,12 @@ pub fn program(program: &str) -> impl Iterator<Item = PResult<Item>> {
 // instruction line must begin on the first character of the instruction
 fn instruction(instruction_line: &str) -> PResult<Item> {
     #[cfg(debug_assertions)]
-    match instruction_line.bytes().next() {
-        Some(b'@') => time!(a_instruction(instruction_line)),
-        Some(b'(') => time!(label(instruction_line)),
-        Some(_) => time!(c_instruction(instruction_line)),
-        _ => unreachable!("instruction line must begin with @, (, or a letter"),
-    }
+        match instruction_line.bytes().next() {
+            Some(b'@') => crate::time!(a_instruction(instruction_line)),
+            Some(b'(') => crate::time!(label(instruction_line)),
+            Some(_) => crate::time!(c_instruction(instruction_line)),
+            _ => unreachable!("instruction line must begin with @, (, or a letter"),
+        }
     #[cfg(not(debug_assertions))]
     match instruction_line.bytes().next() {
         Some(b'@') => a_instruction(instruction_line),
@@ -54,7 +53,7 @@ fn c_instruction(instruction: &str) -> PResult<Item> {
         triple
             .to_cinstr()
             .map_err(|_| nom::Err::Error(AssemblyError::InvalidCExpr))
-            .map(|triple| Item::Instruction(triple))
+            .map(Item::Instruction)
             .map(|triple| (x, triple))
     })
 }

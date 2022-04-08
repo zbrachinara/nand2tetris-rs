@@ -3,7 +3,7 @@ mod predefined;
 mod symbol_table;
 
 use crate::parse::{Ident, Instruction, Program};
-pub use symbol_table::{SymbolTable, Address};
+pub use symbol_table::{Address, SymbolTable};
 
 pub fn to_string(sym_table: &mut SymbolTable, program: &Program) -> String {
     to_vec(sym_table, program)
@@ -15,23 +15,19 @@ pub fn to_string(sym_table: &mut SymbolTable, program: &Program) -> String {
 pub fn to_vec(sym_table: &mut SymbolTable, program: &Program) -> Vec<u16> {
     program
         .iter()
-        .filter_map(|instr: &Instruction| {
-            match instr {
-                Instruction::A(ident) => Some(
-                    0b0111_1111_1111_1111
-                        & match ident {
-                            Ident::Name(str) => sym_table
-                                .get(str.as_str())
-                                .cloned()
-                                .unwrap_or_else(|| {
-                                    sym_table.assign_available_ram(str.clone()).unwrap()
-                                })
-                                .unwrap(),
-                            Ident::Addr(addr) => *addr,
-                        },
-                ),
-                Instruction::C { expr, dst, jump } => Some(convert::cinstr(expr, dst, jump)),
+        .map(|instr: &Instruction| match instr {
+            Instruction::A(ident) => {
+                0b0111_1111_1111_1111
+                    & match ident {
+                        Ident::Name(str) => sym_table
+                            .get(str.as_str())
+                            .cloned()
+                            .unwrap_or_else(|| sym_table.assign_available_ram(str.clone()).unwrap())
+                            .unwrap(),
+                        Ident::Addr(addr) => *addr,
+                    }
             }
+            Instruction::C { expr, dst, jump } => convert::cinstr(expr, dst, jump),
         })
         .collect()
 }
