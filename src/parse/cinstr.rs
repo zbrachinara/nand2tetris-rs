@@ -6,10 +6,8 @@ use nom::sequence::{preceded, terminated, tuple};
 use nom::Parser;
 use nom_supreme::tag::complete::tag;
 use std::str::FromStr;
-use CExpr::{
-    DAndX, DMinusOne, DMinusX, DOrX, DPlusOne, DPlusX, NegD, NegOne, NegX, NotD, NotX, One,
-    XMinusD, XMinusOne, XPlusOne, Zero, D, X,
-};
+#[allow(clippy::enum_glob_use)]
+use CExpr::*;
 use Source::{Memory, Register};
 
 fn aexpr(str: &str) -> PResult<&str> {

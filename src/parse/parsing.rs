@@ -1,12 +1,11 @@
 use crate::err::AssemblyError;
 use crate::parse::cinstr::CTriple;
 use crate::parse::space::{line_spaced, spaced};
-use crate::parse::{Ident, Instruction, PResult, Program};
+use crate::parse::{Ident, Instruction, PResult};
 use crate::time;
 use nom::branch::alt;
 use nom::character::complete::{alphanumeric1, digit1};
-use nom::combinator::eof;
-use nom::multi::{many1, many_till};
+use nom::multi::many1;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
 use nom_supreme::tag::complete::tag;
