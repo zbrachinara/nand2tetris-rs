@@ -72,6 +72,6 @@ mod test {
     fn test_identifier() {
         assert!(matches!(identifier("MAIN_LOOP"), Ok((_, Ident::Name(x))) if x == "MAIN_LOOP"));
 
-        label("(WHEN_DEEZ)").unwrap();
+        label("(WHEN_DEEZ$.a)").unwrap();
     }
 }
