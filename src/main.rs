@@ -12,6 +12,7 @@ mod assemble;
 mod debug;
 mod err;
 mod parse;
+mod parse_spanned;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
