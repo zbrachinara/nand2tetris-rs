@@ -5,15 +5,17 @@ use nom::bytes::complete::is_not;
 use nom::bytes::complete::tag;
 use nom::character::complete::{line_ending, space1};
 use nom::combinator::{complete, iterator, opt};
+use nom::multi::fold_many0;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;
 
 fn generic_space1(arg: Span) -> PResult<()> {
-    iterator(
-        arg,
+    fold_many0(
         alt((space1, complete(preceded(tag("//"), is_not("\n"))))),
+        || (),
+        |_, _| (),
     )
-    .finish()
+    .parse(arg)
 }
 
 pub fn generic_space0(arg: Span) -> PResult<Option<()>> {
@@ -21,15 +23,16 @@ pub fn generic_space0(arg: Span) -> PResult<Option<()>> {
 }
 
 fn line_space1(arg: Span) -> PResult<()> {
-    iterator(
-        arg,
+    fold_many0(
         alt((
             space1,
             line_ending,
             complete(preceded(tag("//"), is_not("\n"))),
         )),
+        || (),
+        |_, _| (),
     )
-    .finish()
+    .parse(arg)
 }
 
 fn line_space0(arg: Span) -> PResult<Option<()>> {
