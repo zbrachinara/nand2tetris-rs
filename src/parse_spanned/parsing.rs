@@ -12,7 +12,7 @@ use nom::Parser;
 use std::str::FromStr;
 
 pub fn program(program: Span) -> impl Iterator<Item = PResult<Item>> {
-    super::util::many0_iterate(line_spaced(instruction), program)
+    super::util::many0_spliterate(line_spaced(instruction), program, '\n')
 }
 
 /// instruction line must begin on the first character of the instruction
