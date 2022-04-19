@@ -1,5 +1,5 @@
 use crate::err::AssemblyError;
-use crate::parse::{PResult, Span};
+use crate::parse::PResult;
 use nom::Parser;
 use std::marker::PhantomData;
 
