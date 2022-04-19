@@ -1,6 +1,8 @@
 use crate::err::str;
 use nom::error::ErrorKind;
 use nom::Err;
+use crate::parse_spanned::Span;
+use nom::error::ParseError;
 
 #[derive(Debug, PartialEq, thiserror::Error)]
 #[allow(clippy::module_name_repetitions)]
@@ -15,13 +17,23 @@ pub enum AssemblyError {
     Internal(String, ErrorKind, Option<Box<Self>>),
 }
 
-impl nom::error::ParseError<&str> for AssemblyError {
+impl ParseError<&str> for AssemblyError {
     fn from_error_kind(s: &str, e: ErrorKind) -> Self {
         Self::Internal(s.to_string(), e, None)
     }
 
     fn append(s: &str, e: ErrorKind, other: Self) -> Self {
         Self::Internal(s.to_string(), e, Some(Box::new(other)))
+    }
+}
+
+impl <'a> ParseError<Span<'a>> for AssemblyError {
+    fn from_error_kind(input: Span, kind: ErrorKind) -> Self {
+        <Self as ParseError<&str>>::from_error_kind(*input, kind)
+    }
+
+    fn append(input: Span, kind: ErrorKind, other: Self) -> Self {
+        <Self as ParseError<&str>>::append(*input, kind, other)
     }
 }
 
