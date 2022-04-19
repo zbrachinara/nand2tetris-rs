@@ -1,14 +1,13 @@
 mod cinstr;
 mod parsing;
 mod space;
-mod structs;
 mod util;
 
 use crate::assemble::{Address, SymbolTable};
 use crate::err::AssemblyError;
 use nom::IResult;
 use nom_locate::LocatedSpan;
-pub use structs::*;
+pub use crate::parse_spanned::structs::*;
 
 pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
     let mut sym_table = SymbolTable::new();
