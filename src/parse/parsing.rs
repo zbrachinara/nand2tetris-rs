@@ -11,10 +11,11 @@ use nom::Parser;
 use std::str::FromStr;
 
 pub fn program(program: Span) -> impl Iterator<Item = PResult<Item>> {
-    program
-        .split('\n')
-        .filter(|s| s.trim_start() != "" && !s.trim_start().starts_with("//"))
-        .map(|s| line_spaced(instruction).parse(s))
+    super::util::many0_iterate(line_spaced(instruction), *program)
+    // program
+    //     .split('\n')
+    //     .filter(|s| s.trim_start() != "" && !s.trim_start().starts_with("//"))
+    //     .map(|s| line_spaced(instruction).parse(s))
 }
 
 /// instruction line must begin on the first character of the instruction

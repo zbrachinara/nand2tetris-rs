@@ -2,6 +2,7 @@ mod cinstr;
 mod parsing;
 mod space;
 mod structs;
+mod util;
 
 use crate::assemble::{Address, SymbolTable};
 use crate::err::AssemblyError;
