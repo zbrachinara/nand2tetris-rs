@@ -4,7 +4,7 @@ use nom::branch::alt;
 use nom::bytes::complete::is_not;
 use nom::bytes::complete::tag;
 use nom::character::complete::{line_ending, space1};
-use nom::combinator::{complete, iterator, opt};
+use nom::combinator::{complete, opt};
 use nom::multi::fold_many0;
 use nom::sequence::{delimited, preceded};
 use nom::Parser;

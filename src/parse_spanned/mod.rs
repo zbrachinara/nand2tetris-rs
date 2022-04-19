@@ -5,6 +5,7 @@ use nom::IResult;
 use nom_locate::LocatedSpan;
 
 mod space;
+mod cinstr;
 
 pub type Span<'a> = LocatedSpan<&'a str>;
 type PResult<'a, I> = IResult<Span<'a>, I, AssemblyError>;
