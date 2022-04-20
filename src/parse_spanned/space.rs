@@ -65,7 +65,6 @@ where
             Ok((remaining, None))
         } else {
             let (remaining, out) = inner.parse(remaining)?;
-            let (remaining, _) = line_space0.parse(remaining)?;
             Ok((remaining, Some(out)))
         }
     }
