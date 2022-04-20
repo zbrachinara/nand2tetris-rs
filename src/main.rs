@@ -53,23 +53,6 @@ fn main() {
         PathBuf::from,
     );
 
-    dprintln!("Reading file...");
-    let file = fs::read_to_string(file_name.clone()).unwrap_or_else(|_| {
-        eprintln!("File not found: {file_name:?}");
-        std::process::exit(1)
-    });
-    dprintln!("File read.\nParsing program...");
-    let (program, mut symbols) = parse_spanned::program(&file).unwrap_or_else(|e| {
-        if opt.debug {
-            e.trace();
-        }
-        eprintln!("{}", e.raise());
-        std::process::exit(1)
-    });
-    dprintln!("Program parsed.\nAssembling...");
-    let code = assemble::to_string(&mut symbols, &program);
-    dprintln!("Assembled.");
-
     let mut dest_file = if opt.overwrite {
         OpenOptions::new()
             .write(true)
@@ -93,6 +76,23 @@ fn main() {
                 _ => panic!("{e:?}"),
             })
     };
+
+    dprintln!("Reading file...");
+    let file = fs::read_to_string(file_name.clone()).unwrap_or_else(|_| {
+        eprintln!("File not found: {file_name:?}");
+        std::process::exit(1)
+    });
+    dprintln!("File read.\nParsing program...");
+    let (program, mut symbols) = parse_spanned::program(&file).unwrap_or_else(|e| {
+        if opt.debug {
+            e.trace();
+        }
+        eprintln!("{}", e.raise());
+        std::process::exit(1)
+    });
+    dprintln!("Program parsed.\nAssembling...");
+    let code = assemble::to_string(&mut symbols, &program);
+    dprintln!("Assembled.");
 
     dest_file
         .write_all(code.as_bytes())
