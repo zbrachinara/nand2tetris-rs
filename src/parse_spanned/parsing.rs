@@ -13,7 +13,6 @@ use std::str::FromStr;
 
 pub fn program(program: Span) -> impl Iterator<Item = PResult<Item>> {
     super::util::many0_spliterate(alt_line_spaced(instruction), program, '\n')
-        .inspect(|res| eprintln!("printing {res:?}"))
         .filter_map(|res| match res {
             Ok((a, Some(b))) => Some(Ok((a, b))),
             Ok((_, None)) => None,

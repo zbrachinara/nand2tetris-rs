@@ -1,8 +1,8 @@
 use crate::err::AssemblyError;
 use crate::parse_spanned::{PResult, Span};
 use nom::branch::alt;
-use nom::bytes::complete::{is_a, is_not};
 use nom::bytes::complete::tag;
+use nom::bytes::complete::{is_a, is_not};
 use nom::character::complete::{line_ending, space1};
 use nom::combinator::{complete, opt};
 use nom::multi::fold_many0;
