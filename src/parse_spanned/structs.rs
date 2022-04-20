@@ -4,6 +4,7 @@ use strum_macros::EnumString;
 #[derive(Debug)]
 pub struct Program(pub Vec<Instruction>);
 
+#[derive(Debug)]
 pub enum Item {
     Label(String),
     Instruction(Instruction),

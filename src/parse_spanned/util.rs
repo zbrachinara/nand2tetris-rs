@@ -1,7 +1,6 @@
 use crate::err::AssemblyError;
 use crate::parse_spanned::{PResult, Span};
-use nom::combinator::opt;
-use nom::{InputTakeAtPosition, Parser};
+use nom::{InputTake, InputTakeAtPosition, Parser};
 use std::marker::PhantomData;
 
 struct ManyIterator<'a, Parser, Output> {
@@ -9,22 +8,27 @@ struct ManyIterator<'a, Parser, Output> {
     data: Span<'a>,
     split_by: char,
     output: PhantomData<Output>,
+    done: bool,
 }
 
-impl<'a, P: Parser<Span<'a>, Option<O>, AssemblyError>, O: 'a> Iterator for ManyIterator<'a, P, O> {
+impl<'a, P: Parser<Span<'a>, O, AssemblyError>, O: 'a> Iterator for ManyIterator<'a, P, O> {
     type Item = PResult<'a, O>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.data.is_empty() {
+        if self.done {
             None
         } else {
-            self.data
-                .split_at_position(|c| c == self.split_by)
-                .and_then(|(next, this)| {
-                    self.data = next;
-                    self.parser.parse(this).map(|(x, y)| y.map(|y| (x, y)))
-                })
-                .transpose()
+            Some(match self.data.split_at_position::<_, AssemblyError>(|c| c == self.split_by) {
+                Ok((next, this)) => {
+                    self.data = next.take_split(1).0;
+                    self.parser.parse(this)
+                }
+                Err(nom::Err::Incomplete(_)) => {
+                    self.done = true;
+                    self.parser.parse(self.data)
+                }
+                _ => unreachable!(),
+            })
         }
     }
 }
@@ -38,9 +42,10 @@ where
     P: Parser<Span<'a>, O, AssemblyError>,
 {
     ManyIterator {
-        parser: opt(parser),
+        parser,
         data,
         split_by,
         output: PhantomData::default(),
+        done: false,
     }
 }

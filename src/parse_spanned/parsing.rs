@@ -1,7 +1,7 @@
 use crate::err::AssemblyError;
 use crate::parse::{Ident, Instruction, Item};
 use crate::parse_spanned::cinstr::CTriple;
-use crate::parse_spanned::space::{line_spaced, spaced};
+use crate::parse_spanned::space::{alt_line_spaced, spaced};
 use crate::parse_spanned::{PResult, Span};
 use nom::branch::alt;
 use nom::bytes::complete::is_a;
@@ -12,7 +12,13 @@ use nom::Parser;
 use std::str::FromStr;
 
 pub fn program(program: Span) -> impl Iterator<Item = PResult<Item>> {
-    super::util::many0_spliterate(line_spaced(instruction), program, '\n')
+    super::util::many0_spliterate(alt_line_spaced(instruction), program, '\n')
+        .inspect(|res| eprintln!("printing {res:?}"))
+        .filter_map(|res| match res {
+            Ok((a, Some(b))) => Some(Ok((a, b))),
+            Ok((_, None)) => None,
+            Err(x) => Some(Err(x)),
+        })
 }
 
 /// instruction line must begin on the first character of the instruction

@@ -11,7 +11,7 @@ pub enum AssemblyError {
     InvalidIdentifier,
     #[error("A problem was detected while parsing a compute instruction")]
     InvalidCExpr,
-    #[error("The assembler had an internal problem -- please report")]
+    #[error("The assembler had an internal problem (Incomplete) -- please report")]
     Incomplete,
     #[error("The assembler had an internal problem -- please report")]
     Internal(String, ErrorKind, Option<Box<Self>>),
