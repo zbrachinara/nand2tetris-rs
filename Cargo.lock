@@ -244,6 +244,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "n2t_jack"
+version = "0.1.0"
+
+[[package]]
 name = "n2tcc"
 version = "0.1.0"
 dependencies = [
