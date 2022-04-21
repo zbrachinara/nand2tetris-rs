@@ -149,7 +149,6 @@ impl Interface {
 mod test {
     use super::*;
     use crate::model::parser::chip;
-    use std::iter::once;
 
     const COM_CHIP: &'static str = include_str!("../../../../test_files/01/And16.hdl");
     const SEQ_CHIP: &'static str = include_str!("../../../../test_files/DFF.hdl");
