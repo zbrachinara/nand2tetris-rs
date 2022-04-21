@@ -1,8 +1,8 @@
 use crate::err::str;
-use nom::error::ErrorKind;
-use nom::Err;
 use crate::parse::Span;
+use nom::error::ErrorKind;
 use nom::error::ParseError;
+use nom::Err;
 
 #[derive(Debug, PartialEq, thiserror::Error)]
 #[allow(clippy::module_name_repetitions)]
@@ -27,7 +27,7 @@ impl ParseError<&str> for AssemblyError {
     }
 }
 
-impl <'a> ParseError<Span<'a>> for AssemblyError {
+impl<'a> ParseError<Span<'a>> for AssemblyError {
     fn from_error_kind(input: Span, kind: ErrorKind) -> Self {
         <Self as ParseError<&str>>::from_error_kind(*input, kind)
     }

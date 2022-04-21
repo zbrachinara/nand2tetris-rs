@@ -43,9 +43,8 @@ impl eframe::epi::App for App {
                 uis[0].vertical_centered_justified(|ui| {
                     ui.allocate_ui_with_layout(
                         Vec2::new(ui.available_width(), BUTTON_SIZE),
-                        Layout::right_to_left()
-                            .with_cross_justify(true),
-                            // .with_main_justify(true),
+                        Layout::right_to_left().with_cross_justify(true),
+                        // .with_main_justify(true),
                         |ui| {
                             ui.add(Button::image_and_text(
                                 self.textures.get("vcrrewind").unwrap().into(),

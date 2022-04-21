@@ -1,7 +1,7 @@
 #![cfg(feature = "web")]
 
-mod utils;
 mod app;
+mod utils;
 
 use wasm_bindgen::prelude::*;
 
@@ -18,7 +18,7 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn start() -> Result<(), JsValue>{
+pub fn start() -> Result<(), JsValue> {
     utils::set_panic_hook();
 
     log("hello world!");

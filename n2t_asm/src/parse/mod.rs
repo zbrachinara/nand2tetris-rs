@@ -1,13 +1,13 @@
+use crate::assemble::{Address, SymbolTable};
 use crate::err::AssemblyError;
 use nom::IResult;
 use nom_locate::LocatedSpan;
-use crate::assemble::{Address, SymbolTable};
 
-mod space;
 mod cinstr;
 mod parsing;
-mod util;
+mod space;
 pub mod structs;
+mod util;
 
 pub use structs::*;
 
@@ -51,7 +51,7 @@ mod test {
 
         "#,
         )
-            .unwrap();
+        .unwrap();
 
         println!("{single_instruction:#?}");
 
@@ -63,7 +63,7 @@ mod test {
 
         "#,
         )
-            .unwrap();
+        .unwrap();
 
         println!("{a_c_instruction:#?}");
     }
@@ -108,8 +108,8 @@ M=M-1
 0;JMP
         "#,
         )
-            .unwrap()
-            .0;
+        .unwrap()
+        .0;
 
         println!("{mult:#?}");
     }

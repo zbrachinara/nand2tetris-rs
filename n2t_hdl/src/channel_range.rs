@@ -10,7 +10,7 @@ pub struct ChannelRange {
 }
 
 impl ChannelRange {
-    /// Creates a new `ChannelRange` with the specified start and end 
+    /// Creates a new `ChannelRange` with the specified start and end
     ///
     /// # Panics
     ///

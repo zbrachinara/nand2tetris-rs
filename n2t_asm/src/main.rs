@@ -25,17 +25,9 @@ struct Opt {
     file_name: String,
     #[structopt(about = "The file to which to push the output")]
     dest_name: Option<String>,
-    #[structopt(
-        short,
-        long,
-        about = "Confirm overwriting the destination file"
-    )]
+    #[structopt(short, long, about = "Confirm overwriting the destination file")]
     overwrite: bool,
-    #[structopt(
-        short,
-        long,
-        about = "Display backtrace and error details"
-    )]
+    #[structopt(short, long, about = "Display backtrace and error details")]
     debug: bool,
 }
 

@@ -2,7 +2,7 @@ use crate::channel_range::ChannelRange;
 use crate::clock_behavior::ClockBehavior;
 use derive_more::{Deref, DerefMut};
 use petgraph::graph::NodeIndex;
-use std::collections::hash_map::{HashMap, Entry};
+use std::collections::hash_map::{Entry, HashMap};
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct EdgeSetMap(HashMap<String, EdgeSet>);

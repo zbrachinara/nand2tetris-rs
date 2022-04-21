@@ -1,5 +1,5 @@
-use crate::parse::{CExpr, Dst, Instruction, JumpCondition, Source};
 use crate::parse::space::spaced;
+use crate::parse::{CExpr, Dst, Instruction, JumpCondition, Source};
 use crate::parse::{PResult, Span};
 use nom::bytes::complete::is_a;
 use nom::character::complete::{alpha1, char};

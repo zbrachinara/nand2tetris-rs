@@ -25,8 +25,7 @@ impl Display for ConnEdge {
             f,
             "{}",
             match self {
-                Self::Combinatorial { name, .. }
-                | Self::Sequential { name, .. } => name,
+                Self::Combinatorial { name, .. } | Self::Sequential { name, .. } => name,
             }
         )
     }
@@ -63,17 +62,13 @@ impl ConnEdge {
     pub fn get_with_range_out(&self) -> (&BitSlice, ChannelRange) {
         match self {
             Self::Combinatorial { buf, out_range, .. }
-            | Self::Sequential { buf, out_range, .. } => (
-                buf.as_ref(),
-                *out_range,
-            ),
+            | Self::Sequential { buf, out_range, .. } => (buf.as_ref(), *out_range),
         }
     }
 
     pub fn get_range_in(&self) -> &ChannelRange {
         match self {
-            Self::Combinatorial { in_range, .. }
-            | Self::Sequential { in_range, .. } => in_range,
+            Self::Combinatorial { in_range, .. } | Self::Sequential { in_range, .. } => in_range,
         }
     }
 

@@ -18,17 +18,22 @@ impl<'a, P: Parser<Span<'a>, O, AssemblyError>, O: 'a> Iterator for ManyIterator
         if self.done {
             None
         } else {
-            Some(match self.data.split_at_position::<_, AssemblyError>(|c| c == self.split_by) {
-                Ok((next, this)) => {
-                    self.data = next.take_split(1).0;
-                    self.parser.parse(this)
-                }
-                Err(nom::Err::Incomplete(_)) => {
-                    self.done = true;
-                    self.parser.parse(self.data)
-                }
-                _ => unreachable!(),
-            })
+            Some(
+                match self
+                    .data
+                    .split_at_position::<_, AssemblyError>(|c| c == self.split_by)
+                {
+                    Ok((next, this)) => {
+                        self.data = next.take_split(1).0;
+                        self.parser.parse(this)
+                    }
+                    Err(nom::Err::Incomplete(_)) => {
+                        self.done = true;
+                        self.parser.parse(self.data)
+                    }
+                    _ => unreachable!(),
+                },
+            )
         }
     }
 }
