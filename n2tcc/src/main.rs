@@ -1,3 +1,5 @@
+extern crate core;
+
 mod asm;
 
 use clap::{Parser, Subcommand};

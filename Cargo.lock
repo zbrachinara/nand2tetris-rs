@@ -248,6 +248,7 @@ name = "n2tcc"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "n2t_asm",
 ]
 
 [[package]]
