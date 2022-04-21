@@ -85,11 +85,12 @@ mod test {
         dir.push("../test_files/01");
 
         let mut ctx = ChipBuilder::new();
-        assert!(matches!(ctx.add_hdl(dir.join("Not.hdl")), Ok(_)));
-        assert!(matches!(ctx.add_hdl(dir.join("And.hdl")), Ok(_)));
-        assert!(matches!(ctx.add_hdl(dir.join("DMux.hdl")), Ok(_)));
-        assert!(matches!(ctx.add_hdl(dir.join("DMux4Way.hdl")), Ok(_)));
-        assert!(matches!(ctx.add_hdl(dir.join("DMux8Way.hdl")), Ok(_)));
+        assert!(ctx.add_hdl(dir.join("Not.hdl")).is_ok());
+        assert!(ctx.add_hdl(dir.join("And.hdl")).is_ok());
+        assert!(ctx.add_hdl(dir.join("DMux.hdl")).is_ok());
+        assert!(ctx.add_hdl(dir.join("DMux4Way.hdl")).is_ok());
+        assert!(ctx.add_hdl(dir.join("DMux8Way.hdl")).is_ok());
+
         {
             let chip = ctx.resolve_chip("DMux8Way").unwrap();
             assert!(!chip.is_clocked());

@@ -19,11 +19,8 @@ fn to_map(pins: Vec<Channel>, mut next: u16) -> (PinMap, u16) {
     let map = pins
         .into_iter()
         .map(|Channel { name, size }| {
-            let size = if let Some(n) = size { n } else { 1 };
-            let range = ChannelRange {
-                start: next,
-                end: next + size - 1,
-            };
+            let size = size.unwrap_or(1);
+            let range = ChannelRange::new(next, next + size - 1);
             next += size;
             ((*name).to_string(), range)
         })
@@ -66,8 +63,7 @@ impl<'a> Chip<'a> {
                 name: self.name.to_string(),
                 com_in: to_map(self.in_pins.clone(), 0).0,
                 com_out: to_map(self.out_pins.clone(), 0).0,
-                seq_in: HashMap::with_capacity(0),
-                seq_out: HashMap::with_capacity(0),
+                ..Default::default()
             }
         }
     }
@@ -109,24 +105,23 @@ impl Interface {
                 return Err(());
             }
             // offset the provided relative range
-            Ok(ChannelRange {
-                start: raw.start + relative.start,
-                end: raw.start + relative.end,
-            })
+            Ok(ChannelRange::new(
+                raw.start + relative.start,
+                raw.start + relative.end,
+            ))
         } else {
             Ok(raw.clone())
         }
     }
 
     pub fn is_input(&self, name: &str) -> bool {
-        matches!(self.iter_inputs().find(|(s, _)| *s == name), Some(_))
+        self.iter_inputs().find(|(s, _)| *s == name).is_some()
     }
 
     pub fn clocked(&self, name: &str) -> ClockBehavior {
-        match self.iter_combinatorial().find(|(n, _)| *n == name) {
-            Some(_) => ClockBehavior::Combinatorial,
-            None => ClockBehavior::Sequential,
-        }
+        self.iter_combinatorial()
+            .find(|(n, _)| *n == name)
+            .map_or(ClockBehavior::Sequential, |_| ClockBehavior::Combinatorial)
     }
 
     pub fn has_clocked(&self) -> bool {
@@ -135,17 +130,17 @@ impl Interface {
 
     pub fn size_in(&self) -> usize {
         self.iter_inputs()
-            .map(|(_, ChannelRange { end, .. })| end)
+            .map(|(_, channel_range)| channel_range.end())
             .max()
-            .map(|x| *x as usize + 1)
+            .map(|x| x as usize + 1)
             .unwrap_or(0)
     }
 
     pub fn size_out(&self) -> usize {
         self.iter_outputs()
-            .map(|(_, ChannelRange { end, .. })| end)
+            .map(|(_, channel_range)| channel_range.end())
             .max()
-            .map(|x| *x as usize + 1)
+            .map(|x| x as usize + 1)
             .unwrap()
     }
 }
@@ -175,14 +170,11 @@ CHIP test {
             Interface {
                 name: "And16".to_string(),
                 com_in: [
-                    ("a".to_string(), ChannelRange { start: 0, end: 15 }),
-                    ("b".to_string(), ChannelRange { start: 16, end: 31 })
+                    ("a".to_string(), ChannelRange::new(0, 15)),
+                    ("b".to_string(), ChannelRange::new(16, 31)),
                 ]
-                .into_iter()
-                .collect(),
-                com_out: [("out".to_string(), ChannelRange { start: 0, end: 15 })]
-                    .into_iter()
-                    .collect(),
+                .into(),
+                com_out: [("out".to_string(), ChannelRange::new(0, 15))].into(),
                 seq_in: Default::default(),
                 seq_out: Default::default()
             }
@@ -194,8 +186,8 @@ CHIP test {
             Interface {
                 name: String::from("DFF"),
                 com_in: Default::default(),
-                com_out: once(("out".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
-                seq_in: once(("in".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
+                com_out: [("out".to_string(), ChannelRange::new(0, 0))].into(),
+                seq_in: [("in".to_string(), ChannelRange::new(0, 0))].into(),
                 seq_out: Default::default()
             }
         );
@@ -205,14 +197,13 @@ CHIP test {
             example_chip.interface(),
             Interface {
                 name: "test".to_string(),
-                com_in: once(("a".to_string(), ChannelRange { start: 5, end: 6 })).collect(),
-                com_out: once(("d".to_string(), ChannelRange { start: 0, end: 0 })).collect(),
+                com_in: [("a".to_string(), ChannelRange::new(5, 6))].into(),
+                com_out: [("d".to_string(), ChannelRange::new(0, 0))].into(),
                 seq_in: [
-                    ("b".to_string(), ChannelRange { start: 0, end: 1 }),
-                    ("c".to_string(), ChannelRange { start: 2, end: 4 }),
+                    ("b".to_string(), ChannelRange::new(0, 1)),
+                    ("c".to_string(), ChannelRange::new(2, 4)),
                 ]
-                .into_iter()
-                .collect(),
+                .into(),
                 seq_out: Default::default()
             }
         )
@@ -224,12 +215,12 @@ CHIP test {
         assert_eq!(
             com_chip
                 .interface()
-                .real_range("b", Some(&ChannelRange { start: 0, end: 7 })),
-            Ok(ChannelRange { start: 16, end: 23 })
+                .real_range("b", Some(&ChannelRange::new(0, 7))),
+            Ok(ChannelRange::new(16, 23))
         );
         assert_eq!(
             com_chip.interface().real_range("b", None),
-            Ok(ChannelRange { start: 16, end: 31 })
+            Ok(ChannelRange::new(16, 31))
         )
     }
 }

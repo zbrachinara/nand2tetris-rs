@@ -25,7 +25,7 @@ fn bus_range(arg: Span) -> PResult<ChannelRange> {
 
     let (start, end) = (convert_num(start)?, convert_num(end)?);
 
-    Ok((remainder, ChannelRange { start, end }))
+    Ok((remainder, ChannelRange::new(start, end)))
 }
 
 fn symbol_bus(arg: Span) -> PResult<(Span, Option<ChannelRange>)> {
@@ -89,27 +89,27 @@ mod test {
         test(
             bus_range(Span::from("[0..1]")).unwrap(),
             "",
-            ChannelRange { start: 0, end: 1 },
+            ChannelRange::new(0, 1),
         );
         test(
             bus_range(Span::from("[5..10]")).unwrap(),
             "",
-            ChannelRange { start: 5, end: 10 },
+            ChannelRange::new(5, 10),
         );
         test(
             bus_range(Span::from("[5..10] and")).unwrap(),
             "and",
-            ChannelRange { start: 5, end: 10 },
+            ChannelRange::new(5, 10),
         );
         test(
             bus_range(Span::from("[   5   ..  10       ] and")).unwrap(),
             "and",
-            ChannelRange { start: 5, end: 10 },
+            ChannelRange::new(5, 10),
         );
         test(
             bus_range(Span::from("[   5\n   ..  10       ] and")).unwrap(),
             "and",
-            ChannelRange { start: 5, end: 10 },
+            ChannelRange::new(5, 10),
         );
         assert!(matches!(bus_range(Span::from("[ a..b]")), Err(_)));
     }
@@ -124,11 +124,11 @@ mod test {
 
         test(
             symbol_bus(Span::from("limo[1..10]")).unwrap(),
-            Some(ChannelRange { start: 1, end: 10 }),
+            Some(ChannelRange::new(1, 10)),
         );
         test(
             symbol_bus(Span::from("limo   [  1  .. 10  ]")).unwrap(),
-            Some(ChannelRange { start: 1, end: 10 }),
+            Some(ChannelRange::new(1, 10)),
         );
         test(symbol_bus(Span::from("limo   ")).unwrap(), None);
         test(symbol_bus(Span::from("limo")).unwrap(), None);
@@ -188,12 +188,12 @@ mod test {
         test_2(
             single_arg(Span::from("in[3..4]=true)")).unwrap(),
             ")",
-            Some(ChannelRange { start: 3, end: 4 }),
+            Some(ChannelRange::new(3, 4)),
         );
         test_2(
             single_arg(Span::from("in[3]=true)")).unwrap(),
             ")",
-            Some(ChannelRange { start: 3, end: 3 }),
+            Some(ChannelRange::new(3, 3)),
         );
 
         let test_3 = |res: (Span, Argument), excess, in_bus, ex_bus, int, ext| {
@@ -219,16 +219,16 @@ mod test {
         test_3(
             single_arg(Span::from("in[3]=out[4])")).unwrap(),
             ")",
-            Some(ChannelRange { start: 3, end: 3 }),
-            Some(ChannelRange { start: 4, end: 4 }),
+            Some(ChannelRange::new(3, 3)),
+            Some(ChannelRange::new(4, 4)),
             "in",
             "out",
         );
         test_3(
             single_arg(Span::from("a[9..10]=b[5..10]")).unwrap(),
             "",
-            Some(ChannelRange { start: 9, end: 10 }),
-            Some(ChannelRange { start: 5, end: 10 }),
+            Some(ChannelRange::new(9, 10)),
+            Some(ChannelRange::new(5, 10)),
             "a",
             "b",
         );
@@ -243,7 +243,7 @@ mod test {
                 external,
                 external_bus,
             } = res.1;
-            assert_eq!(internal_bus, Some(ChannelRange { start: 3, end: 4 }));
+            assert_eq!(internal_bus, Some(ChannelRange::new(3, 4)));
             assert_eq!(external_bus, None);
 
             assert_eq!(*internal, "in");
@@ -315,7 +315,7 @@ mod test {
             external,
             external_bus,
         } = &inputs[0];
-        assert_eq!(internal_bus, &Some(ChannelRange { start: 3, end: 4 }));
+        assert_eq!(internal_bus, &Some(ChannelRange::new(3, 4)));
         assert_eq!(external_bus, &None);
 
         assert_eq!(**internal, "a");
@@ -331,7 +331,7 @@ mod test {
             external,
             external_bus,
         } = &inputs[1];
-        assert_eq!(internal_bus, &Some(ChannelRange { start: 1, end: 10 }));
+        assert_eq!(internal_bus, &Some(ChannelRange::new(1, 10)));
         assert_eq!(external_bus, &None);
 
         assert_eq!(**internal, "b");
@@ -348,7 +348,7 @@ mod test {
             external_bus,
         } = &inputs[2];
         assert_eq!(internal_bus, &None);
-        assert_eq!(external_bus, &Some(ChannelRange { start: 6, end: 9 }));
+        assert_eq!(external_bus, &Some(ChannelRange::new(6, 9)));
 
         assert_eq!(**internal, "out");
 

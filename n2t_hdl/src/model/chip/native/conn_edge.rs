@@ -25,8 +25,8 @@ impl Display for ConnEdge {
             f,
             "{}",
             match self {
-                Self::Combinatorial { name, .. } => name,
-                Self::Sequential { name, .. } => name,
+                Self::Combinatorial { name, .. }
+                | Self::Sequential { name, .. } => name,
             }
         )
     }
@@ -34,7 +34,7 @@ impl Display for ConnEdge {
 
 impl ConnEdge {
     pub fn new_com(name: String, in_range: ChannelRange, out_range: ChannelRange) -> Self {
-        let size = in_range.size() as usize;
+        let size = in_range.size();
         Self::Combinatorial {
             name,
             in_range,
@@ -42,8 +42,9 @@ impl ConnEdge {
             buf: BitVec::repeat(false, size),
         }
     }
+
     pub fn new_seq(name: String, in_range: ChannelRange, out_range: ChannelRange) -> Self {
-        let size = in_range.size() as usize;
+        let size = in_range.size();
         Self::Sequential {
             name,
             in_range,
@@ -61,22 +62,25 @@ impl ConnEdge {
 
     pub fn get_with_range_out(&self) -> (&BitSlice, ChannelRange) {
         match self {
-            ConnEdge::Combinatorial { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
-            ConnEdge::Sequential { buf, out_range, .. } => (buf.as_ref(), out_range.clone()),
+            Self::Combinatorial { buf, out_range, .. }
+            | Self::Sequential { buf, out_range, .. } => (
+                buf.as_ref(),
+                *out_range,
+            ),
         }
     }
 
     pub fn get_range_in(&self) -> &ChannelRange {
         match self {
-            Self::Combinatorial { in_range, .. } => in_range,
-            Self::Sequential { in_range, .. } => in_range,
+            Self::Combinatorial { in_range, .. }
+            | Self::Sequential { in_range, .. } => in_range,
         }
     }
 
     pub fn set(&mut self, new_buf: &BitSlice) {
         match self {
-            ConnEdge::Combinatorial { buf, .. } => buf.copy_from_bitslice(new_buf),
-            ConnEdge::Sequential { waiting, .. } => waiting.copy_from_bitslice(new_buf),
+            Self::Combinatorial { buf, .. } => buf.copy_from_bitslice(new_buf),
+            Self::Sequential { waiting, .. } => waiting.copy_from_bitslice(new_buf),
         }
     }
 }
