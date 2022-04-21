@@ -10,7 +10,7 @@ authors = ["Eric Yu (github.com/zbrachinara)"]
 #panic = "abort"
 #codegen-units = 1
 
-[dependencie]
+[dependencies]
 strum = "0.24"
 strum_macros = "0.24"
 nom = { version = "7.1", default-features = false }
