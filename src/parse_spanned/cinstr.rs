@@ -1,6 +1,6 @@
+use crate::parse::{CExpr, Dst, Instruction, JumpCondition, Source};
 use crate::parse_spanned::space::spaced;
 use crate::parse_spanned::{PResult, Span};
-use crate::parse::{CExpr, Dst, Instruction, JumpCondition, Source};
 use nom::bytes::complete::is_a;
 use nom::character::complete::{alpha1, char};
 use nom::combinator::opt;
@@ -115,86 +115,86 @@ impl CTriple {
     }
 }
 
-// #[cfg(test)]
-// mod test {
-//     use crate::parse::cinstr::CTriple;
-//
-//     #[test]
-//     fn test_make_c_triple() {
-//         // check that a c instruction with no jmp works
-//         assert_eq!(
-//             CTriple::from_string("DM=M+D"),
-//             Ok((
-//                 "",
-//                 CTriple {
-//                     dst: Some("DM".to_string()),
-//                     expr: "M+D".to_string(),
-//                     jmp: None,
-//                 }
-//             ))
-//         );
-//
-//         // check that a c instruction with jmp works
-//         assert_eq!(
-//             CTriple::from_string("   D   M     =M+D;JMP"),
-//             Ok((
-//                 "",
-//                 CTriple {
-//                     dst: Some("DM".to_string()),
-//                     expr: "M+D".to_string(),
-//                     jmp: Some("JMP".to_string())
-//                 }
-//             ))
-//         );
-//
-//         assert_eq!(
-//             CTriple::from_string("DM=    M    +   D  \t;JMP\n dee"),
-//             Ok((
-//                 "\n dee",
-//                 CTriple {
-//                     dst: Some("DM".to_string()),
-//                     expr: "M+D".to_string(),
-//                     jmp: Some("JMP".to_string())
-//                 }
-//             ))
-//         );
-//
-//         // nothing except for expression
-//         assert_eq!(
-//             CTriple::from_string("M"),
-//             Ok((
-//                 "",
-//                 CTriple {
-//                     dst: None,
-//                     expr: "M".to_string(),
-//                     jmp: None,
-//                 }
-//             ))
-//         );
-//
-//         // some other test cases
-//         assert_eq!(
-//             CTriple::from_string("M=0"),
-//             Ok((
-//                 "",
-//                 CTriple {
-//                     dst: Some("M".to_string()),
-//                     expr: "0".to_string(),
-//                     jmp: None,
-//                 }
-//             ))
-//         );
-//
-//         assert_eq!(
-//             CTriple::from_string("D;JMP"),
-//             Ok((
-//                 "",
-//                 CTriple {
-//                     dst: None,
-//                     expr: "D".to_string(),
-//                     jmp: Some("JMP".to_string())
-//                 }
-//             ))
-//         );
-//     }
-// }
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_make_c_triple() {
+        // check that a c instruction with no jmp works
+        assert!(matches!(
+            CTriple::from_string(Span::from("DM=M+D")),
+            Ok((
+                rem,
+                CTriple {
+                    dst: Some(d),
+                    expr: e,
+                    jmp: None,
+                }
+            )) if *rem == "" && d == "DM" && e == "M+D"
+        ));
+
+        // check that a c instruction with jmp works
+        assert!(matches!(
+            CTriple::from_string(Span::from("   D   M     =M+D;JMP")),
+            Ok((
+                rem,
+                CTriple {
+                    dst: Some(d),
+                    expr: e,
+                    jmp: Some(j),
+                }
+            )) if *rem == "" && d == "DM" && e == "M+D" && j == "JMP"
+        ));
+
+        assert!(matches!(
+            CTriple::from_string(Span::from("DM=    M    +   D  \t;JMP\n dee")),
+            Ok((
+                rem,
+                CTriple {
+                    dst: Some(d),
+                    expr: e,
+                    jmp: Some(j),
+                }
+            )) if *rem == "\n dee" && d == "DM" && e == "M+D" && j == "JMP"
+        ));
+
+        // nothing except for expression
+        assert!(matches!(
+            CTriple::from_string(Span::from("M")),
+            Ok((
+                res,
+                CTriple {
+                    dst: None,
+                    expr: e,
+                    jmp: None,
+                }
+            )) if *res == "" && e == "M"
+        ));
+
+        // some other test cases
+        assert!(matches!(
+            CTriple::from_string(Span::from("M=0")),
+            Ok((
+                res,
+                CTriple {
+                    dst: Some(d),
+                    expr: e,
+                    jmp: None,
+                }
+            )) if *res == "" && d == "M" && e == "0"
+        ));
+
+        assert!(matches!(
+            CTriple::from_string(Span::from("D;JMP")),
+            Ok((
+                res,
+                CTriple {
+                    dst: None,
+                    expr: e,
+                    jmp: Some(j),
+                }
+            )) if *res == "" && e == "D" && j == "JMP"
+        ));
+    }
+}
