@@ -1,2 +1,2 @@
 [workspace]
-members = ["n2t_asm", "n2t_hdl"]
+members = ["n2t_asm", "n2t_hdl", "n2tcc"]
