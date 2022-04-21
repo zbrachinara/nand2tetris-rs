@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod convert;
 mod predefined;
 mod symbol_table;
