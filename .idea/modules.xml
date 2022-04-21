@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/nand2tetris-assembler.iml" filepath="$PROJECT_DIR$/nand2tetris-assembler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nand2tetris-rs.iml" filepath="$PROJECT_DIR$/nand2tetris-rs.iml" />
     </modules>
   </component>
 </project>
