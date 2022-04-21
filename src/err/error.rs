@@ -1,7 +1,7 @@
 use crate::err::str;
 use nom::error::ErrorKind;
 use nom::Err;
-use crate::parse_spanned::Span;
+use crate::parse::Span;
 use nom::error::ParseError;
 
 #[derive(Debug, PartialEq, thiserror::Error)]

@@ -1,46 +1,51 @@
 use crate::err::AssemblyError;
-use crate::parse::PResult;
-use nom::Parser;
+use crate::parse::{PResult, Span};
+use nom::{InputTake, InputTakeAtPosition, Parser};
 use std::marker::PhantomData;
 
 struct ManyIterator<'a, Parser, Output> {
     parser: Parser,
-    data: &'a str,
+    data: Span<'a>,
+    split_by: char,
     output: PhantomData<Output>,
+    done: bool,
 }
 
-impl<'a, P: Parser<&'a str, O, AssemblyError>, O: 'a> Iterator for ManyIterator<'a, P, O>
-// where
-//     P: Parser<&'a str, O, AssemblyError>,
-{
+impl<'a, P: Parser<Span<'a>, O, AssemblyError>, O: 'a> Iterator for ManyIterator<'a, P, O> {
     type Item = PResult<'a, O>;
-    // type Item = Result<O, AssemblyError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.data.is_empty() {
+        if self.done {
             None
         } else {
-            match self.parser.parse(self.data) {
-                PResult::Ok((rem, out)) => {
-                    self.data = rem;
-                    Some(Ok((rem, out)))
+            Some(match self.data.split_at_position::<_, AssemblyError>(|c| c == self.split_by) {
+                Ok((next, this)) => {
+                    self.data = next.take_split(1).0;
+                    self.parser.parse(this)
                 }
-                PResult::Err(err) => Some(Err(err)),
-            }
+                Err(nom::Err::Incomplete(_)) => {
+                    self.done = true;
+                    self.parser.parse(self.data)
+                }
+                _ => unreachable!(),
+            })
         }
     }
 }
 
-pub fn many0_iterate<'a, P: 'a, O: 'a>(
+pub fn many0_spliterate<'a, P: 'a, O: 'a>(
     parser: P,
-    data: &'a str,
+    data: Span<'a>,
+    split_by: char,
 ) -> impl Iterator<Item = PResult<O>> + 'a
 where
-    P: Parser<&'a str, O, AssemblyError>,
+    P: Parser<Span<'a>, O, AssemblyError>,
 {
     ManyIterator {
         parser,
         data,
+        split_by,
         output: PhantomData::default(),
+        done: false,
     }
 }

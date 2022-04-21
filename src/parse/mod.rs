@@ -1,20 +1,25 @@
-mod cinstr;
-mod parsing;
-mod space;
-mod util;
-
-use crate::assemble::{Address, SymbolTable};
 use crate::err::AssemblyError;
 use nom::IResult;
 use nom_locate::LocatedSpan;
-pub use crate::parse_spanned::structs::*;
+use crate::assemble::{Address, SymbolTable};
+
+mod space;
+mod cinstr;
+mod parsing;
+mod util;
+pub mod structs;
+
+pub use structs::*;
+
+pub type Span<'a> = LocatedSpan<&'a str>;
+type PResult<'a, I> = IResult<Span<'a>, I, AssemblyError>;
 
 pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
     let mut sym_table = SymbolTable::new();
 
     let mut line = 0;
 
-    let program = parsing::program(Span::from(program))
+    let program = parsing::program(program.into())
         .map(|res| res.map_err(nom::Err::into).map(|(_, p)| p))
         .filter_map(|item| match item {
             Ok(Item::Label(lb)) => {
@@ -33,9 +38,6 @@ pub fn program(program: &str) -> Result<(Program, SymbolTable), AssemblyError> {
     program.map(|p| (p, sym_table))
 }
 
-type PResult<'a, T> = IResult<&'a str, T, AssemblyError>;
-type Span<'a> = LocatedSpan<&'a str>;
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -49,7 +51,7 @@ mod test {
 
         "#,
         )
-        .unwrap();
+            .unwrap();
 
         println!("{single_instruction:#?}");
 
@@ -61,7 +63,7 @@ mod test {
 
         "#,
         )
-        .unwrap();
+            .unwrap();
 
         println!("{a_c_instruction:#?}");
     }
@@ -106,8 +108,8 @@ M=M-1
 0;JMP
         "#,
         )
-        .unwrap()
-        .0;
+            .unwrap()
+            .0;
 
         println!("{mult:#?}");
     }

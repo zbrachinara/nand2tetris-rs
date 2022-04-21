@@ -11,9 +11,7 @@ use structopt::StructOpt;
 mod assemble;
 mod debug;
 mod err;
-#[deprecated(since = "0.4.0", note = "code has been moved to `parse_spanned`")]
 mod parse;
-mod parse_spanned;
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -83,7 +81,7 @@ fn main() {
         std::process::exit(1)
     });
     dprintln!("File read.\nParsing program...");
-    let (program, mut symbols) = parse_spanned::program(&file).unwrap_or_else(|e| {
+    let (program, mut symbols) = parse::program(&file).unwrap_or_else(|e| {
         if opt.debug {
             e.trace();
         }
