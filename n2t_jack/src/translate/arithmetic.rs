@@ -42,9 +42,9 @@ pub const DEREF_TO_A: [Item; 1] = [Item::Instruction(Instruction::C {
 pub const STACK_POP: [Item; 3] = const_concat!(FETCH_STACK_POINTER, DECREMENT_MEM, DEREF_TO_A);
 
 impl Arithmetic {
-    pub fn translate(self) -> impl Iterator<Item = Item> {
+    pub fn translate(self) -> &[Item] {
         match self {
-            Arithmetic::Add => const_concat!(
+            Arithmetic::Add => &const_concat!(
                 STACK_POP,
                 DEREF_TO_D,
                 DECREMENT_POINTER,
@@ -53,9 +53,8 @@ impl Arithmetic {
                     dst: Dst::M,
                     jump: JumpCondition::Never,
                 })]
-            )
-            .into_iter(),
-            Arithmetic::Sub => const_concat!(
+            ),
+            Arithmetic::Sub => &const_concat!(
                 STACK_POP,
                 DEREF_TO_D,
                 DECREMENT_POINTER,
@@ -65,7 +64,16 @@ impl Arithmetic {
                     jump: JumpCondition::Never,
                 })]
             ),
-            Arithmetic::Neg => todo!(),
+            Arithmetic::Neg => &const_concat!(
+                FETCH_STACK_POINTER,
+                DEREF_TO_A,
+                DECREMENT_POINTER,
+                [Item::Instruction(Instruction::C {
+                    expr: CExpr::NegX(Source::Memory),
+                    dst: Dst::M,
+                    jump: JumpCondition::Never,
+                })]
+            ),
             Arithmetic::Eq => todo!(),
             Arithmetic::Gt => todo!(),
             Arithmetic::Lt => todo!(),
