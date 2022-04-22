@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 n2t_asm = { path = "../n2t_asm" }
+strum = "0.24.0"
+strum_macros = "0.24.0"
+

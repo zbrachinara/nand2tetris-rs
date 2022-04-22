@@ -1,3 +1,5 @@
+mod keyword;
+
 use n2t_asm::parse::Item;
 
 fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {

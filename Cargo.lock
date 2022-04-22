@@ -248,6 +248,8 @@ name = "n2t_jack"
 version = "0.1.0"
 dependencies = [
  "n2t_asm",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]
