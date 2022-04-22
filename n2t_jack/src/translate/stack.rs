@@ -5,7 +5,7 @@ use std::iter::once;
 use std::str::FromStr;
 use strum_macros::EnumString;
 
-pub fn table_access(table_ptr_addr: u16, offset: u16, push_or_pop: &Stack) -> Vec<Item> {
+pub fn table_ptr_access(table_ptr_addr: u16, offset: u16, push_or_pop: &Stack) -> Vec<Item> {
     if *push_or_pop == Stack::Push {
         const_concat!(
             [Item::Instruction(Instruction::A(Ident::Addr(
@@ -49,8 +49,7 @@ impl Stack {
 impl Segment {
     pub fn translate(&self, offset: u16, push_or_pop: &Stack) -> Result<Vec<Item>, ()> {
         match self {
-            Segment::Local => Ok(table_access(1, offset, push_or_pop)),
-            // Segment::Argument => Ok(const_concat!().into_iter().collect::<Vec<_>>()),
+            Segment::Local => Ok(table_ptr_access(1, offset, push_or_pop)),
             Segment::Argument => todo!(),
             Segment::This => todo!(),
             Segment::That => todo!(),
