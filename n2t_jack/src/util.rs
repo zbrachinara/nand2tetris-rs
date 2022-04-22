@@ -18,16 +18,26 @@ pub const fn const_concat<T, const N: usize, const M: usize>(
 #[macro_export]
 macro_rules! const_concat {
     ($arr1:expr, $arr2:expr) => {
-        $crate::util::const_concat(&$arr1, &$arr2)
+        {
+
+            let left = $arr1;
+            let right = $arr2;
+            let res = $crate::util::const_concat(&left, &right);
+            core::mem::forget(right);
+            core::mem::forget(left);
+            res
+        }
     };
     ($arr1:expr, $($arrays:expr),+) => {
         {
-            let arrx = $crate::const_concat!($($arrays),+);
+            let right = $crate::const_concat!($($arrays),+);
+            let left = $arr1;
             let res = $crate::util::const_concat(
-                &$arr1,
-                &arrx
+                &left,
+                &right,
             );
-            core::mem::forget(arrx);
+            core::mem::forget(left);
+            core::mem::forget(right);
             res
         }
     };
