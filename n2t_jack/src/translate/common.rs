@@ -1,5 +1,4 @@
 use crate::const_concat;
-use crate::translate::stack::Stack;
 use n2t_asm::parse::{CExpr, Dst, Ident, Instruction, Item, JumpCondition, Source};
 
 /// Instruction which loads the stack pointer into M

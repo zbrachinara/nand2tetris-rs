@@ -1,7 +1,6 @@
 use crate::const_concat;
 use crate::translate::common::*;
 use n2t_asm::parse::{CExpr, Dst, Ident, Instruction, Item, JumpCondition, Source};
-use std::iter::once;
 use std::str::FromStr;
 use strum_macros::EnumString;
 
