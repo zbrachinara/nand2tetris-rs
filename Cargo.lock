@@ -246,6 +246,9 @@ dependencies = [
 [[package]]
 name = "n2t_jack"
 version = "0.1.0"
+dependencies = [
+ "n2t_asm",
+]
 
 [[package]]
 name = "n2tcc"
