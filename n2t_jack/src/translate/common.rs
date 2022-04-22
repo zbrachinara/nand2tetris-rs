@@ -1,12 +1,8 @@
-use n2t_asm::parse::{CExpr, Dst, Instruction, Item, JumpCondition, Source};
 use crate::const_concat;
+use n2t_asm::parse::{CExpr, Dst, Ident, Instruction, Item, JumpCondition, Source};
 
 /// Instruction which loads the stack pointer into M
-pub const FETCH_STACK_POINTER: [Item; 1] = [Item::Instruction(Instruction::C {
-    expr: CExpr::Zero,
-    dst: Dst::A,
-    jump: JumpCondition::Never,
-})];
+pub const FETCH_STACK_POINTER: [Item; 1] = [Item::Instruction(Instruction::A(Ident::Addr(0)))];
 
 pub const DECREMENT_MEM: [Item; 1] = [Item::Instruction(Instruction::C {
     expr: CExpr::XMinusOne(Source::Memory),
@@ -43,14 +39,7 @@ pub const STACK_POP: [Item; 3] = const_concat!(FETCH_STACK_POINTER, DECREMENT_ME
 /// Sets up environment for a two-parameter op
 ///
 /// The first parameter is stored in M, the second in A
-pub const STACK_CALL_ON_TWO: [Item; 5] = const_concat!(
-    STACK_POP,
-    DEREF_TO_D,
-    DECREMENT_POINTER,
-);
+pub const STACK_CALL_ON_TWO: [Item; 5] = const_concat!(STACK_POP, DEREF_TO_D, DECREMENT_POINTER,);
 
-pub const STACK_CALL_ON_ONE: [Item; 3] = const_concat!(
-    FETCH_STACK_POINTER,
-    DEREF_TO_A,
-    DECREMENT_POINTER,
-);
+pub const STACK_CALL_ON_ONE: [Item; 3] =
+    const_concat!(FETCH_STACK_POINTER, DEREF_TO_A, DECREMENT_POINTER,);
