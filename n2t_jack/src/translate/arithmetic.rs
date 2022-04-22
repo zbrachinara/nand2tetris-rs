@@ -1,38 +1,42 @@
+use super::common::*;
 use crate::const_concat;
 use crate::translate::keyword::Arithmetic;
 use n2t_asm::parse::Source;
 use n2t_asm::parse::{CExpr, Dst, Instruction, Item, JumpCondition};
-use super::common::*;
+
+const ADD: &[Item] = &const_concat!(
+    STACK_CALL_ON_TWO,
+    [Item::Instruction(Instruction::C {
+        expr: CExpr::DPlusX(Source::Memory),
+        dst: Dst::M,
+        jump: JumpCondition::Never,
+    })],
+);
+
+const SUB: &[Item] = &const_concat!(
+    STACK_CALL_ON_TWO,
+    [Item::Instruction(Instruction::C {
+        expr: CExpr::DMinusX(Source::Memory),
+        dst: Dst::M,
+        jump: JumpCondition::Never,
+    })],
+);
+
+const NEG: &[Item] = &const_concat!(
+    STACK_CALL_ON_ONE,
+    [Item::Instruction(Instruction::C {
+        expr: CExpr::NegX(Source::Memory),
+        dst: Dst::M,
+        jump: JumpCondition::Never,
+    })],
+);
 
 impl Arithmetic {
-    pub fn translate(self) -> &[Item] {
+    pub fn translate(self) -> &'static [Item] {
         match self {
-            Arithmetic::Add => &const_concat!(
-                STACK_CALL_ON_TWO,
-                [Item::Instruction(Instruction::C {
-                    expr: CExpr::DPlusX(Source::Memory),
-                    dst: Dst::M,
-                    jump: JumpCondition::Never,
-                })]
-            ),
-            Arithmetic::Sub => &const_concat!(
-                STACK_CALL_ON_TWO,
-                [Item::Instruction(Instruction::C {
-                    expr: CExpr::XMinusD(Source::Memory),
-                    dst: Dst::M,
-                    jump: JumpCondition::Never,
-                })]
-            ),
-            Arithmetic::Neg => &const_concat!(
-                FETCH_STACK_POINTER,
-                DEREF_TO_A,
-                DECREMENT_POINTER,
-                [Item::Instruction(Instruction::C {
-                    expr: CExpr::NegX(Source::Memory),
-                    dst: Dst::M,
-                    jump: JumpCondition::Never,
-                })]
-            ),
+            Arithmetic::Add => ADD,
+            Arithmetic::Sub => SUB,
+            Arithmetic::Neg => NEG,
             Arithmetic::Eq => todo!(),
             Arithmetic::Gt => todo!(),
             Arithmetic::Lt => todo!(),

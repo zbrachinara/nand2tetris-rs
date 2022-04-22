@@ -1,6 +1,5 @@
 use n2t_asm::parse::{CExpr, Dst, Instruction, Item, JumpCondition, Source};
 use crate::const_concat;
-use crate::util::const_concat;
 
 /// Instruction which loads the stack pointer into M
 pub const FETCH_STACK_POINTER: [Item; 1] = [Item::Instruction(Instruction::C {
@@ -47,5 +46,11 @@ pub const STACK_POP: [Item; 3] = const_concat!(FETCH_STACK_POINTER, DECREMENT_ME
 pub const STACK_CALL_ON_TWO: [Item; 5] = const_concat!(
     STACK_POP,
     DEREF_TO_D,
+    DECREMENT_POINTER,
+);
+
+pub const STACK_CALL_ON_ONE: [Item; 3] = const_concat!(
+    FETCH_STACK_POINTER,
+    DEREF_TO_A,
     DECREMENT_POINTER,
 );
