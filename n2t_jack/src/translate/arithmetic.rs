@@ -31,6 +31,33 @@ const NEG: &[Item] = &const_concat!(
     })],
 );
 
+const AND: &[Item] = &const_concat!(
+    STACK_CALL_ON_TWO,
+    [Item::Instruction(Instruction::C {
+        expr: CExpr::DAndX(Source::Memory),
+        dst: Dst::M,
+        jump: JumpCondition::Never,
+    })],
+);
+
+const OR: &[Item] = &const_concat!(
+    STACK_CALL_ON_TWO,
+    [Item::Instruction(Instruction::C {
+        expr: CExpr::DOrX(Source::Memory),
+        dst: Dst::M,
+        jump: JumpCondition::Never,
+    })],
+);
+
+const NOT: &[Item] = &const_concat!(
+    STACK_CALL_ON_ONE,
+    [Item::Instruction(Instruction::C {
+        expr: CExpr::NotX(Source::Memory),
+        dst: Dst::M,
+        jump: JumpCondition::Never,
+    })],
+);
+
 impl Arithmetic {
     pub fn translate(self) -> &'static [Item] {
         match self {
@@ -40,9 +67,9 @@ impl Arithmetic {
             Arithmetic::Eq => todo!(),
             Arithmetic::Gt => todo!(),
             Arithmetic::Lt => todo!(),
-            Arithmetic::And => todo!(),
-            Arithmetic::Or => todo!(),
-            Arithmetic::Not => todo!(),
+            Arithmetic::And => AND,
+            Arithmetic::Or => OR,
+            Arithmetic::Not => NOT,
         }
     }
 }
