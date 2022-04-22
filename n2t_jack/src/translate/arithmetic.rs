@@ -41,13 +41,19 @@ pub const DEREF_TO_A: [Item; 1] = [Item::Instruction(Instruction::C {
 /// The new stack pointer will be stored to A, and also points to the old stack top value
 pub const STACK_POP: [Item; 3] = const_concat!(FETCH_STACK_POINTER, DECREMENT_MEM, DEREF_TO_A);
 
+/// Sets up environment for a two-parameter op
+/// The first parameter is stored in M, the second in A
+pub const STACK_CALL_ON_TWO: [Item; 5] = const_concat!(
+    STACK_POP,
+    DEREF_TO_D,
+    DECREMENT_POINTER,
+);
+
 impl Arithmetic {
     pub fn translate(self) -> &[Item] {
         match self {
             Arithmetic::Add => &const_concat!(
-                STACK_POP,
-                DEREF_TO_D,
-                DECREMENT_POINTER,
+                STACK_CALL_ON_TWO,
                 [Item::Instruction(Instruction::C {
                     expr: CExpr::DPlusX(Source::Memory),
                     dst: Dst::M,
@@ -55,9 +61,7 @@ impl Arithmetic {
                 })]
             ),
             Arithmetic::Sub => &const_concat!(
-                STACK_POP,
-                DEREF_TO_D,
-                DECREMENT_POINTER,
+                STACK_CALL_ON_TWO,
                 [Item::Instruction(Instruction::C {
                     expr: CExpr::XMinusD(Source::Memory),
                     dst: Dst::M,
