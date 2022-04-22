@@ -47,5 +47,5 @@ pub const STACK_POP: [Item; 3] = const_concat!(FETCH_STACK_POINTER, DECREMENT_ME
 pub const STACK_CALL_ON_TWO: [Item; 5] = const_concat!(
     STACK_POP,
     DEREF_TO_D,
-    DECREMENT_POINTER
+    DECREMENT_POINTER,
 );
