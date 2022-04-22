@@ -1,6 +1,5 @@
 mod arithmetic;
 mod common;
-mod keyword;
 mod stack;
 
 use n2t_asm::parse::Item;
@@ -25,9 +24,9 @@ pub fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
 fn translate_instruction(instruction: &str) -> Result<Vec<Item>, ()> {
     let mut commands = instruction.split_whitespace();
     if let Some(command) = commands.next() {
-        if let Ok(op) = keyword::Arithmetic::from_str(command) {
+        if let Ok(op) = arithmetic::Arithmetic::from_str(command) {
             Ok(op.translate().iter().cloned().collect::<Vec<_>>())
-        } else if let Ok(stack_access) = keyword::Stack::from_str(command) {
+        } else if let Ok(stack_access) = stack::Stack::from_str(command) {
             todo!("{stack_access:?}")
         } else {
             todo!()
