@@ -27,7 +27,7 @@ fn translate_instruction(instruction: &str) -> Result<Vec<Item>, ()> {
         if let Ok(op) = arithmetic::Arithmetic::from_str(command) {
             Ok(op.translate().iter().cloned().collect::<Vec<_>>())
         } else if let Ok(stack_access) = stack::Stack::from_str(command) {
-            todo!("{stack_access:?}")
+            stack_access.translate(commands)
         } else {
             todo!()
         }
