@@ -1,8 +1,8 @@
 use strum_macros::EnumString;
 
-#[derive(EnumString)]
+#[derive(EnumString, Debug)]
 #[strum(serialize_all = "lowercase")]
-enum Arithmetic {
+pub enum Arithmetic {
     Add,
     Sub,
     Neg,
@@ -14,9 +14,9 @@ enum Arithmetic {
     Not,
 }
 
-#[derive(EnumString)]
+#[derive(EnumString, Debug)]
 #[strum(serialize_all = "lowercase")]
-enum Memory {
+pub enum Memory {
     Push,
     Pop,
 }

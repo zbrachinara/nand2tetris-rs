@@ -1,6 +1,7 @@
 mod keyword;
 
 use n2t_asm::parse::Item;
+use std::str::FromStr;
 
 fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
     program
@@ -14,5 +15,14 @@ fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
 }
 
 fn translate_instruction(instruction: &str) -> impl Iterator<Item = Result<Item, ()>> {
-    std::iter::empty()
+    let mut commands = instruction.split_whitespace();
+    if let Some(command) = commands.next() {
+        if let Ok(op) = keyword::Arithmetic::from_str(command) {
+            todo!("{op:?}");
+        } else if let Ok(mem_access) = keyword::Memory::from_str(command) {
+            todo!("{mem_access:?}");
+        }
+    }
+
+    std::iter::empty() // TODO: placeholder return value
 }
