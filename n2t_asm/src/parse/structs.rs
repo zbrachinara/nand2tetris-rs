@@ -4,13 +4,13 @@ use strum_macros::EnumString;
 #[derive(Debug)]
 pub struct Program(pub Vec<Instruction>);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Item {
     Label(String),
     Instruction(Instruction),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Instruction {
     A(Ident),
     // Label(String),
@@ -21,13 +21,13 @@ pub enum Instruction {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Ident {
     Name(String),
     Addr(u16),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CExpr {
     Zero,
     One,
@@ -49,7 +49,7 @@ pub enum CExpr {
     DOrX(Source),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Source {
     Register,
     Memory,
@@ -63,7 +63,7 @@ bitflags! {
     }
 }
 
-#[derive(EnumString, Debug)]
+#[derive(EnumString, Debug, Clone)]
 pub enum JumpCondition {
     #[strum(disabled)]
     Never,

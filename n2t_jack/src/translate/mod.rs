@@ -1,10 +1,11 @@
-mod keyword;
 mod arithmetic;
 mod common;
+mod keyword;
 
 use n2t_asm::parse::Item;
 use std::str::FromStr;
 
+// fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
 fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
     program
         .lines()
@@ -13,18 +14,24 @@ fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
                 .map(|(line, _)| line.trim())
                 .and_then(|line| (!line.is_empty()).then(|| line))
         })
-        .flat_map(|instr| translate_instruction(instr))
+        .flat_map(|instr| if let Ok(items) = translate_instruction(instr) {
+            items.into_iter().map(Ok).collect::<Vec<_>>()
+        } else {
+            vec![]
+        })
 }
 
-fn translate_instruction(instruction: &str) -> impl Iterator<Item = Result<Item, ()>> {
+fn translate_instruction(instruction: &str) -> Result<Vec<Item>, ()> {
     let mut commands = instruction.split_whitespace();
     if let Some(command) = commands.next() {
         if let Ok(op) = keyword::Arithmetic::from_str(command) {
-            todo!("{op:?}");
+            Ok(op.translate().iter().cloned().collect::<Vec<_>>())
         } else if let Ok(mem_access) = keyword::Memory::from_str(command) {
-            todo!("{mem_access:?}");
+            todo!("{mem_access:?}")
+        } else {
+            todo!()
         }
+    } else {
+        Err(())
     }
-
-    std::iter::empty() // TODO: placeholder return value
 }
