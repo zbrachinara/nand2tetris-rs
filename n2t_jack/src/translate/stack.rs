@@ -4,6 +4,36 @@ use n2t_asm::parse::{CExpr, Dst, Ident, Instruction, Item, JumpCondition, Source
 use std::str::FromStr;
 use strum_macros::EnumString;
 
+pub fn table_access(table_addr: u16, offset: u16, push_or_pop: &Stack) -> Vec<Item> {
+    match push_or_pop {
+        Stack::Push => const_concat!(
+            [
+                Item::Instruction(Instruction::A(Ident::Addr(table_addr))),
+                Item::Instruction(Instruction::C {
+                    expr: CExpr::X(Source::Register),
+                    dst: Dst::D,
+                    jump: JumpCondition::Never,
+                }),
+                Item::Instruction(Instruction::A(Ident::Addr(offset))),
+                Item::Instruction(Instruction::C {
+                    expr: CExpr::DPlusX(Source::Register),
+                    dst: Dst::A,
+                    jump: JumpCondition::Never,
+                })
+            ],
+            DEREF_TO_D,
+            FETCH_STACK_POINTER,
+            DEREF_TO_A,
+            WRITE_FROM_D,
+        )
+        .into_iter()
+        .collect::<Vec<_>>(),
+        Stack::Pop => {
+            todo!()
+        }
+    }
+}
+
 pub fn table_ptr_access(table_ptr_addr: u16, offset: u16, push_or_pop: &Stack) -> Vec<Item> {
     if *push_or_pop == Stack::Push {
         const_concat!(
@@ -49,10 +79,14 @@ impl Segment {
     pub fn translate(&self, offset: u16, push_or_pop: &Stack) -> Result<Vec<Item>, ()> {
         match self {
             Segment::Local => Ok(table_ptr_access(1, offset, push_or_pop)),
-            Segment::Argument => todo!(),
-            Segment::This => todo!(),
-            Segment::That => todo!(),
-            Segment::Pointer => todo!(),
+            Segment::Argument => Ok(table_ptr_access(2, offset, push_or_pop)),
+            Segment::This => Ok(table_ptr_access(3, offset, push_or_pop)),
+            Segment::That => Ok(table_ptr_access(4, offset, push_or_pop)),
+            Segment::Pointer => match offset {
+                0 => todo!(),
+                1 => todo!(),
+                _ => Err(()),
+            },
             Segment::Temp => todo!(),
             Segment::Static => todo!(),
             Segment::Constant => todo!(),
