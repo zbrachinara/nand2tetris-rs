@@ -3,5 +3,5 @@
 #![feature(const_mut_refs)]
 #![feature(const_intrinsic_copy)]
 
-mod translate;
+pub mod translate;
 mod util;

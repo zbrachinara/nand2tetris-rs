@@ -6,7 +6,7 @@ use n2t_asm::parse::Item;
 use std::str::FromStr;
 
 // fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
-fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
+pub fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
     program
         .lines()
         .filter_map(|line| {
