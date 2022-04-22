@@ -10,9 +10,7 @@ fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
                 .map(|(line, _)| line.trim())
                 .and_then(|line| (!line.is_empty()).then(|| line))
         })
-        .flat_map(|instr| translate_instruction(instr));
-
-    std::iter::empty()
+        .flat_map(|instr| translate_instruction(instr))
 }
 
 fn translate_instruction(instruction: &str) -> impl Iterator<Item = Result<Item, ()>> {
