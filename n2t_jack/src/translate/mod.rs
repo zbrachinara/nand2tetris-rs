@@ -1,4 +1,5 @@
 mod keyword;
+mod arithmetic;
 
 use n2t_asm::parse::Item;
 use std::str::FromStr;
