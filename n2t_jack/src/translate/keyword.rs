@@ -62,7 +62,7 @@ pub enum Arithmetic {
 
 #[derive(EnumString, Debug)]
 #[strum(serialize_all = "lowercase")]
-pub enum Memory {
+pub enum Stack {
     Push,
     Pop,
 }

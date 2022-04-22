@@ -1,6 +1,7 @@
 mod arithmetic;
 mod common;
 mod keyword;
+mod stack;
 
 use n2t_asm::parse::Item;
 use std::str::FromStr;
@@ -26,8 +27,8 @@ fn translate_instruction(instruction: &str) -> Result<Vec<Item>, ()> {
     if let Some(command) = commands.next() {
         if let Ok(op) = keyword::Arithmetic::from_str(command) {
             Ok(op.translate().iter().cloned().collect::<Vec<_>>())
-        } else if let Ok(mem_access) = keyword::Memory::from_str(command) {
-            todo!("{mem_access:?}")
+        } else if let Ok(stack_access) = keyword::Stack::from_str(command) {
+            todo!("{stack_access:?}")
         } else {
             todo!()
         }
