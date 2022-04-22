@@ -1,4 +1,5 @@
 use crate::const_concat;
+use crate::translate::stack::Stack;
 use n2t_asm::parse::{CExpr, Dst, Ident, Instruction, Item, JumpCondition, Source};
 
 /// Instruction which loads the stack pointer into M
@@ -28,6 +29,12 @@ pub const DEREF_TO_D: [Item; 1] = [Item::Instruction(Instruction::C {
 pub const DEREF_TO_A: [Item; 1] = [Item::Instruction(Instruction::C {
     expr: CExpr::X(Source::Memory),
     dst: Dst::A,
+    jump: JumpCondition::Never,
+})];
+
+pub const WRITE_FROM_D: [Item; 1] = [Item::Instruction(Instruction::C {
+    expr: CExpr::D,
+    dst: Dst::M,
     jump: JumpCondition::Never,
 })];
 
