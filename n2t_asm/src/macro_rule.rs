@@ -1,37 +1,45 @@
+#[macro_export]
 macro_rules! n2tasm {
     ($($instr:tt)*) => {
-        [$(_n2tasm_one!($instr)),*]
+        [$($crate::_n2tasm_one!($instr)),*]
     };
 }
 
+#[macro_export]
 macro_rules! _n2tasm_one {
     // labels
-    ({(s:$lb:ident)}) => {
-        println!(r#"a label with context-derived name {}"#, $lb)
-    };
-    ({($lb:ident)}) => {
-        println!(r#"label with literal name {}"#, stringify!($lb))
-    };
+    ({($lb:ident)}) => {{
+        print!(r#"label with literal name: "#);
+        let lb = stringify!($lb);
+        $crate::_n2tasm_one!({(s:lb)})
+    }};
+    ({(s:$lb:ident)}) => {{
+        use $crate::parse::structs::*;
+        println!(r#"label {}"#, $lb);
+        Item::Label($lb.to_string())
+    }};
 
     // A-instruction
-    ({@$ident:expr}) => {
-        println!(r#"A-instruction with value "{}""#, stringify!($ident))
-    };
+    ({@$ident:expr}) => {{
+        println!(r#"A-instruction with value "{}""#, stringify!($ident));
+        todo!()
+    }};
 
     // C-instruction
-    ({$expr:expr;$jmp:ident}) => {
-        println!(r#"expression: "{}", jump command: "{}""#, stringify!($expr), stringify!($jmp))
-    };
-    ({$expr:expr}) => {
-        println!(r#"expression: "{}" (without jump)"#, stringify!($expr))
-    };
+    ({$expr:expr;$jmp:ident}) => {{
+        println!(r#"expression: "{}", jump command: "{}""#, stringify!($expr), stringify!($jmp));
+        todo!()
+    }};
+    ({$expr:expr}) => {{
+        println!(r#"expression: "{}" (without jump)"#, stringify!($expr));
+        todo!()
+    }};
 }
 
 #[cfg(test)]
 mod test {
     #[test]
     fn valid_macro() {
-
         let label_name = "label_test";
 
         n2tasm! {
