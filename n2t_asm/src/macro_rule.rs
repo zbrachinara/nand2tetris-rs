@@ -14,15 +14,16 @@ macro_rules! _n2tasm_one {
         $crate::_n2tasm_one!({(s:lb)})
     }};
     ({(s:$lb:ident)}) => {{
-        use $crate::parse::structs::*;
+        use $crate::parse::structs::Item;
         println!(r#"label {}"#, $lb);
         Item::Label($lb.to_string())
     }};
 
     // A-instruction
     ({@$ident:expr}) => {{
+        use $crate::parse::structs::{Item, Instruction};
         println!(r#"A-instruction with value "{}""#, stringify!($ident));
-        todo!()
+        Item::Instruction(Instruction::A(_n2tasm_a_instr_ident!($ident)))
     }};
 
     // C-instruction
@@ -34,6 +35,17 @@ macro_rules! _n2tasm_one {
         println!(r#"expression: "{}" (without jump)"#, stringify!($expr));
         todo!()
     }};
+}
+
+macro_rules! _n2tasm_a_instr_ident {
+    ($id:ident) => {{
+        use $crate::parse::structs::Ident;
+        Ident::Name(stringify!($id))
+    }};
+    ($id:literal) => {{
+        use $crate::parse::structs::Ident;
+        Ident::Addr($id)
+    }}
 }
 
 #[cfg(test)]
