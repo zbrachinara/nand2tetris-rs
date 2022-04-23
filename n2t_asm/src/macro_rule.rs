@@ -11,7 +11,7 @@ macro_rules! _n2tasm_one {
     ({($lb:ident)}) => {{
         print!(r#"label with literal name: "#);
         let lb = stringify!($lb);
-        $crate::_n2tasm_one!({(s:lb)})
+        $crate::_n2tasm_one!({ (s: lb) })
     }};
     ({(s:$lb:ident)}) => {{
         use $crate::parse::structs::Item;
@@ -21,18 +21,40 @@ macro_rules! _n2tasm_one {
 
     // A-instruction
     ({@$ident:expr}) => {{
-        use $crate::parse::structs::{Item, Instruction};
+        use $crate::parse::structs::{Instruction, Item};
         println!(r#"A-instruction with value "{}""#, stringify!($ident));
         Item::Instruction(Instruction::A(_n2tasm_a_instr_ident!($ident)))
     }};
 
     // C-instruction
-    ({$expr:expr;$jmp:ident}) => {{
-        println!(r#"expression: "{}", jump command: "{}""#, stringify!($expr), stringify!($jmp));
+    ({$dst:ident=$expr:expr;$jmp:ident}) => {{
+        println!(
+            r#"destination: {}, expression: "{}", jump command: "{}""#,
+            stringify!($dst),
+            stringify!($expr),
+            stringify!($jmp)
+        );
         todo!()
     }};
-    ({$expr:expr}) => {{
+    ({$expr:expr;$jmp:ident}) => {{
+        println!(
+            r#"expression: "{}", jump command: "{}""#,
+            stringify!($expr),
+            stringify!($jmp)
+        );
+        todo!()
+    }};
+    ({$dst:ident=$expr:expr$(;)?}) => {{
+        println!(
+            r#"destination: {}, expression: "{}""#,
+            stringify!($dst),
+            stringify!($expr),
+        );
+        todo!()
+    }};
+    ({$expr:expr$(;)?}) => {{
         println!(r#"expression: "{}" (without jump)"#, stringify!($expr));
+        // _n2tasm_dst_expr_pair!($expr);
         todo!()
     }};
 }
@@ -45,7 +67,7 @@ macro_rules! _n2tasm_a_instr_ident {
     ($id:literal) => {{
         use $crate::parse::structs::Ident;
         Ident::Addr($id)
-    }}
+    }};
 }
 
 #[cfg(test)]
@@ -58,10 +80,10 @@ mod test {
             {(s:label_name)}
             {(abcdef)}
             {@0}
-            {D=M}
+            {D=M;}
             {M=M+1;JEQ}
         };
-        _n2tasm_one!({-1});
-        _n2tasm_one!({M+1});
+        _n2tasm_one!({ -1 });
+        _n2tasm_one!({ M + 1 });
     }
 }
