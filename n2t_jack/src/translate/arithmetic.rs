@@ -146,7 +146,7 @@ impl Arithmetic {
             Arithmetic::Add => ADD,
             Arithmetic::Sub => SUB,
             Arithmetic::Neg => NEG,
-            Arithmetic::Eq => EQ, //TODO: Define determinant bit
+            Arithmetic::Eq => todo!(),
             Arithmetic::Gt => GT,
             Arithmetic::Lt => LT,
             Arithmetic::And => AND,
