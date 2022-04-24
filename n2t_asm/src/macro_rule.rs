@@ -22,52 +22,35 @@ macro_rules! _n2tasm_one {
     // A-instruction
     ({@$ident:expr}) => {{
         println!(r#"A-instruction with value "{}""#, stringify!($ident));
-        Item::Instruction(Instruction::A(_n2tasm_a_instr_ident!($ident)))
+        Item::Instruction(Instruction::A($crate::_n2tasm_a_instr_ident!($ident)))
     }};
 
     // C-instruction
     ({$dst:ident=$expr:tt;$jmp:ident}) => {{
-        println!(
-            r#"destination: {:?}, expression: "{:?}", jump command: "{:?}""#,
-            _n2tasm_c_instr_dst!($dst),
-            stringify!($expr),
-            stringify!($jmp)
-        );
         Item::Instruction(Instruction::C {
-            dst: _n2tasm_c_instr_dst!($dst),
-            expr: _n2tasm_c_instr_expr!($expr),
-            jump: _n2tasm_c_instr_jmp!($jmp),
+            dst: $crate::_n2tasm_c_instr_dst!($dst),
+            expr: $crate::_n2tasm_c_instr_expr!($expr),
+            jump: $crate::_n2tasm_c_instr_jmp!($jmp),
         })
     }};
     ({$expr:tt;$jmp:ident}) => {{
-        println!(
-            r#"expression: "{:?}", jump command: "{:?}""#,
-            _n2tasm_c_instr_expr!($expr),
-            _n2tasm_c_instr_jmp!($jmp)
-        );
         Item::Instruction(Instruction::C {
             dst: Dst::empty(),
-            expr: _n2tasm_c_instr_expr!($expr),
-            jump: _n2tasm_c_instr_jmp!($jmp),
+            expr: $crate::_n2tasm_c_instr_expr!($expr),
+            jump: $crate::_n2tasm_c_instr_jmp!($jmp),
         })
     }};
     ({$dst:ident=$expr:tt$(;)?}) => {{
-        println!(
-            r#"destination: {:?}, expression: "{:?}""#,
-            _n2tasm_c_instr_dst!($dst),
-            _n2tasm_c_instr_expr!($expr),
-        );
         Item::Instruction(Instruction::C {
-            dst: _n2tasm_c_instr_dst!($dst),
-            expr: _n2tasm_c_instr_expr!($expr),
+            dst: $crate::_n2tasm_c_instr_dst!($dst),
+            expr: $crate::_n2tasm_c_instr_expr!($expr),
             jump: JumpCondition::Never,
         })
     }};
     ({$expr:tt$(;)?}) => {{
-        println!(r#"expression: "{:?}" (without jump)"#, _n2tasm_c_instr_expr!($expr));
         Item::Instruction(Instruction::C {
             dst: Dst::empty(),
-            expr: _n2tasm_c_instr_expr!($expr),
+            expr: $crate::_n2tasm_c_instr_expr!($expr),
             jump: JumpCondition::Never,
         })
     }};

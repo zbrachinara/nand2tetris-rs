@@ -6,13 +6,17 @@ use strum_macros::EnumString;
 
 const HIGH_BIT: u16 = 0b1000_0000_0000_0000;
 
-const ADD: &[Item] = &const_concat!(
-    STACK_CALL_ON_TWO,
-    [Item::Instruction(Instruction::C {
-        expr: CExpr::DPlusX(Source::Memory),
-        dst: Dst::M,
-        jump: JumpCondition::Never,
-    })],
+// const ADD: &[Item] = &const_concat!(
+//     STACK_CALL_ON_TWO,
+//     [Item::Instruction(Instruction::C {
+//         expr: CExpr::DPlusX(Source::Memory),
+//         dst: Dst::M,
+//         jump: JumpCondition::Never,
+//     })],
+// );
+
+const ADD: &[Item] = &n2t_asm::n2tasm!(
+    {@0}
 );
 
 const SUB: &[Item] = &const_concat!(
