@@ -33,7 +33,7 @@ macro_rules! _n2tasm_one {
             stringify!($expr),
             stringify!($jmp)
         );
-        Item::Instruction(Instruction::C{
+        Item::Instruction(Instruction::C {
             dst: _n2tasm_c_instr_dst!($dst),
             expr: _n2tasm_c_instr_expr!($expr),
             jump: _n2tasm_c_instr_jmp!($jmp),
@@ -45,7 +45,11 @@ macro_rules! _n2tasm_one {
             _n2tasm_c_instr_expr!($expr),
             _n2tasm_c_instr_jmp!($jmp)
         );
-        todo!()
+        Item::Instruction(Instruction::C {
+            dst: Dst::empty(),
+            expr: _n2tasm_c_instr_expr!($expr),
+            jump: _n2tasm_c_instr_jmp!($jmp),
+        })
     }};
     ({$dst:ident=$expr:tt$(;)?}) => {{
         println!(
@@ -53,11 +57,19 @@ macro_rules! _n2tasm_one {
             _n2tasm_c_instr_dst!($dst),
             _n2tasm_c_instr_expr!($expr),
         );
-        todo!()
+        Item::Instruction(Instruction::C {
+            dst: _n2tasm_c_instr_dst!($dst),
+            expr: _n2tasm_c_instr_expr!($expr),
+            jump: JumpCondition::Never,
+        })
     }};
     ({$expr:tt$(;)?}) => {{
         println!(r#"expression: "{:?}" (without jump)"#, _n2tasm_c_instr_expr!($expr));
-        todo!()
+        Item::Instruction(Instruction::C {
+            dst: Dst::empty(),
+            expr: _n2tasm_c_instr_expr!($expr),
+            jump: JumpCondition::Never,
+        })
     }};
 }
 
