@@ -13,44 +13,44 @@ macro_rules! _n2tasm_one {
         let lb = stringify!($lb);
         $crate::_n2tasm_one!({ (s: lb) })
     }};
-    ({(s:$lb:ident)}) => {{
+    ({(s:$lb:ident)}) => {
         Item::Label($lb.to_string())
-    }};
+    };
 
     // A-instruction
-    ({@$ident:expr}) => {{
+    ({@$ident:expr}) => {
         Item::Instruction(Instruction::A($crate::_n2tasm_a_instr_ident!($ident)))
-    }};
+    };
 
     // C-instruction
-    ({$dst:ident=$expr:tt;$jmp:ident}) => {{
+    ({$dst:ident=$expr:tt;$jmp:ident}) => {
         Item::Instruction(Instruction::C {
             dst: $crate::_n2tasm_c_instr_dst!($dst),
             expr: $crate::_n2tasm_c_instr_expr!($expr),
             jump: $crate::_n2tasm_c_instr_jmp!($jmp),
         })
-    }};
-    ({$expr:tt;$jmp:ident}) => {{
+    };
+    ({$expr:tt;$jmp:ident}) => {
         Item::Instruction(Instruction::C {
             dst: Dst::empty(),
             expr: $crate::_n2tasm_c_instr_expr!($expr),
             jump: $crate::_n2tasm_c_instr_jmp!($jmp),
         })
-    }};
-    ({$dst:ident=$expr:tt$(;)?}) => {{
+    };
+    ({$dst:ident=$expr:tt$(;)?}) => {
         Item::Instruction(Instruction::C {
             dst: $crate::_n2tasm_c_instr_dst!($dst),
             expr: $crate::_n2tasm_c_instr_expr!($expr),
             jump: JumpCondition::Never,
         })
-    }};
-    ({$expr:tt$(;)?}) => {{
+    };
+    ({$expr:tt$(;)?}) => {
         Item::Instruction(Instruction::C {
             dst: Dst::empty(),
             expr: $crate::_n2tasm_c_instr_expr!($expr),
             jump: JumpCondition::Never,
         })
-    }};
+    };
 }
 
 #[macro_export]
