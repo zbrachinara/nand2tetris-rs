@@ -2,143 +2,91 @@ use super::common::*;
 use crate::const_concat;
 use n2t_asm::parse::{CExpr, Dst, Instruction, Item, JumpCondition};
 use n2t_asm::parse::{Ident, Source};
+use n2t_asm::n2tasm;
 use strum_macros::EnumString;
 
 const HIGH_BIT: u16 = 0b1000_0000_0000_0000;
 
-// const ADD: &[Item] = &const_concat!(
-//     STACK_CALL_ON_TWO,
-//     [Item::Instruction(Instruction::C {
-//         expr: CExpr::DPlusX(Source::Memory),
-//         dst: Dst::M,
-//         jump: JumpCondition::Never,
-//     })],
-// );
+const ADD: &[Item] = &n2tasm! {
+    {@0}      //Addressing stack pointer
+    {M=(M-1)} // pop stack
+    {A=(M)}
+    {D=(M)}   // retrieve popped stack value
+    {A=(A-1)}
+    {M=(D+M)} // add popped value and stack end value
+};
 
-const ADD: &[Item] = &n2t_asm::n2tasm!(
+const SUB: &[Item] = &n2tasm! {
     {@0}
+    {M=(M-1)}
+    {A=(M)}
+    {D=(M)}
+    {A=(A-1)}
+    {M=(D-M)}
+};
+
+const NEG: &[Item] = &n2tasm! {
+    {@0}
+    {A=(M-1)} // addressing stack end value
+    {M=(-M)}
+};
+
+const AND: &[Item] = &n2tasm! {
+    {@0}
+    {M=(M-1)}
+    {A=(M)}
+    {D=(M)}
+    {A=(A-1)}
+    {M=(D&M)}
+};
+
+const OR: &[Item] = &n2tasm!(
+    {@0}
+    {M=(M-1)}
+    {A=(M)}
+    {D=(M)}
+    {A=(A-1)}
+    {M=(D|M)}
 );
 
-const SUB: &[Item] = &const_concat!(
-    STACK_CALL_ON_TWO,
-    [Item::Instruction(Instruction::C {
-        expr: CExpr::DMinusX(Source::Memory),
-        dst: Dst::M,
-        jump: JumpCondition::Never,
-    })],
+const NOT: &[Item] = &n2tasm!(
+    {@0}
+    {M=(M-1)}
+    {A=(M)}
+    {D=(M)}
+    {A=(A-1)}
+    {M=(!M)}
 );
 
-const NEG: &[Item] = &const_concat!(
-    STACK_CALL_ON_ONE,
-    [Item::Instruction(Instruction::C {
-        expr: CExpr::NegX(Source::Memory),
-        dst: Dst::M,
-        jump: JumpCondition::Never,
-    })],
-);
+const EQ: &[Item] = &[]; // TODO: Previous EQ implementation was completely broken -- fix
 
-const AND: &[Item] = &const_concat!(
-    STACK_CALL_ON_TWO,
-    [Item::Instruction(Instruction::C {
-        expr: CExpr::DAndX(Source::Memory),
-        dst: Dst::M,
-        jump: JumpCondition::Never,
-    })],
-);
+const LT: &[Item] = &n2tasm!{
+    {@0}
+    {M=(M-1)}
+    {A=(M)}
+    {D=(M)}
+    {A=(A-1)}
+    {M=(M-D)} // high bit of M is now set if M < D
+    {@0b1000_0000_0000_0000}
+    {D=(A)}
+    {@0}
+    {A=(M-1)}
+    {M=(D&M)}
+};
 
-const OR: &[Item] = &const_concat!(
-    STACK_CALL_ON_TWO,
-    [Item::Instruction(Instruction::C {
-        expr: CExpr::DOrX(Source::Memory),
-        dst: Dst::M,
-        jump: JumpCondition::Never,
-    })],
-);
-
-const NOT: &[Item] = &const_concat!(
-    STACK_CALL_ON_ONE,
-    [Item::Instruction(Instruction::C {
-        expr: CExpr::NotX(Source::Memory),
-        dst: Dst::M,
-        jump: JumpCondition::Never,
-    })],
-);
-
-const EQ: &[Item] = &const_concat!(
-    STACK_CALL_ON_TWO,
-    [
-        Item::Instruction(Instruction::C {
-            expr: CExpr::XMinusD(Source::Memory),
-            dst: Dst::D,
-            jump: JumpCondition::Never,
-        }),
-        Item::Instruction(Instruction::C {
-            expr: CExpr::NotD,
-            dst: Dst::M,
-            jump: JumpCondition::Never,
-        })
-    ],
-);
-
-const LT: &[Item] = &const_concat!(
-    STACK_CALL_ON_TWO,
-    [
-        Item::Instruction(Instruction::C {
-            expr: CExpr::XMinusD(Source::Memory),
-            dst: Dst::D,
-            jump: JumpCondition::Never,
-        }),
-        Item::Instruction(Instruction::A(Ident::Addr(HIGH_BIT))),
-        Item::Instruction(Instruction::C {
-            expr: CExpr::DAndX(Source::Register),
-            dst: Dst::D,
-            jump: JumpCondition::Never,
-        }),
-    ],
-    FETCH_STACK_POINTER,
-    [
-        Item::Instruction(Instruction::C {
-            expr: CExpr::XMinusOne(Source::Memory),
-            dst: Dst::A,
-            jump: JumpCondition::Never,
-        }),
-        Item::Instruction(Instruction::C {
-            expr: CExpr::D,
-            dst: Dst::M,
-            jump: JumpCondition::Never,
-        })
-    ],
-);
-
-const GT: &[Item] = &const_concat!(
-    STACK_CALL_ON_TWO,
-    [
-        Item::Instruction(Instruction::C {
-            expr: CExpr::DMinusX(Source::Memory),
-            dst: Dst::D,
-            jump: JumpCondition::Never,
-        }),
-        Item::Instruction(Instruction::A(Ident::Addr(HIGH_BIT))),
-        Item::Instruction(Instruction::C {
-            expr: CExpr::DAndX(Source::Register),
-            dst: Dst::D,
-            jump: JumpCondition::Never,
-        }),
-    ],
-    FETCH_STACK_POINTER,
-    [
-        Item::Instruction(Instruction::C {
-            expr: CExpr::XMinusOne(Source::Memory),
-            dst: Dst::A,
-            jump: JumpCondition::Never,
-        }),
-        Item::Instruction(Instruction::C {
-            expr: CExpr::D,
-            dst: Dst::M,
-            jump: JumpCondition::Never,
-        })
-    ],
-);
+const GT: &[Item] = &n2tasm!{
+    {@0}
+    {M=(M-1)}
+    {A=(M)}
+    {D=(M)}
+    {A=(A-1)}
+    {M=(D-M)} // high bit of M is now set if D < M
+    {@0b1000_0000_0000_0000}
+    {D=(A)}
+    {@0}
+    {A=(M-1)}
+    {M=(D&M)}
+};
 
 impl Arithmetic {
     pub fn translate(self) -> &'static [Item] {
