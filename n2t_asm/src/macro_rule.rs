@@ -10,18 +10,15 @@ macro_rules! n2tasm {
 macro_rules! _n2tasm_one {
     // labels
     ({($lb:ident)}) => {{
-        print!(r#"label with literal name: "#);
         let lb = stringify!($lb);
         $crate::_n2tasm_one!({ (s: lb) })
     }};
     ({(s:$lb:ident)}) => {{
-        println!(r#"label {}"#, $lb);
         Item::Label($lb.to_string())
     }};
 
     // A-instruction
     ({@$ident:expr}) => {{
-        println!(r#"A-instruction with value "{}""#, stringify!($ident));
         Item::Instruction(Instruction::A($crate::_n2tasm_a_instr_ident!($ident)))
     }};
 
