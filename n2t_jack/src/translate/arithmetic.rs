@@ -71,12 +71,7 @@ const EQ: &[Item] = &n2tasm![
     {A=(A-1)}
     {M=(M|D)} // high bit set if arg1 < arg2 or arg2 < arg1
     {M=(!M)}  // high bit set if arg1 = arg2
-    {@0b1000_0000_0000_0000}
-    {D=(A)}
-    {@0}
-    {A=(M-1)} // loaded constant and returned to stack end
-    {M=(D&M)} // mask out high bit
-]; // TODO: Previous EQ implementation was completely broken -- fix
+];
 
 const LT: &[Item] = &n2tasm!{
     {@0}
@@ -85,11 +80,6 @@ const LT: &[Item] = &n2tasm!{
     {D=(M)}
     {A=(A-1)}
     {M=(M-D)} // high bit of M is now set if M < D
-    {@0b1000_0000_0000_0000}
-    {D=(A)}
-    {@0}
-    {A=(M-1)} // loaded constant and returned to stack end
-    {M=(D&M)}
 };
 
 const GT: &[Item] = &n2tasm!{
@@ -99,11 +89,6 @@ const GT: &[Item] = &n2tasm!{
     {D=(M)}
     {A=(A-1)}
     {M=(D-M)} // high bit of M is now set if D < M
-    {@0b1000_0000_0000_0000}
-    {D=(A)}
-    {@0}
-    {A=(M-1)}
-    {M=(D&M)}
 };
 
 impl Arithmetic {
@@ -112,7 +97,7 @@ impl Arithmetic {
             Arithmetic::Add => ADD,
             Arithmetic::Sub => SUB,
             Arithmetic::Neg => NEG,
-            Arithmetic::Eq => todo!(),
+            Arithmetic::Eq => EQ,
             Arithmetic::Gt => GT,
             Arithmetic::Lt => LT,
             Arithmetic::And => AND,
@@ -122,6 +107,9 @@ impl Arithmetic {
     }
 }
 
+///
+/// Note that for test operations (`Eq`, `Lt`, `Gt`), only the highest bit
+/// marks the boolean (1 for success, 0 for failure)
 #[derive(EnumString, Debug)]
 #[strum(serialize_all = "lowercase")]
 pub enum Arithmetic {
