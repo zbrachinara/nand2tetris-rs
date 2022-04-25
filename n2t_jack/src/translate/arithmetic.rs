@@ -58,7 +58,25 @@ const NOT: &[Item] = &n2tasm!(
     {M=(!M)}
 );
 
-const EQ: &[Item] = &[]; // TODO: Previous EQ implementation was completely broken -- fix
+const EQ: &[Item] = &n2tasm![
+    {@0}
+    {M=(M-1)}
+    {A=(M)}
+    {D=(M)}
+    {A=(A-1)}
+    {M=(M-D)} // high bit of M is now set if M < D
+    {D=(M+D)} // D is now the initial value of arg1
+    {A=(A+1)}
+    {D=(M-D)} // high bit of D is now set if M < D
+    {A=(A-1)}
+    {M=(M|D)} // high bit set if arg1 < arg2 or arg2 < arg1
+    {M=(!M)}  // high bit set if arg1 = arg2
+    {@0b1000_0000_0000_0000}
+    {D=(A)}
+    {@0}
+    {A=(M-1)} // loaded constant and returned to stack end
+    {M=(D&M)} // mask out high bit
+]; // TODO: Previous EQ implementation was completely broken -- fix
 
 const LT: &[Item] = &n2tasm!{
     {@0}
@@ -70,7 +88,7 @@ const LT: &[Item] = &n2tasm!{
     {@0b1000_0000_0000_0000}
     {D=(A)}
     {@0}
-    {A=(M-1)}
+    {A=(M-1)} // loaded constant and returned to stack end
     {M=(D&M)}
 };
 
