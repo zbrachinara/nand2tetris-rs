@@ -1,11 +1,8 @@
-use super::common::*;
-use crate::const_concat;
-use n2t_asm::parse::{CExpr, Dst, Instruction, Item, JumpCondition};
-use n2t_asm::parse::{Ident, Source};
 use n2t_asm::n2tasm;
+use n2t_asm::parse::Item;
 use strum_macros::EnumString;
 
-const HIGH_BIT: u16 = 0b1000_0000_0000_0000;
+// const HIGH_BIT: u16 = 0b1000_0000_0000_0000;
 
 const ADD: &[Item] = &n2tasm! {
     {@0}      //Addressing stack pointer
@@ -73,7 +70,7 @@ const EQ: &[Item] = &n2tasm![
     {M=(!M)}  // high bit set if arg1 = arg2
 ];
 
-const LT: &[Item] = &n2tasm!{
+const LT: &[Item] = &n2tasm! {
     {@0}
     {M=(M-1)}
     {A=(M)}
@@ -82,7 +79,7 @@ const LT: &[Item] = &n2tasm!{
     {M=(M-D)} // high bit of M is now set if M < D
 };
 
-const GT: &[Item] = &n2tasm!{
+const GT: &[Item] = &n2tasm! {
     {@0}
     {M=(M-1)}
     {A=(M)}
