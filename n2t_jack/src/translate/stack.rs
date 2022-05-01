@@ -91,7 +91,6 @@ impl Segment {
             Segment::Static => todo!(),
             Segment::Constant => todo!(),
         }
-        // todo!()
     }
 }
 
