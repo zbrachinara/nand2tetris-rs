@@ -1,5 +1,6 @@
 use crate::const_concat;
 use crate::translate::common::*;
+use n2t_asm::n2tasm;
 use n2t_asm::parse::{CExpr, Dst, Ident, Instruction, Item, JumpCondition, Source};
 use std::str::FromStr;
 use strum_macros::EnumString;
@@ -58,6 +59,47 @@ pub fn table_ptr_access(table_ptr_addr: u16, offset: u16, push_or_pop: &Stack) -
         .collect()
     } else {
         todo!()
+    }
+}
+
+fn tabled_segment(table_offset: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
+    match push_or_pop {
+        Stack::Push => {
+            n2tasm!(
+                {@n:table_offset}   // get the base ptr to the table
+                {D=(M)}             // store base pointer to D
+                {@n:segment_offset} // get the offset from the base ptr
+                {A=(D+A)}           // add the offset to the base ptr
+                {D=(M)}             // store the value at the offset to D
+
+                {@0}
+                {M=(M+1)}           // increment the stack ptr
+                {A=(M-1)}           // get the empty stack location
+
+                {M=(D)}             // store the value at the offset to the empty address
+            )
+            .to_vec()
+        }
+        Stack::Pop => {
+            n2tasm!(
+                {@n:table_offset}
+                {D=(M)}
+                {@n:segment_offset}
+                {D=(D+A)}           // calculate destination ptr and store it in D
+
+                {@0}
+                {M=(M-1)}           // decrement the stack ptr
+                {A=(M+1)}           // go one above the end of the stack
+                {M=(D)}             // store destination ptr above the stack
+
+                {A=(A-1)}
+                {D=(M)}             // load stack head
+                {A=(A+1)}
+                {A=(M)}             // load destination ptr
+
+                {M=(D)}             // perform popping operation
+            ).to_vec()
+        }
     }
 }
 

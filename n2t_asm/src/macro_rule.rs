@@ -18,6 +18,9 @@ macro_rules! _n2tasm_one {
     };
 
     // A-instruction
+    ({@n:$ident:ident}) => {
+        Item::Instruction(Instruction::A(Ident::Addr($ident)))
+    };
     ({@$ident:expr}) => {
         Item::Instruction(Instruction::A($crate::_n2tasm_a_instr_ident!($ident)))
     };
@@ -175,11 +178,13 @@ mod test {
     #[test]
     fn valid_macro() {
         let label_name = "label_test";
+        let location = 2;
 
         n2tasm! {
             {(s:label_name)}
             {(abcdef)}
             {@0}
+            {@n:location}
             {M=(M+1);JEQ}
             {ADM=(M);}
         };
