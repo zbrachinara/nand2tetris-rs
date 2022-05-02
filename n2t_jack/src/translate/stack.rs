@@ -60,7 +60,7 @@ use strum_macros::EnumString;
 //     }
 // }
 
-fn segment_table(table_offset: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
+fn segment_table_addr(table_offset: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
     match push_or_pop {
         Stack::Push => n2tasm!(
             {@n:table_offset}   // get the base ptr to the table
@@ -135,10 +135,10 @@ impl Stack {
 impl Segment {
     pub fn translate(&self, offset: u16, push_or_pop: &Stack) -> Result<Vec<Item>, ()> {
         match self {
-            Segment::Local => Ok(segment_table(1, offset, push_or_pop)),
-            Segment::Argument => Ok(segment_table(2, offset, push_or_pop)),
-            Segment::This => Ok(segment_table(3, offset, push_or_pop)),
-            Segment::That => Ok(segment_table(4, offset, push_or_pop)),
+            Segment::Local => Ok(segment_table_addr(1, offset, push_or_pop)),
+            Segment::Argument => Ok(segment_table_addr(2, offset, push_or_pop)),
+            Segment::This => Ok(segment_table_addr(3, offset, push_or_pop)),
+            Segment::That => Ok(segment_table_addr(4, offset, push_or_pop)),
             Segment::Constant => match push_or_pop {
                 Stack::Push => Ok(push_const(offset)),
                 Stack::Pop => Err(()),
