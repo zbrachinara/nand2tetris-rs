@@ -62,43 +62,46 @@ use strum_macros::EnumString;
 
 fn segment_table(table_offset: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
     match push_or_pop {
-        Stack::Push => {
-            n2tasm!(
-                {@n:table_offset}   // get the base ptr to the table
-                {D=(M)}             // store base pointer to D
-                {@n:segment_offset} // get the offset from the base ptr
-                {A=(D+A)}           // add the offset to the base ptr
-                {D=(M)}             // store the value at the offset to D
+        Stack::Push => n2tasm!(
+            {@n:table_offset}   // get the base ptr to the table
+            {D=(M)}             // store base pointer to D
+            {@n:segment_offset} // get the offset from the base ptr
+            {A=(D+A)}           // add the offset to the base ptr
+            {D=(M)}             // store the value at the offset to D
 
-                {@0}
-                {M=(M+1)}           // increment the stack ptr
-                {A=(M-1)}           // get the empty stack location
+            {@0}
+            {M=(M+1)}           // increment the stack ptr
+            {A=(M-1)}           // get the empty stack location
 
-                {M=(D)}             // store the value at the offset to the empty address
-            )
-            .to_vec()
-        }
-        Stack::Pop => {
-            n2tasm!(
-                {@n:table_offset}
-                {D=(M)}
-                {@n:segment_offset}
-                {D=(D+A)}           // calculate destination ptr and store it in D
+            {M=(D)}             // store the value at the offset to the empty address
+        )
+        .to_vec(),
+        Stack::Pop => n2tasm!(
+            {@n:table_offset}
+            {D=(M)}
+            {@n:segment_offset}
+            {D=(D+A)}           // calculate destination ptr and store it in D
 
-                {@0}
-                {M=(M-1)}           // decrement the stack ptr
-                {A=(M+1)}           // go one above the end of the stack
-                {M=(D)}             // store destination ptr above the stack
+            {@0}
+            {M=(M-1)}           // decrement the stack ptr
+            {A=(M+1)}           // go one above the end of the stack
+            {M=(D)}             // store destination ptr above the stack
 
-                {A=(A-1)}
-                {D=(M)}             // load stack head
-                {A=(A+1)}
-                {A=(M)}             // load destination ptr
+            {A=(A-1)}
+            {D=(M)}             // load stack head
+            {A=(A+1)}
+            {A=(M)}             // load destination ptr
 
-                {M=(D)}             // perform popping operation
-            )
-            .to_vec()
-        }
+            {M=(D)}             // perform popping operation
+        )
+        .to_vec(),
+    }
+}
+
+fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
+    match push_or_pop {
+        Stack::Push => todo!(),
+        Stack::Pop => todo!(),
     }
 }
 
