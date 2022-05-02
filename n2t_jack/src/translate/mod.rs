@@ -1,5 +1,4 @@
 mod arithmetic;
-mod common;
 mod stack;
 
 use n2t_asm::parse::Item;

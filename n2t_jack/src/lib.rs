@@ -4,4 +4,3 @@
 #![feature(const_intrinsic_copy)]
 
 pub mod translate;
-mod util;
