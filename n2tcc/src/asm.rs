@@ -1,9 +1,8 @@
-use std::fs;
-use std::fs::OpenOptions;
-use std::io::{ErrorKind, Write};
-use std::path::PathBuf;
 use clap::Args;
 use n2t_asm::{assemble, parse};
+use std::fs;
+use std::io::{ErrorKind, Write};
+use std::path::PathBuf;
 
 #[derive(Args)]
 pub struct Asm {
@@ -28,18 +27,9 @@ impl Asm {
         );
 
         // open destination file or create it if appropriate
-        let mut dest_file = if self.overwrite {
-            OpenOptions::new()
-                .write(true)
-                .create(true)
-                .open(dest_name)
-                .unwrap()
-        } else {
-            OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(dest_name)
-                .unwrap_or_else(|e| match e.kind() {
+        let mut dest_file =
+            super::common::open_file(dest_name, self.overwrite).unwrap_or_else(|e| {
+                match e.kind() {
                     ErrorKind::AlreadyExists => {
                         eprintln!(
                             "The destination file already exists.\n\
@@ -49,8 +39,8 @@ impl Asm {
                         std::process::exit(1)
                     }
                     _ => panic!("{e:?}"),
-                })
-        };
+                }
+            });
 
         // read source file
         let file = fs::read_to_string(file_name.clone()).unwrap_or_else(|_| {
