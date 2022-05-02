@@ -117,60 +117,142 @@ macro_rules! _n2tasm_c_instr_dst {
 
 #[macro_export]
 macro_rules! _n2tasm_c_instr_jmp {
-    (JMP) => {JumpCondition::Always};
-    (JGT) => {JumpCondition::GreaterThan};
-    (JLT) => {JumpCondition::LessThan};
-    (JGE) => {JumpCondition::GreaterEqual};
-    (JLE) => {JumpCondition::LessEqual};
-    (JEQ) => {JumpCondition::Equal};
-    (JNE) => {JumpCondition::NEqual};
+    (JMP) => {
+        JumpCondition::Always
+    };
+    (JGT) => {
+        JumpCondition::GreaterThan
+    };
+    (JLT) => {
+        JumpCondition::LessThan
+    };
+    (JGE) => {
+        JumpCondition::GreaterEqual
+    };
+    (JLE) => {
+        JumpCondition::LessEqual
+    };
+    (JEQ) => {
+        JumpCondition::Equal
+    };
+    (JNE) => {
+        JumpCondition::NEqual
+    };
 }
 
 #[macro_export]
 macro_rules! _n2tasm_c_instr_expr {
-    ((0)) => {CExpr::Zero};
-    ((1)) => {CExpr::One};
-    ((-1)) => {CExpr::NegOne};
+    ((0)) => {
+        CExpr::Zero
+    };
+    ((1)) => {
+        CExpr::One
+    };
+    ((-1)) => {
+        CExpr::NegOne
+    };
 
-    ((D)) => {CExpr::D};
-    ((A)) => {CExpr::X(Source::Register)};
-    ((M)) => {CExpr::X(Source::Memory)};
+    ((D)) => {
+        CExpr::D
+    };
+    ((A)) => {
+        CExpr::X(Source::Register)
+    };
+    ((M)) => {
+        CExpr::X(Source::Memory)
+    };
 
-    ((!D)) => {CExpr::NotD};
-    ((!A)) => {CExpr::NotX(Source::Register)};
-    ((!M)) => {CExpr::NotX(Source::Memory)};
+    ((!D)) => {
+        CExpr::NotD
+    };
+    ((!A)) => {
+        CExpr::NotX(Source::Register)
+    };
+    ((!M)) => {
+        CExpr::NotX(Source::Memory)
+    };
 
-    ((-D)) => {CExpr::NegD};
-    ((-A)) => {CExpr::NegX(Source::Register)};
-    ((-M)) => {CExpr::NegX(Source::Memory)};
+    ((-D)) => {
+        CExpr::NegD
+    };
+    ((-A)) => {
+        CExpr::NegX(Source::Register)
+    };
+    ((-M)) => {
+        CExpr::NegX(Source::Memory)
+    };
 
-    ((D+1)) => {CExpr::DPlusOne};
-    ((A+1)) => {CExpr::XPlusOne(Source::Register)};
-    ((M+1)) => {CExpr::XPlusOne(Source::Memory)};
+    ((D+1)) => {
+        CExpr::DPlusOne
+    };
+    ((A+1)) => {
+        CExpr::XPlusOne(Source::Register)
+    };
+    ((M+1)) => {
+        CExpr::XPlusOne(Source::Memory)
+    };
 
-    ((D-1)) => {CExpr::DMinusOne};
-    ((A-1)) => {CExpr::XMinusOne(Source::Register)};
-    ((M-1)) => {CExpr::XMinusOne(Source::Memory)};
+    ((D-1)) => {
+        CExpr::DMinusOne
+    };
+    ((A-1)) => {
+        CExpr::XMinusOne(Source::Register)
+    };
+    ((M-1)) => {
+        CExpr::XMinusOne(Source::Memory)
+    };
 
-    ((D+A)) => {CExpr::DPlusX(Source::Register)};
-    ((A+D)) => {CExpr::DPlusX(Source::Register)};
-    ((D+M)) => {CExpr::DPlusX(Source::Memory)};
-    ((M+D)) => {CExpr::DPlusX(Source::Memory)};
+    ((D+A)) => {
+        CExpr::DPlusX(Source::Register)
+    };
+    ((A+D)) => {
+        CExpr::DPlusX(Source::Register)
+    };
+    ((D+M)) => {
+        CExpr::DPlusX(Source::Memory)
+    };
+    ((M+D)) => {
+        CExpr::DPlusX(Source::Memory)
+    };
 
-    ((D-A)) => {CExpr::DMinusX(Source::Register)};
-    ((D-M)) => {CExpr::DMinusX(Source::Memory)};
-    ((A-D)) => {CExpr::XMinusD(Source::Register)};
-    ((M-D)) => {CExpr::XMinusD(Source::Memory)};
+    ((D-A)) => {
+        CExpr::DMinusX(Source::Register)
+    };
+    ((D-M)) => {
+        CExpr::DMinusX(Source::Memory)
+    };
+    ((A-D)) => {
+        CExpr::XMinusD(Source::Register)
+    };
+    ((M-D)) => {
+        CExpr::XMinusD(Source::Memory)
+    };
 
-    ((D&A)) => {CExpr::DAndX(Source::Register)};
-    ((A&D)) => {CExpr::DAndX(Source::Register)};
-    ((D&M)) => {CExpr::DAndX(Source::Memory)};
-    ((M&D)) => {CExpr::DAndX(Source::Memory)};
+    ((D&A)) => {
+        CExpr::DAndX(Source::Register)
+    };
+    ((A&D)) => {
+        CExpr::DAndX(Source::Register)
+    };
+    ((D&M)) => {
+        CExpr::DAndX(Source::Memory)
+    };
+    ((M&D)) => {
+        CExpr::DAndX(Source::Memory)
+    };
 
-    ((D|A)) => {CExpr::DOrX(Source::Register)};
-    ((A|D)) => {CExpr::DOrX(Source::Register)};
-    ((D|M)) => {CExpr::DOrX(Source::Memory)};
-    ((M|D)) => {CExpr::DOrX(Source::Memory)};
+    ((D|A)) => {
+        CExpr::DOrX(Source::Register)
+    };
+    ((A|D)) => {
+        CExpr::DOrX(Source::Register)
+    };
+    ((D|M)) => {
+        CExpr::DOrX(Source::Memory)
+    };
+    ((M|D)) => {
+        CExpr::DOrX(Source::Memory)
+    };
 }
 
 #[cfg(test)]

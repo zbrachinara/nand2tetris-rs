@@ -110,7 +110,8 @@ fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> V
             {A=(M-1)}
 
             {M=(D)}
-        ).to_vec(),
+        )
+        .to_vec(),
         Stack::Pop => n2tasm!(
             {@0}
             {M=(M-1)}
@@ -119,7 +120,8 @@ fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> V
 
             {@n:destination}
             {M=(D)}             // load value to destination
-        ).to_vec(),
+        )
+        .to_vec(),
     }
 }
 

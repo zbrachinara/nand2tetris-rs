@@ -13,10 +13,12 @@ pub fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
                 .map(|(line, _)| line.trim())
                 .and_then(|line| (!line.is_empty()).then(|| line))
         })
-        .flat_map(|instr| if let Ok(items) = translate_instruction(instr) {
-            items.into_iter().map(Ok).collect::<Vec<_>>()
-        } else {
-            vec![]
+        .flat_map(|instr| {
+            if let Ok(items) = translate_instruction(instr) {
+                items.into_iter().map(Ok).collect::<Vec<_>>()
+            } else {
+                vec![]
+            }
         })
 }
 

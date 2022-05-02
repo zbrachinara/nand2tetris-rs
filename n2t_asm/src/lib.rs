@@ -3,6 +3,5 @@
 
 pub mod assemble;
 pub mod err;
-pub mod parse;
 mod macro_rule;
-
+pub mod parse;
