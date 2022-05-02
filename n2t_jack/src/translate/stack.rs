@@ -103,6 +103,19 @@ fn tabled_segment(table_offset: u16, segment_offset: u16, push_or_pop: &Stack) -
     }
 }
 
+fn push_const(value: u16) -> Vec<Item> {
+    n2tasm!(
+        {@n:value}
+        {D=(A)}
+
+        {@0}
+        {M=(M+1)}
+        {A=(M-1)}
+        {M=(D)}
+    )
+    .to_vec()
+}
+
 impl Stack {
     pub fn translate<'a>(&self, mut words: impl Iterator<Item = &'a str>) -> Result<Vec<Item>, ()> {
         if let Some(Ok(segment)) = words.next().map(|seg_ident| Segment::from_str(seg_ident)) {
@@ -124,7 +137,10 @@ impl Segment {
             Segment::Argument => Ok(tabled_segment(2, offset, push_or_pop)),
             Segment::This => Ok(tabled_segment(3, offset, push_or_pop)),
             Segment::That => Ok(tabled_segment(4, offset, push_or_pop)),
-            Segment::Constant => todo!(),
+            Segment::Constant => match push_or_pop {
+                Stack::Push => Ok(push_const(offset)),
+                Stack::Pop => Err(()),
+            },
             Segment::Pointer => match offset {
                 0 => todo!(),
                 1 => todo!(),
