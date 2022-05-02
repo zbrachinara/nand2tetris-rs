@@ -100,8 +100,37 @@ fn segment_table_addr(table_offset: u16, segment_offset: u16, push_or_pop: &Stac
 
 fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
     match push_or_pop {
-        Stack::Push => todo!(),
-        Stack::Pop => todo!(),
+        Stack::Push => n2tasm!(
+            {@n:addr}
+            {D=(A)}
+            {@n:segment_offset}
+            {A=(D+A)}
+            {D=(M)}
+
+            {@0}
+            {M=(M+1)}
+            {A=(M-1)}
+
+            {M=(D)}
+        ).to_vec(),
+        Stack::Pop => n2tasm!(
+            {@n:addr}
+            {D=(A)}
+            {@n:segment_offset}
+            {D=(D+A)}           // calculate destination ptr and store it in D
+
+            {@0}
+            {M=(M-1)}           // decrement the stack ptr
+            {A=(M+1)}           // go one above the end of the stack
+            {M=(D)}             // store destination ptr above the stack
+
+            {A=(A-1)}
+            {D=(M)}             // load stack head
+            {A=(A+1)}
+            {A=(M)}             // load destination ptr
+
+            {M=(D)}             // perform popping operation
+        ).to_vec(),
     }
 }
 
@@ -143,13 +172,13 @@ impl Segment {
                 Stack::Push => Ok(push_const(offset)),
                 Stack::Pop => Err(()),
             },
+            Segment::Static => Ok(segment_static_addr(16, offset, push_or_pop)),
+            Segment::Temp => Ok(segment_static_addr(5, offset, push_or_pop)),
             Segment::Pointer => match offset {
                 0 => todo!(),
                 1 => todo!(),
                 _ => Err(()),
             },
-            Segment::Temp => todo!(),
-            Segment::Static => todo!(),
         }
     }
 }
