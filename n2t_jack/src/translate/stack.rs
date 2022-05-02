@@ -120,10 +120,11 @@ impl Stack {
 impl Segment {
     pub fn translate(&self, offset: u16, push_or_pop: &Stack) -> Result<Vec<Item>, ()> {
         match self {
-            Segment::Local => Ok(table_ptr_access(1, offset, push_or_pop)),
-            Segment::Argument => Ok(table_ptr_access(2, offset, push_or_pop)),
-            Segment::This => Ok(table_ptr_access(3, offset, push_or_pop)),
-            Segment::That => Ok(table_ptr_access(4, offset, push_or_pop)),
+            Segment::Local => Ok(tabled_segment(1, offset, push_or_pop)),
+            Segment::Argument => Ok(tabled_segment(2, offset, push_or_pop)),
+            Segment::This => Ok(tabled_segment(3, offset, push_or_pop)),
+            Segment::That => Ok(tabled_segment(4, offset, push_or_pop)),
+            Segment::Constant => todo!(),
             Segment::Pointer => match offset {
                 0 => todo!(),
                 1 => todo!(),
@@ -131,7 +132,6 @@ impl Segment {
             },
             Segment::Temp => todo!(),
             Segment::Static => todo!(),
-            Segment::Constant => todo!(),
         }
     }
 }
