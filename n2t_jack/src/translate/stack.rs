@@ -99,12 +99,10 @@ fn segment_table_addr(table_offset: u16, segment_offset: u16, push_or_pop: &Stac
 }
 
 fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
+    let destination = addr + segment_offset;
     match push_or_pop {
         Stack::Push => n2tasm!(
-            {@n:addr}
-            {D=(A)}
-            {@n:segment_offset}
-            {A=(D+A)}
+            {@n:destination}
             {D=(M)}
 
             {@0}
@@ -114,22 +112,13 @@ fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> V
             {M=(D)}
         ).to_vec(),
         Stack::Pop => n2tasm!(
-            {@n:addr}
-            {D=(A)}
-            {@n:segment_offset}
-            {D=(D+A)}           // calculate destination ptr and store it in D
-
             {@0}
-            {M=(M-1)}           // decrement the stack ptr
-            {A=(M+1)}           // go one above the end of the stack
-            {M=(D)}             // store destination ptr above the stack
+            {M=(M-1)}
+            {A=(M)}
+            {D=(M)}             // perform pop
 
-            {A=(A-1)}
-            {D=(M)}             // load stack head
-            {A=(A+1)}
-            {A=(M)}             // load destination ptr
-
-            {M=(D)}             // perform popping operation
+            {@n:destination}
+            {M=(D)}             // load value to destination
         ).to_vec(),
     }
 }
