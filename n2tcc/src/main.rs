@@ -19,13 +19,7 @@ enum Language {
 
 impl Opt {
     fn run(self) {
-        self.subcommand.run();
-    }
-}
-
-impl Language {
-    fn run(self) {
-        match self {
+        match self.subcommand {
             Language::Asm(asm) => asm.run(),
         }
     }
