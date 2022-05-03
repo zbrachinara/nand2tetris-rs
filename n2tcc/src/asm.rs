@@ -6,8 +6,8 @@ use std::path::PathBuf;
 
 #[derive(Args)]
 pub struct Asm {
-    file_name: String,
-    dest_name: Option<String>,
+    file_name: PathBuf,
+    dest_name: Option<PathBuf>,
     #[clap(short, long)]
     overwrite: bool,
     #[clap(short, long)]
@@ -17,7 +17,7 @@ pub struct Asm {
 impl Asm {
     pub fn run(self) {
         // calculate appropriate file names
-        let file_name = PathBuf::from(self.file_name);
+        let file_name = self.file_name;
         let source_name = file_name.file_stem().unwrap().to_string_lossy();
         let source_dir = file_name.parent().unwrap();
         // default destination name should be the same as source name, but .hack
