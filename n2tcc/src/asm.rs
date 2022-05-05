@@ -1,7 +1,5 @@
 use clap::Args;
 use n2t_asm::{assemble, parse};
-use std::borrow::Borrow;
-use std::ffi::OsString;
 use std::fs;
 use std::io::{ErrorKind, Write};
 use std::path::PathBuf;
@@ -24,14 +22,11 @@ impl Asm {
         let source_dir = file_name.parent().unwrap();
 
         // if not provided, default destination name should be the same as source name, but .hack
-        let dest_name = self
-            .dest_name
-            .unwrap_or_else(|| source_dir.join(PathBuf::from(source_name.to_string())));
-        let dest_name = if Some(OsString::from("hack").borrow()) == dest_name.extension() {
-            dest_name
-        } else {
-            dest_name.with_extension("hack")
-        };
+        let dest_name = super::common::calculate_destination(
+            self.dest_name,
+            || source_dir.join(PathBuf::from(source_name.to_string())),
+            "hack",
+        );
 
         // open destination file or create it if appropriate
         let mut dest_file =
