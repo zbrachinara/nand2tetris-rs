@@ -3,63 +3,6 @@ use n2t_asm::parse::Item;
 use std::str::FromStr;
 use strum_macros::EnumString;
 
-// pub fn table_access(table_addr: u16, offset: u16, push_or_pop: &Stack) -> Vec<Item> {
-//     match push_or_pop {
-//         Stack::Push => const_concat!(
-//             [
-//                 Item::Instruction(Instruction::A(Ident::Addr(table_addr))),
-//                 Item::Instruction(Instruction::C {
-//                     expr: CExpr::X(Source::Register),
-//                     dst: Dst::D,
-//                     jump: JumpCondition::Never,
-//                 }),
-//                 Item::Instruction(Instruction::A(Ident::Addr(offset))),
-//                 Item::Instruction(Instruction::C {
-//                     expr: CExpr::DPlusX(Source::Register),
-//                     dst: Dst::A,
-//                     jump: JumpCondition::Never,
-//                 })
-//             ],
-//             DEREF_TO_D,
-//             FETCH_STACK_POINTER,
-//             DEREF_TO_A,
-//             WRITE_FROM_D,
-//         )
-//         .into_iter()
-//         .collect::<Vec<_>>(),
-//         Stack::Pop => {
-//             todo!()
-//         }
-//     }
-// }
-//
-// pub fn table_ptr_access(table_ptr_addr: u16, offset: u16, push_or_pop: &Stack) -> Vec<Item> {
-//     if *push_or_pop == Stack::Push {
-//         const_concat!(
-//             [Item::Instruction(Instruction::A(Ident::Addr(
-//                 table_ptr_addr
-//             )))],
-//             DEREF_TO_D,
-//             [
-//                 Item::Instruction(Instruction::A(Ident::Addr(offset))),
-//                 Item::Instruction(Instruction::C {
-//                     expr: CExpr::DPlusX(Source::Register),
-//                     dst: Dst::A,
-//                     jump: JumpCondition::Never,
-//                 })
-//             ],
-//             DEREF_TO_D,
-//             FETCH_STACK_POINTER,
-//             DEREF_TO_A,
-//             WRITE_FROM_D,
-//         )
-//         .into_iter()
-//         .collect()
-//     } else {
-//         todo!()
-//     }
-// }
-
 fn segment_table_addr(table_offset: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
     match push_or_pop {
         Stack::Push => n2tasm!(
