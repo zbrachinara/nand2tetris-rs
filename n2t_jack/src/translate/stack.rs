@@ -42,10 +42,13 @@ fn segment_table_addr(table_offset: u16, segment_offset: u16, push_or_pop: &Stac
 }
 
 fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> Vec<Item> {
-    let destination = addr + segment_offset;
+    static_addr(addr + segment_offset, push_or_pop)
+}
+
+fn static_addr(addr: u16, push_or_pop: &Stack) -> Vec<Item> {
     match push_or_pop {
         Stack::Push => n2tasm!(
-            {@n:destination}
+            {@n:addr}
             {D=(M)}
 
             {@0}
@@ -53,19 +56,18 @@ fn segment_static_addr(addr: u16, segment_offset: u16, push_or_pop: &Stack) -> V
             {A=(M-1)}
 
             {M=(D)}
-        )
-        .to_vec(),
+        ),
         Stack::Pop => n2tasm!(
             {@0}
             {M=(M-1)}
             {A=(M)}
             {D=(M)}             // perform pop
 
-            {@n:destination}
+            {@n:addr}
             {M=(D)}             // load value to destination
-        )
-        .to_vec(),
+        ),
     }
+    .to_vec()
 }
 
 fn push_const(value: u16) -> Vec<Item> {
@@ -109,8 +111,8 @@ impl Segment {
             Segment::Static => Ok(segment_static_addr(16, offset, push_or_pop)),
             Segment::Temp => Ok(segment_static_addr(5, offset, push_or_pop)),
             Segment::Pointer => match offset {
-                0 => todo!(),
-                1 => todo!(),
+                0 => Ok(static_addr(3, push_or_pop)),
+                1 => Ok(static_addr(4, push_or_pop)),
                 _ => Err(()),
             },
         }
