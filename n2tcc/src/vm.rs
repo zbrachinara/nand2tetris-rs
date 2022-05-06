@@ -43,11 +43,11 @@ impl Vm {
             });
 
         // read source file
-        let file = fs::read_to_string(file_name.clone()).unwrap_or_else(|_| {
+        let file = fs::read_to_string(&file_name).unwrap_or_else(|_| {
             eprintln!("File not found: {file_name:?}");
             std::process::exit(1)
         });
 
-        todo!()
+        todo!("translate input code and write binary to file")
     }
 }
