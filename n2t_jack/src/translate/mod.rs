@@ -8,9 +8,11 @@ pub fn translate(program: &str) -> impl Iterator<Item = Result<Item, ()>> + '_ {
     program
         .lines()
         .filter_map(|line| {
-            line.split_once("//")
-                .map(|(line, _)| line.trim())
-                .and_then(|line| (!line.is_empty()).then(|| line))
+            let line = line.split_once("//").map(|(x, _)| x).unwrap_or(line);
+            match line.trim() {
+                x if x.is_empty() => None,
+                x => Some(x)
+            }
         })
         .flat_map(|instr| {
             if let Ok(items) = translate_instruction(instr) {
