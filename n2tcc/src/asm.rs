@@ -34,9 +34,8 @@ impl Asm {
                 match e.kind() {
                     ErrorKind::AlreadyExists => {
                         eprintln!(
-                            "The destination file already exists.\n\
-                        Pass in a different destination file or specify -o to confirm overwrite\n\n\
-                        --help for more info"
+"The destination file already exists.\nPass in a different destination file or\
+specify -o to confirm overwrite\n\n--help for more info"
                         );
                         std::process::exit(1)
                     }

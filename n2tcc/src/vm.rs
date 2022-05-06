@@ -1,7 +1,14 @@
-use std::{fs, io::{ErrorKind, Write}, path::PathBuf};
+use std::{
+    fs,
+    io::{ErrorKind, Write},
+    path::PathBuf,
+};
 
 use clap::Args;
-use n2t_asm::{parse::{Item, Program}, assemble::SymbolTable};
+use n2t_asm::{
+    assemble::SymbolTable,
+    parse::{Item, Program},
+};
 
 #[derive(Args)]
 pub struct Vm {
@@ -33,9 +40,8 @@ impl Vm {
                 match e.kind() {
                     ErrorKind::AlreadyExists => {
                         eprintln!(
-                            "The destination file already exists.\n\
-                        Pass in a different destination file or specify -o to confirm overwrite\n\n\
-                        --help for more info"
+"The destination file already exists.\nPass in a different destination file or\
+specify -o to confirm overwrite\n\n--help for more info"
                         );
                         std::process::exit(1)
                     }
