@@ -1,6 +1,7 @@
-use std::{path::PathBuf, io::ErrorKind, fs};
+use std::{fs, io::{ErrorKind, Write}, path::PathBuf};
 
 use clap::Args;
+use n2t_asm::{parse::{Item, Program}, assemble::SymbolTable};
 
 #[derive(Args)]
 pub struct Vm {
@@ -47,7 +48,20 @@ impl Vm {
             eprintln!("File not found: {file_name:?}");
             std::process::exit(1)
         });
+        let program = Program(
+            n2t_jack::translate::translate(&file)
+                .filter_map(|it| match it {
+                    Ok(Item::Instruction(x)) => Some(Ok(x)),
+                    Ok(_) => None,
+                    Err(x) => Some(Err(x)),
+                })
+                .try_collect()
+                .unwrap(),
+        );
+        let code = n2t_asm::assemble::to_string(&mut SymbolTable::new(), &program);
 
-        todo!("translate input code and write binary to file")
+        dest_file
+            .write_all(code.as_bytes())
+            .expect("Failed to produce output for an unknown reason");
     }
 }

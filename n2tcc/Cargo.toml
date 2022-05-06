@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 clap = { version = "3.1", features = ["derive"] }
 n2t_asm = { path = "../n2t_asm" }
+n2t_jack = { path = "../n2t_jack" }

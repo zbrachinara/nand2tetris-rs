@@ -1,3 +1,5 @@
+#![feature(iterator_try_collect)]
+
 extern crate core;
 
 mod asm;

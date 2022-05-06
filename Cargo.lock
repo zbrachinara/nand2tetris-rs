@@ -258,6 +258,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "n2t_asm",
+ "n2t_jack",
 ]
 
 [[package]]
