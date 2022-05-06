@@ -1,2 +1,7 @@
 [workspace]
 members = ["n2t_asm", "n2t_hdl", "n2t_jack", "n2tcc"]
+
+[profile.release]
+strip = true
+lto = true
+panic = "abort"
