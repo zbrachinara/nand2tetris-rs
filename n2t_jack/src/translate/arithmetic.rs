@@ -19,7 +19,7 @@ const SUB: &[Item] = &n2tasm! {
     {A=(M)}
     {D=(M)}
     {A=(A-1)}
-    {M=(D-M)}
+    {M=(M-D)}
 };
 
 const NEG: &[Item] = &n2tasm! {
