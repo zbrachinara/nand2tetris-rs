@@ -18,7 +18,7 @@ macro_rules! _n2tasm_one {
     };
 
     // A-instruction
-    ({@n:$ident:ident}) => {
+    ({@n:$ident:path}) => {
         Item::Instruction(Instruction::A(Ident::Addr($ident)))
     };
     ({@$ident:expr}) => {

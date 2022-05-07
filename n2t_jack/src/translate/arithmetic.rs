@@ -2,8 +2,6 @@ use n2t_asm::n2tasm;
 use n2t_asm::parse::Item;
 use strum_macros::EnumString;
 
-// const HIGH_BIT: u16 = 0b1000_0000_0000_0000;
-
 const ADD: &[Item] = &n2tasm! {
     {@0}      //Addressing stack pointer
     {M=(M-1)} // pop stack
@@ -64,10 +62,16 @@ const EQ: &[Item] = &n2tasm![
     {M=(M-D)} // high bit of M is now set if M < D
     {D=(M+D)} // D is now the initial value of arg1
     {A=(A+1)}
-    {D=(M-D)} // high bit of D is now set if M < D
+    {D=(M-D)} // high bit of D is now set iff M < D
     {A=(A-1)}
-    {M=(M|D)} // high bit set if arg1 < arg2 or arg2 < arg1
-    {M=(!M)}  // high bit set if arg1 = arg2
+    {M=(M|D)} // high bit set iff arg1 < arg2 or arg2 < arg1
+    {M=(!M)}  // high bit set iff arg1 = arg2
+
+    {@n:u16::MAX}
+    {D=(A+1)} // loading -1 through overflow
+    {@0}
+    {A=(M-1)}
+    {M=(D&M)} // mask out high bit
 ];
 
 const LT: &[Item] = &n2tasm! {
@@ -76,7 +80,13 @@ const LT: &[Item] = &n2tasm! {
     {A=(M)}
     {D=(M)}
     {A=(A-1)}
-    {M=(M-D)} // high bit of M is now set if M < D
+    {M=(M-D)} // high bit of M is now set iff M < D
+
+    {@n:u16::MAX}
+    {D=(A+1)}
+    {@0}
+    {A=(M-1)}
+    {M=(D&M)} // mask out high bit
 };
 
 const GT: &[Item] = &n2tasm! {
@@ -85,7 +95,13 @@ const GT: &[Item] = &n2tasm! {
     {A=(M)}
     {D=(M)}
     {A=(A-1)}
-    {M=(D-M)} // high bit of M is now set if D < M
+    {M=(D-M)} // high bit of M is now set iff D < M
+
+    {@n:u16::MAX}
+    {D=(A+1)}
+    {@0}
+    {A=(M-1)}
+    {M=(D&M)} // mask out high bit
 };
 
 impl Arithmetic {
