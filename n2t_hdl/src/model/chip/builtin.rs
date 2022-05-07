@@ -23,8 +23,7 @@ impl ChipObject for Nand {
             ]
             .into(),
             com_out: [("out".to_string(), ChannelRange::new(0, 0))].into(),
-            seq_in: Default::default(),
-            seq_out: Default::default(),
+            ..Default::default()
         }
     }
 
