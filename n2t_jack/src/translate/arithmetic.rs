@@ -46,10 +46,7 @@ const OR: &[Item] = &n2tasm!(
 
 const NOT: &[Item] = &n2tasm!(
     {@0}
-    {M=(M-1)}
-    {A=(M)}
-    {D=(M)}
-    {A=(A-1)}
+    {A=(M-1)}
     {M=(!M)}
 );
 
