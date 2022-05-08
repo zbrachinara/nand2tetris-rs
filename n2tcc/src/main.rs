@@ -9,11 +9,7 @@ mod vm;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[clap(
-    author,
-    version,
-    about = "n2tcc - compiler for various nand2tetris languages"
-)]
+#[clap(author, version, about)]
 #[clap(propagate_version = true)]
 struct Opt {
     #[clap(subcommand)]

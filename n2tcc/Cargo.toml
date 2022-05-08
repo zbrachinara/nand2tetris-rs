@@ -1,7 +1,8 @@
 [package]
 name = "n2tcc"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
+description = "A compiler for various nand2tetris languages"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
