@@ -1,8 +1,18 @@
-use crate::parse::Program;
+use crate::parse::{Instruction, Item, Ident};
 
-pub fn from_struct(s: Program) -> impl Iterator<Item = String> {
-    s.0.into_iter().map(|item| {
-
-        todo!()
+pub fn from_struct(s: impl IntoIterator<Item = Item>) -> impl Iterator<Item = String> {
+    s.into_iter().map(|item| match item {
+        Item::Label(lb) => {
+            format!("({lb})")
+        }
+        Item::Instruction(Instruction::A(Ident::Addr(x))) => {
+            format!("@{x}")           
+        }
+        Item::Instruction(Instruction::A(Ident::Name(s))) => {
+            format!("@{s}")
+        }
+        Item::Instruction(Instruction::C { expr, dst, jump }) => {
+            todo!()
+        }
     })
 }
