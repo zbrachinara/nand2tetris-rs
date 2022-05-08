@@ -1,4 +1,4 @@
-use n2t_asm::{parse::Item, n2tasm};
+use n2t_asm::{n2tasm, parse::Item};
 
 pub fn instruction_prelude() -> impl Iterator<Item = Result<Item, ()>> {
     INSTRUCTION_PRELUDE.into_iter().cloned().map(|it| Ok(it))
