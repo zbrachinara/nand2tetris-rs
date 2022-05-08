@@ -5,3 +5,4 @@ pub mod assemble;
 pub mod err;
 mod macro_rule;
 pub mod parse;
+pub mod disassemble;
