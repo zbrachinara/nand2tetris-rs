@@ -11,7 +11,7 @@ pub fn from_struct(s: impl IntoIterator<Item = Item>) -> impl Iterator<Item = St
         Item::Instruction(Instruction::A(Ident::Name(s))) => {
             format!("@{s}")
         }
-        Item::Instruction(Instruction::C { expr, dst, jump }) => {
+        Item::Instruction(Instruction::C { expr: _, dst: _, jump: _ }) => {
             todo!()
         }
     })
