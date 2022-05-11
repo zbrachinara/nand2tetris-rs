@@ -1,5 +1,6 @@
 mod native;
 
+#[derive(Clone)]
 struct Id(u16);
 
 trait Chip {

@@ -1,14 +1,14 @@
 use super::{Chip, Id};
 use crate::channel_range::ChannelRange;
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::RangeInclusive};
 
 struct Router {
     map: Vec<(ChannelRange, (Id, ChannelRange))>,
 }
 
-struct Request<'router> {
+struct Request<'data> {
     id: Id,
-    data: &'router [bool],
+    data: &'data [bool],
     range: ChannelRange,
 }
 
@@ -20,8 +20,30 @@ struct Barrier {
     router: Router,
 }
 
-struct NativeChip {
+pub struct NativeChip {
     registry: HashMap<Id, Barrier>,
     in_router: Router,
     out_chip: Id,
+}
+
+impl Router {
+    fn gen_requests<'router, 'data>(&'router self, data: &'data [bool]) -> Vec<Request<'data>> {
+        self.map
+            .iter()
+            .map(|(in_range, (id, out_range))| Request {
+                id: id.clone(),
+                data: &data[RangeInclusive::from(in_range.clone())],
+                range: *out_range,
+            })
+            .collect()
+    }
+}
+
+impl Chip for NativeChip {
+    fn clock(&mut self) {
+        todo!();
+    }
+    fn eval(&mut self, args: &[bool]) {
+        todo!();
+    }
 }
