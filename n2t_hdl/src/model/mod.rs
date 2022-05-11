@@ -1,3 +1,4 @@
 pub mod chip;
-mod parser;
+#[allow(dead_code)]
 mod chip_v2;
+mod parser;
