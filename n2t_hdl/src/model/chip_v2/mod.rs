@@ -1,3 +1,6 @@
+mod native;
+
+struct Id(u16);
 
 trait Chip {
     fn clock(&mut self);
