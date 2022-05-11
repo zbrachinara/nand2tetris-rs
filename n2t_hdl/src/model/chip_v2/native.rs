@@ -27,15 +27,15 @@ pub struct NativeChip {
 }
 
 impl Router {
-    fn gen_requests<'router, 'data>(&'router self, data: &'data [bool]) -> Vec<Request<'data>> {
-        self.map
-            .iter()
-            .map(|(in_range, (id, out_range))| Request {
-                id: id.clone(),
-                data: &data[RangeInclusive::from(in_range.clone())],
-                range: *out_range,
-            })
-            .collect()
+    fn gen_requests<'router: 'out, 'data: 'out, 'out>(
+        &'router self,
+        data: &'data [bool],
+    ) -> impl Iterator<Item = Request<'data>> + 'out {
+        self.map.iter().map(|(in_range, (id, out_range))| Request {
+            id: id.clone(),
+            data: &data[RangeInclusive::from(in_range.clone())],
+            range: *out_range,
+        })
     }
 }
 
