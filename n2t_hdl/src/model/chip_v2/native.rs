@@ -22,13 +22,14 @@ struct Request<'data> {
 /// Barrier representing how the chip interacts inside a native chip
 ///
 /// clock_mask is set true for bits which are not clocked. When a clock cycle
-/// occurs, all bits pass from in_buffer to out_buffer. But when a non-clock
+/// occurs, all bits pass from in_buffer to intermediate. But when a non-clock
 /// eval occurs, only those marked as true in clock_mask pass from in_buffer to
-/// out_buffer.
+/// intermediate.
 struct Barrier {
     in_buffer: BitVec,
-    out_buffer: BitVec,
+    intermediate: BitVec,
     clock_mask: BitVec,
+    out_buffer: BitVec,
     chip: Box<dyn Chip>,
     router: Router,
 }
@@ -57,13 +58,13 @@ impl Barrier {
         self.in_buffer
             .iter()
             .zip(self.clock_mask.iter())
-            .zip(self.out_buffer.iter_mut())
+            .zip(self.intermediate.iter_mut())
             .for_each(|((in_bit, mask_bit), mut out_bit)| {
                 out_bit.set(*mask_bit && *in_bit || !mask_bit && *out_bit)
             });
     }
     fn switch_buffers_clock(&mut self) {
-        self.out_buffer
+        self.intermediate
             .copy_from_bitslice(self.in_buffer.as_bitslice());
     }
     fn accept(&mut self, req: &Request) {
@@ -71,8 +72,8 @@ impl Barrier {
     }
     fn eval(&mut self) -> impl Iterator<Item = Request> {
         self.switch_buffers_eval();
-        let res = self.chip.eval(self.out_buffer.as_bitslice());
-        self.router.gen_requests(res)
+        self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
+        self.router.gen_requests(self.out_buffer.as_bitslice())
     }
 }
 
@@ -80,7 +81,7 @@ impl Chip for NativeChip {
     fn clock(&mut self) {
         todo!();
     }
-    fn eval(&mut self, args: &BitSlice) -> &BitSlice {
+    fn eval(&mut self, args: &BitSlice) -> BitVec {
         todo!();
     }
 }
