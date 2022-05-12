@@ -2,7 +2,7 @@ use bitvec::prelude::*;
 
 use super::{Chip, Id};
 use crate::channel_range::ChannelRange;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 struct Router {
     map: Vec<(ChannelRange, (Id, ChannelRange))>,
@@ -13,9 +13,9 @@ struct Router {
 ///
 /// Inside the targeted chip, only the data specified by the range will be
 /// modified.
-struct Request<'data> {
+struct Request {
     id: Id,
-    data: &'data BitSlice,
+    data: BitVec,
     range: ChannelRange,
 }
 
@@ -41,15 +41,15 @@ pub struct NativeChip {
 }
 
 impl Router {
-    fn gen_requests<'router: 'out, 'data: 'out, 'out>(
-        &'router self,
-        data: &'data BitSlice,
-    ) -> impl Iterator<Item = Request<'data>> + 'out {
-        self.map.iter().map(|(in_range, (id, out_range))| Request {
-            id: id.clone(),
-            data: &data[in_range.as_range()],
-            range: *out_range,
-        })
+    fn gen_requests(&self, data: &BitSlice) -> impl Iterator<Item = Request> + '_ {
+        let copy = data.to_bitvec();
+        self.map
+            .iter()
+            .map(move |(in_range, (id, out_range))| Request {
+                id: id.clone(),
+                data: copy[in_range.as_range()].to_bitvec(),
+                range: out_range.clone(),
+            })
     }
 }
 
@@ -68,11 +68,11 @@ impl Barrier {
             .copy_from_bitslice(self.in_buffer.as_bitslice());
     }
     fn accept(&mut self, req: &Request) {
-        self.in_buffer[req.range.as_range()].copy_from_bitslice(req.data)
+        self.in_buffer[req.range.as_range()].copy_from_bitslice(req.data.as_bitslice())
     }
-    fn eval(&mut self) -> impl Iterator<Item = Request> {
-        self.switch_buffers_eval();
-        self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
+    fn eval(&self) -> impl Iterator<Item = Request> + '_ {
+        // self.switch_buffers_eval();
+        // self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
         self.router.gen_requests(self.out_buffer.as_bitslice())
     }
 }
@@ -82,6 +82,15 @@ impl Chip for NativeChip {
         todo!();
     }
     fn eval(&mut self, args: &BitSlice) -> BitVec {
+        let mut request_queue: VecDeque<_> = self.in_router.gen_requests(args).collect();
+        while let Some(req) = request_queue.pop_front() {
+            if req.id == self.out_chip {
+                todo!()
+            } else {
+                self.registry.get_mut(&req.id).unwrap().accept(&req);
+                request_queue.extend(self.registry.get(&req.id).unwrap().eval())
+            }
+        }
         todo!();
     }
 }
