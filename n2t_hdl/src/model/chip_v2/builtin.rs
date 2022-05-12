@@ -13,7 +13,7 @@ impl Chip for Nand {
     }
 }
 
-fn nand() -> (Box<dyn Chip>, Interface) {
+pub fn nand() -> (Box<dyn Chip>, Interface) {
     (
         Box::new(Nand),
         Interface {
