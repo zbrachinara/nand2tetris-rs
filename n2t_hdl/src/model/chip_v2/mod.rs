@@ -3,7 +3,7 @@ use bitvec::prelude::*;
 mod native;
 mod builtin;
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Id(u16);
 
 pub trait Chip {

@@ -13,6 +13,7 @@ struct Router {
 ///
 /// Inside the targeted chip, only the data specified by the range will be
 /// modified.
+#[derive(Debug)]
 struct Request {
     id: Id,
     data: BitVec,
@@ -38,6 +39,7 @@ pub struct NativeChip {
     registry: HashMap<Id, Barrier>,
     in_router: Router,
     out_chip: Id,
+    out_buffer: BitVec,
 }
 
 impl Router {
@@ -70,9 +72,9 @@ impl Barrier {
     fn accept(&mut self, req: &Request) {
         self.in_buffer[req.range.as_range()].copy_from_bitslice(req.data.as_bitslice())
     }
-    fn eval(&self) -> impl Iterator<Item = Request> + '_ {
-        // self.switch_buffers_eval();
-        // self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
+    fn eval(&mut self) -> impl Iterator<Item = Request> + '_ {
+        self.switch_buffers_eval();
+        self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
         self.router.gen_requests(self.out_buffer.as_bitslice())
     }
 }
@@ -84,13 +86,55 @@ impl Chip for NativeChip {
     fn eval(&mut self, args: &BitSlice) -> BitVec {
         let mut request_queue: VecDeque<_> = self.in_router.gen_requests(args).collect();
         while let Some(req) = request_queue.pop_front() {
+            println!("With request queue: {request_queue:?} and request: {req:?}");
             if req.id == self.out_chip {
-                todo!()
+                self.out_buffer[req.range.as_range()].copy_from_bitslice(req.data.as_bitslice());
             } else {
-                self.registry.get_mut(&req.id).unwrap().accept(&req);
-                request_queue.extend(self.registry.get(&req.id).unwrap().eval())
+                let chip = self.registry.get_mut(&req.id).unwrap();
+                chip.accept(&req);
+                request_queue.extend(chip.eval())
             }
         }
-        todo!();
+        self.out_buffer.clone()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn manual_not_chip() -> NativeChip {
+        NativeChip {
+            registry: [(
+                Id(1),
+                Barrier {
+                    in_buffer: bitvec!(0, 0),
+                    intermediate: bitvec!(0, 0),
+                    clock_mask: bitvec!(1, 1),
+                    out_buffer: bitvec!(0, 0),
+                    chip: crate::model::chip_v2::builtin::nand().0,
+                    router: Router {
+                        map: vec![((0..=0).into(), (Id(0), (0..=0).into()))],
+                    },
+                },
+            )]
+            .into_iter()
+            .collect(),
+            in_router: Router {
+                map: vec![
+                    ((0..=0).into(), (Id(1), (0..=0).into())),
+                    ((0..=0).into(), (Id(1), (1..=1).into())),
+                ],
+            },
+            out_chip: Id(0),
+            out_buffer: bitvec![0],
+        }
+    }
+
+    #[test]
+    fn not() {
+        let mut not = manual_not_chip();
+        assert_eq!(not.eval(bits!(0)), bits!(1));
+        assert_eq!(not.eval(bits!(1)), bits!(0));
     }
 }
