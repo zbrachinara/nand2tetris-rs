@@ -235,6 +235,7 @@ dependencies = [
  "anyhow",
  "bitvec",
  "derive_more",
+ "funty",
  "itertools",
  "nom",
  "nom-supreme",

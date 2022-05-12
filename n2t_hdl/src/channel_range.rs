@@ -1,5 +1,7 @@
 use ::std::ops::RangeInclusive;
 
+use funty::Integral;
+
 /// The range of a sub-bus of a non-internal bus (i.e., specified as IN or OUT)
 ///
 /// Inclusive on `start` and `end`
@@ -65,6 +67,17 @@ impl ChannelRange {
 impl From<ChannelRange> for RangeInclusive<usize> {
     fn from(range: ChannelRange) -> Self {
         usize::from(range.start)..=usize::from(range.end)
+    }
+}
+
+impl<T: Integral> From<RangeInclusive<T>> for ChannelRange {
+    fn from(r: RangeInclusive<T>) -> Self {
+        match <T as TryInto<u16>>::try_into(*r.start()).and_then(|start| {
+            <T as TryInto<u16>>::try_into(*r.end()).map(|end| ChannelRange { start, end })
+        }) {
+            Ok(x) => x,
+            Err(_) => panic!("could not resolve the given range to a u16 range"),
+        }
     }
 }
 
