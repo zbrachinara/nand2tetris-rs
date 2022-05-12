@@ -53,12 +53,26 @@ impl Router {
 }
 
 impl Barrier {
+    fn switch_buffers_eval(&mut self) {
+        self.in_buffer
+            .iter()
+            .zip(self.clock_mask.iter())
+            .zip(self.out_buffer.iter_mut())
+            .for_each(|((in_bit, mask_bit), mut out_bit)| {
+                out_bit.set(*mask_bit && *in_bit || !mask_bit && *out_bit)
+            });
+    }
+    fn switch_buffers_clock(&mut self) {
+        self.out_buffer
+            .copy_from_bitslice(self.in_buffer.as_bitslice());
+    }
     fn accept(&mut self, req: &Request) {
         self.in_buffer[req.range.as_range()].copy_from_bitslice(req.data)
     }
     fn eval(&mut self) -> impl Iterator<Item = Request> {
         // pass the buffer from outside to inside
-
+        self.switch_buffers_eval();
+        // self.clock_mask.as_bitslice() & self.in_buffer.as_bitslice() | !(self.clock_mask) & self.out_buffer;
         std::iter::empty()
     }
 }
