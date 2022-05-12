@@ -70,10 +70,9 @@ impl Barrier {
         self.in_buffer[req.range.as_range()].copy_from_bitslice(req.data)
     }
     fn eval(&mut self) -> impl Iterator<Item = Request> {
-        // pass the buffer from outside to inside
         self.switch_buffers_eval();
-        // self.clock_mask.as_bitslice() & self.in_buffer.as_bitslice() | !(self.clock_mask) & self.out_buffer;
-        std::iter::empty()
+        let res = self.chip.eval(self.out_buffer.as_bitslice());
+        self.router.gen_requests(res)
     }
 }
 
