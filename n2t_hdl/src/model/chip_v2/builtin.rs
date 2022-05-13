@@ -7,9 +7,11 @@ use bitvec::prelude::*;
 struct Nand;
 impl Chip for Nand {
     fn clock(&mut self) {}
-
     fn eval(&mut self, args: &BitSlice) -> BitVec {
         [!(args[0] && args[1])].into_iter().collect()
+    }
+    fn boxed_clone(&self) -> Box<dyn Chip> {
+        Box::new(Nand)
     }
 }
 

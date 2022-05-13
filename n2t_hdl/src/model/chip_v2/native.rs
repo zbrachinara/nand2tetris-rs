@@ -4,6 +4,7 @@ use super::{Chip, Id};
 use crate::channel_range::ChannelRange;
 use std::collections::{HashMap, VecDeque};
 
+#[derive(Clone)]
 struct Router {
     map: Vec<(ChannelRange, (Id, ChannelRange))>,
 }
@@ -35,11 +36,25 @@ struct Barrier {
     router: Router,
 }
 
+#[derive(Clone)]
 pub struct NativeChip {
     registry: HashMap<Id, Barrier>,
     in_router: Router,
     out_chip: Id,
     out_buffer: BitVec,
+}
+
+impl Clone for Barrier {
+    fn clone(&self) -> Self {
+        Self {
+            in_buffer: self.in_buffer.clone(),
+            intermediate: self.intermediate.clone(),
+            clock_mask: self.clock_mask.clone(),
+            out_buffer: self.out_buffer.clone(),
+            chip: self.chip.boxed_clone(),
+            router: self.router.clone(),
+        }
+    }
 }
 
 impl Router {
@@ -96,6 +111,9 @@ impl Chip for NativeChip {
             }
         }
         self.out_buffer.clone()
+    }
+    fn boxed_clone(&self) -> Box<dyn Chip> {
+        Box::new(self.clone())
     }
 }
 
