@@ -2,6 +2,7 @@ use bitvec::prelude::*;
 
 mod native;
 mod builtin;
+mod builder;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Id(u16);
