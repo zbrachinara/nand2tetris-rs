@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::Chip;
+use super::{builder::ChipInfo, Chip};
 use crate::model::parser::Interface;
 use bitvec::prelude::*;
 
@@ -15,10 +15,9 @@ impl Chip for Nand {
     }
 }
 
-pub fn nand() -> (Box<dyn Chip>, Interface) {
-    (
-        Box::new(Nand),
-        Interface {
+pub fn nand() -> ChipInfo {
+    ChipInfo {
+        interface: Interface {
             name: "Nand".to_string(),
             com_in: [
                 ("a".to_string(), (0..=0).into()),
@@ -30,7 +29,8 @@ pub fn nand() -> (Box<dyn Chip>, Interface) {
             seq_in: HashMap::new(),
             seq_out: HashMap::new(),
         },
-    )
+        chip: Box::new(Nand),
+    }
 }
 
 #[cfg(test)]
