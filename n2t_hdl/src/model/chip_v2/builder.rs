@@ -35,8 +35,6 @@ impl ChipBuilder {
             seq_out,
         } = chip.interface();
 
-        
-
         todo!()
     }
 }

@@ -5,8 +5,8 @@ use crate::channel_range::ChannelRange;
 use std::collections::{HashMap, VecDeque};
 
 #[derive(Clone)]
-struct Router {
-    map: Vec<(ChannelRange, (Id, ChannelRange))>,
+pub(super) struct Router {
+    pub map: Vec<(ChannelRange, (Id, ChannelRange))>,
 }
 
 /// Represents a request to modify the chip represented by the id with the
@@ -27,21 +27,21 @@ struct Request {
 /// occurs, all bits pass from in_buffer to intermediate. But when a non-clock
 /// eval occurs, only those marked as true in clock_mask pass from in_buffer to
 /// intermediate.
-struct Barrier {
-    in_buffer: BitVec,
-    intermediate: BitVec,
-    clock_mask: BitVec,
-    out_buffer: BitVec,
-    chip: Box<dyn Chip>,
-    router: Router,
+pub(super) struct Barrier {
+    pub in_buffer: BitVec,
+    pub intermediate: BitVec,
+    pub clock_mask: BitVec,
+    pub out_buffer: BitVec,
+    pub chip: Box<dyn Chip>,
+    pub router: Router,
 }
 
 #[derive(Clone)]
 pub struct NativeChip {
-    registry: HashMap<Id, Barrier>,
-    in_router: Router,
-    out_chip: Id,
-    out_buffer: BitVec,
+    pub(super) registry: HashMap<Id, Barrier>,
+    pub(super) in_router: Router,
+    pub(super) out_chip: Id,
+    pub(super) out_buffer: BitVec,
 }
 
 impl Clone for Barrier {
