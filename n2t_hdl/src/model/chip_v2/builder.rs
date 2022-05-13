@@ -14,9 +14,13 @@ pub struct ChipInfo {
 impl ChipBuilder {
     pub fn new() -> Self {
         Self {
-            registered: [("Nand".to_string(), builtin::nand())]
-                .into_iter()
-                .collect(),
+            registered: HashMap::new(),
         }
+    }
+
+    pub fn with_builtins(mut self) -> Self {
+        self.registered
+            .extend([("Nand".to_string(), builtin::nand())]);
+        self
     }
 }
