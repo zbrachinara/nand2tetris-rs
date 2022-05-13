@@ -3,6 +3,7 @@ use bitvec::prelude::*;
 mod native;
 mod builtin;
 mod builder;
+mod error;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Id(u16);
