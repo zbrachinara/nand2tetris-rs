@@ -2,7 +2,7 @@ use super::error::ModelConstructionError;
 use super::native::Router;
 use super::{builtin, Chip, Id};
 use crate::channel_range::ChannelRange;
-use crate::model::parser::{Channel, Connection, Interface};
+use crate::model::parser::{Channel, Connection, Interface, Symbol};
 use crate::model::parser::{Chip as ChipRepr, Form};
 use bitvec::prelude::*;
 use std::collections::HashMap;
@@ -128,10 +128,15 @@ impl ChipBuilder {
 
         // pass one: register all connections
         for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
-            inputs.iter().for_each(|arg| {
-                if interface.is_input(*(arg.internal)) {
+            for arg in inputs {
+                match arg.external {
+                    Symbol::Name(external) => {
+
+                        todo!()
+                    }
+                    _ => return Err(ModelConstructionError::ValuesNotSupported(arg.internal.to_string()))
                 }
-            });
+            };
         }
 
         todo!()
