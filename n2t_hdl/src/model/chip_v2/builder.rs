@@ -2,7 +2,7 @@ use super::error::ModelConstructionError;
 use super::native::Router;
 use super::{builtin, Chip, Id};
 use crate::channel_range::ChannelRange;
-use crate::model::parser::Interface;
+use crate::model::parser::{Channel, Connection, Interface};
 use crate::model::parser::{Chip as ChipRepr, Form};
 use bitvec::prelude::*;
 use std::collections::HashMap;
@@ -79,14 +79,50 @@ impl ChipBuilder {
         let top_router: Vec<(ChannelRange, (Id, ChannelRange))> = Vec::new();
 
         if let Form::Native(conns) = logic {
-            let mut id_provider = Id(0);
-            let out_id = id_provider.next();
-
-            let edge_map: HashMap<Id, (Vec<Hook>, ChannelRange)> = HashMap::new();
-
-            todo!()
+            if self
+                .registered
+                .insert(
+                    name.to_string(),
+                    self.build_native(*name, in_pins, out_pins, conns)?,
+                )
+                .is_some()
+            {
+                Err(ModelConstructionError::Rebuilt(name.to_string()))
+            } else {
+                Ok(())
+            }
         } else {
             panic!("dynamic loading of native chips is not yet supported")
         }
+    }
+
+    fn build_native(
+        &self,
+        name: &str,
+        in_pins: Vec<Channel>,
+        out_pins: Vec<Channel>,
+        connections: Vec<Connection>,
+    ) -> Result<ChipInfo, ModelConstructionError> {
+        let mut id_provider = Id(0);
+        let out_id = id_provider.next();
+
+        let edge_map: HashMap<Id, (Vec<Hook>, ChannelRange)> = HashMap::new();
+
+        let connection = connections
+            .into_iter()
+            .map(|conn| {
+                Result::<_, ModelConstructionError>::Ok((
+                    id_provider.next(),
+                    IncompleteBarrier::new(
+                        self.registered
+                            .get(*(conn.chip_name))
+                            .ok_or(ModelConstructionError::Needs(conn.chip_name.to_string()))?
+                            .clone(),
+                    ),
+                ))
+            })
+            .try_collect::<HashMap<_, _>>()?;
+
+        todo!()
     }
 }

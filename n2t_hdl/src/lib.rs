@@ -1,3 +1,5 @@
+#![feature(iterator_try_collect)]
+
 pub mod channel_range;
 mod clock_behavior;
 pub mod model;
