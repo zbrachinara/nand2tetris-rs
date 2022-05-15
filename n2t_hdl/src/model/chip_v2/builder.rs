@@ -106,22 +106,33 @@ impl ChipBuilder {
         let mut id_provider = Id(0);
         let out_id = id_provider.next();
 
-        let edge_map: HashMap<Id, (Vec<Hook>, ChannelRange)> = HashMap::new();
+        let connection_map: HashMap<Id, (Vec<Hook>, ChannelRange)> = HashMap::new();
 
-        let connection = connections
+        let chips = connections
             .into_iter()
             .map(|conn| {
                 Result::<_, ModelConstructionError>::Ok((
                     id_provider.next(),
-                    IncompleteBarrier::new(
-                        self.registered
-                            .get(*(conn.chip_name))
-                            .ok_or(ModelConstructionError::Needs(conn.chip_name.to_string()))?
-                            .clone(),
+                    (
+                        IncompleteBarrier::new(
+                            self.registered
+                                .get(*(conn.chip_name))
+                                .ok_or(ModelConstructionError::Needs(conn.chip_name.to_string()))?
+                                .clone(),
+                        ),
+                        conn.inputs,
                     ),
                 ))
             })
             .try_collect::<HashMap<_, _>>()?;
+
+        // pass one: register all connections
+        for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
+            inputs.iter().for_each(|arg| {
+                if interface.is_input(*(arg.internal)) {
+                }
+            });
+        }
 
         todo!()
     }
