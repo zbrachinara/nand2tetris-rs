@@ -32,6 +32,11 @@ struct IncompleteBarrier {
     default: BitVec,
 }
 
+enum Hook {
+    Output(Id),
+    Input(Id),
+}
+
 impl IncompleteBarrier {
     fn new(info: ChipInfo) -> Self {
         // generates a buffer and sets it to the proper size
@@ -76,6 +81,8 @@ impl ChipBuilder {
         if let Form::Native(conns) = logic {
             let mut id_provider = Id(0);
             let out_id = id_provider.next();
+
+            let edge_map: HashMap<Id, (Vec<Hook>, ChannelRange)> = HashMap::new();
 
             todo!()
         } else {
