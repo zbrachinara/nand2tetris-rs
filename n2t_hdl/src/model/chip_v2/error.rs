@@ -7,5 +7,11 @@ pub enum ModelConstructionError {
     #[error("Chip {0} was already loaded into the builder, but was just loaded again")]
     Rebuilt(String),
     #[error("Pin {0} was set to a value, which is not supported as of yet")]
-    ValuesNotSupported(String)
+    ValuesNotSupported(String),
+    #[error("")]
+    MismatchedSizes {
+        failed: String,
+        expected: usize,
+        actual: usize,
+    },
 }

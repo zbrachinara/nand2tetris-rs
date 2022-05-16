@@ -5,7 +5,9 @@ use crate::channel_range::ChannelRange;
 use crate::model::parser::{Channel, Connection, Interface, Symbol};
 use crate::model::parser::{Chip as ChipRepr, Form};
 use bitvec::prelude::*;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use tap::Pipe;
 
 pub struct ChipBuilder {
     registered: HashMap<String, ChipInfo>,
@@ -129,11 +131,30 @@ impl ChipBuilder {
         // pass one: register all connections
         for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
             for arg in inputs {
+                let hook = if interface.is_input(*arg.internal) {
+                    Hook::Input(id.clone())
+                } else {
+                    Hook::Output(id.clone())
+                };
+
                 if let Symbol::Name(external) = arg.external {
-                    connection_map
-                        .entry(external.to_string())
-                        .and_modify(|(hooks, range)| {});
-                    todo!()
+                    let internal_bus_size = arg.internal_bus.map(|x| x.size()).unwrap_or(1);
+                    match connection_map.entry(external.to_string()) {
+                        Entry::Occupied(entry) => {
+                            if entry.get().1 == internal_bus_size {
+                                Ok(entry.into_mut().0.push(hook))
+                            } else {
+                                Err(ModelConstructionError::MismatchedSizes {
+                                    failed: arg.internal.to_string(),
+                                    expected: entry.get().1,
+                                    actual: internal_bus_size,
+                                })
+                            }?;
+                        }
+                        Entry::Vacant(entry) => {
+                            entry.insert((vec![hook], internal_bus_size));
+                        }
+                    };
                 } else {
                     // discard all by-value assignments
                     return Err(ModelConstructionError::ValuesNotSupported(
