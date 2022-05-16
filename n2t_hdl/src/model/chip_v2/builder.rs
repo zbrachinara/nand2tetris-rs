@@ -106,7 +106,7 @@ impl ChipBuilder {
         let mut id_provider = Id(0);
         let out_id = id_provider.next();
 
-        let connection_map: HashMap<Id, (Vec<Hook>, ChannelRange)> = HashMap::new();
+        let mut connection_map: HashMap<String, (Vec<Hook>, usize)> = HashMap::new();
 
         let chips = connections
             .into_iter()
@@ -130,6 +130,9 @@ impl ChipBuilder {
         for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
             for arg in inputs {
                 if let Symbol::Name(external) = arg.external {
+                    connection_map
+                        .entry(external.to_string())
+                        .and_modify(|(hooks, range)| {});
                     todo!()
                 } else {
                     // discard all by-value assignments
