@@ -7,7 +7,6 @@ use crate::model::parser::{Chip as ChipRepr, Form};
 use bitvec::prelude::*;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use tap::Pipe;
 
 pub struct ChipBuilder {
     registered: HashMap<String, ChipInfo>,
@@ -34,6 +33,7 @@ struct IncompleteBarrier {
     default: BitVec,
 }
 
+#[derive(Debug)]
 enum Hook {
     Output(Id),
     Input(Id),
@@ -142,6 +142,7 @@ impl ChipBuilder {
                     match connection_map.entry(external.to_string()) {
                         Entry::Occupied(entry) => {
                             if entry.get().1 == internal_bus_size {
+                                println!("Inserting {hook:?} into {external}");
                                 Ok(entry.into_mut().0.push(hook))
                             } else {
                                 Err(ModelConstructionError::MismatchedSizes {
@@ -152,6 +153,7 @@ impl ChipBuilder {
                             }?;
                         }
                         Entry::Vacant(entry) => {
+                            println!("Inserting {hook:?} into {external}");
                             entry.insert((vec![hook], internal_bus_size));
                         }
                     };
@@ -165,5 +167,20 @@ impl ChipBuilder {
         }
 
         todo!()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::Span;
+    use tap::Tap;
+
+    #[test]
+    fn print_test_not() {
+        let mut builder = ChipBuilder::new().tap_mut(|x| x.with_builtins());
+        let file = std::fs::read_to_string("../test_files/01/Not.hdl").unwrap();
+        let code = crate::model::parser::create_chip(Span::from(file.as_str())).unwrap();
+        builder.register_hdl(code).unwrap();
     }
 }
