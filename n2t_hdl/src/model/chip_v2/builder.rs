@@ -129,14 +129,15 @@ impl ChipBuilder {
         // pass one: register all connections
         for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
             for arg in inputs {
-                match arg.external {
-                    Symbol::Name(external) => {
-
-                        todo!()
-                    }
-                    _ => return Err(ModelConstructionError::ValuesNotSupported(arg.internal.to_string()))
+                if let Symbol::Name(external) = arg.external {
+                    todo!()
+                } else {
+                    // discard all by-value assignments
+                    return Err(ModelConstructionError::ValuesNotSupported(
+                        arg.internal.to_string(),
+                    ));
                 }
-            };
+            }
         }
 
         todo!()
