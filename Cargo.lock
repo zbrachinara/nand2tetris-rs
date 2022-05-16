@@ -241,6 +241,7 @@ dependencies = [
  "nom-supreme",
  "nom_locate",
  "petgraph",
+ "tap",
  "thiserror",
 ]
 
