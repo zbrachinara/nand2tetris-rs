@@ -8,9 +8,10 @@ pub enum ModelConstructionError {
     Rebuilt(String),
     #[error("Pin {0} was set to a value, which is not supported as of yet")]
     ValuesNotSupported(String),
-    #[error("")]
+    #[error("Pin {failed_internal} was expected to have size {expected}, but {failed_external} has size {actual}")]
     MismatchedSizes {
-        failed: String,
+        failed_internal: String,
+        failed_external: String,
         expected: usize,
         actual: usize,
     },

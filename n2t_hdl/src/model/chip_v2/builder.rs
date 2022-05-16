@@ -146,7 +146,8 @@ impl ChipBuilder {
                                 Ok(entry.into_mut().0.push(hook))
                             } else {
                                 Err(ModelConstructionError::MismatchedSizes {
-                                    failed: arg.internal.to_string(),
+                                    failed_internal: arg.internal.to_string(),
+                                    failed_external: external.to_string(),
                                     expected: entry.get().1,
                                     actual: internal_bus_size,
                                 })
