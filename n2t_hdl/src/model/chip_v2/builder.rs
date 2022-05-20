@@ -72,21 +72,12 @@ impl ChipBuilder {
 
     pub fn register_hdl(&mut self, chip: ChipRepr) -> Result<(), ModelConstructionError> {
         let top_interface = chip.interface();
-        let ChipRepr {
-            name,
-            in_pins,
-            out_pins,
-            logic,
-        } = chip;
-        let top_router: Vec<(ChannelRange, (Id, ChannelRange))> = Vec::new();
+        let ChipRepr { name, logic, .. } = chip;
 
         if let Form::Native(conns) = logic {
             if self
                 .registered
-                .insert(
-                    name.to_string(),
-                    self.build_native(top_interface, in_pins, out_pins, conns)?,
-                )
+                .insert(name.to_string(), self.build_native(top_interface, conns)?)
                 .is_some()
             {
                 Err(ModelConstructionError::Rebuilt(name.to_string()))
@@ -101,8 +92,6 @@ impl ChipBuilder {
     fn build_native(
         &self,
         top_interface: Interface,
-        in_pins: Vec<Channel>,
-        out_pins: Vec<Channel>,
         connections: Vec<Connection>,
     ) -> Result<ChipInfo, ModelConstructionError> {
         let mut id_provider = Id(0);
@@ -168,12 +157,14 @@ impl ChipBuilder {
                     };
                     push_to_entry(outer_connection_map.entry(k), hook);
                 } else {
-                    let hook = if interface.is_input(*arg.internal) {
-                        Hook::Input(id.clone(), internal_bus)
-                    } else {
-                        Hook::Output(id.clone(), internal_bus)
-                    };
-                    push_to_entry(connection_map.entry(external.to_string()), hook);
+                    push_to_entry(
+                        connection_map.entry(external.to_string()),
+                        if interface.is_input(*arg.internal) {
+                            Hook::Input(id.clone(), internal_bus)
+                        } else {
+                            Hook::Output(id.clone(), internal_bus)
+                        },
+                    );
                 };
             }
         }
