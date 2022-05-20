@@ -15,4 +15,6 @@ pub enum ModelConstructionError {
         expected: usize,
         actual: usize,
     },
+    #[error("The pin {0} could not be found in the chip {0}")]
+    PinNotFound(String, String)
 }

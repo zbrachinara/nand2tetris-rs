@@ -5,7 +5,7 @@ use funty::Integral;
 /// The range of a sub-bus of a non-internal bus (i.e., specified as IN or OUT)
 ///
 /// Inclusive on `start` and `end`
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 pub struct ChannelRange {
     pub(crate) start: u16,
     pub(crate) end: u16,
