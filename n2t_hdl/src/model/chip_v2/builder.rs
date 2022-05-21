@@ -32,10 +32,16 @@ struct IncompleteBarrier {
     default: BitVec,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 enum Hook {
     Output(Id, ChannelRange),
     Input(Id, ChannelRange),
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+enum OuterHook {
+    Output(ChannelRange),
+    Input(ChannelRange),
 }
 
 impl IncompleteBarrier {
@@ -94,7 +100,6 @@ impl ChipBuilder {
         connections: Vec<Connection>,
     ) -> Result<ChipInfo, ModelConstructionError> {
         let mut id_provider = Id(0);
-        let in_id = id_provider.next();
         let out_id = id_provider.next();
 
         let chips = connections
@@ -115,8 +120,8 @@ impl ChipBuilder {
             })
             .try_collect::<HashMap<_, _>>()?;
 
-        let mut connection_map: HashMap<String, Vec<Hook>> = HashMap::new();
-        let mut outer_connection_map: HashMap<Hook, Vec<Hook>> = HashMap::new();
+        let mut connection_map = HashMap::new();
+        let mut outer_connection_map = HashMap::new();
 
         // pass one: register all connections
         for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
@@ -145,12 +150,12 @@ impl ChipBuilder {
                 if let Some(outer_range) = external_bus {
                     let (k, hook) = if interface.is_input(*arg.internal) {
                         (
-                            Hook::Input(in_id.clone(), outer_range),
+                            OuterHook::Input(outer_range),
                             Hook::Input(id.clone(), internal_bus),
                         )
                     } else {
                         (
-                            Hook::Output(out_id.clone(), outer_range),
+                            OuterHook::Output(outer_range),
                             Hook::Output(id.clone(), internal_bus),
                         )
                     };
@@ -194,7 +199,7 @@ mod test {
     #[test]
     fn print_test_not() {
         let mut builder = ChipBuilder::new().tap_mut(|x| x.with_builtins());
-        let file = std::fs::read_to_string("../test_files/01/Not.hdl").unwrap();
+        let file = std::fs::read_to_string("../test_files/01/And.hdl").unwrap();
         let code = crate::model::parser::create_chip(Span::from(file.as_str())).unwrap();
         builder.register_hdl(code).unwrap();
     }
