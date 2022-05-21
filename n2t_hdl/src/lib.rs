@@ -1,4 +1,5 @@
 #![feature(iterator_try_collect)]
+#![feature(let_else)]
 
 pub mod channel_range;
 mod clock_behavior;

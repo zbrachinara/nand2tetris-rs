@@ -127,22 +127,19 @@ impl ChipBuilder {
         for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
             for arg in inputs {
                 println!("working on {}", arg.internal);
-                let internal_bus = interface
-                    .real_range(*(arg.internal), arg.internal_bus.as_ref())
-                    .map_err(|_| {
-                        ModelConstructionError::PinNotFound(
+                let Ok(internal_bus) = interface
+                    .real_range(*(arg.internal), arg.internal_bus.as_ref()) else {
+                        return Err(ModelConstructionError::PinNotFound(
                             arg.internal.to_string(),
                             top_interface.name.clone(),
-                        )
-                    })?;
-                let external = if let Symbol::Name(external) = arg.external {
-                    Ok(external)
-                } else {
+                        ));
+                    };
+                let Symbol::Name(external) = arg.external else {
                     // discard all by-value assignments
-                    Err(ModelConstructionError::ValuesNotSupported(
+                    return Err(ModelConstructionError::ValuesNotSupported(
                         arg.internal.to_string(),
                     ))
-                }?;
+                };
                 let external_bus = top_interface
                     .real_range(*external, arg.external_bus.as_ref())
                     .ok();
