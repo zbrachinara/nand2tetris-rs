@@ -102,6 +102,7 @@ impl ChipBuilder {
         let mut id_provider = Id(0);
         let out_id = id_provider.next();
 
+        // TODO: Return all required names instead of the most recent one
         let chips = connections
             .into_iter()
             .map(|conn| {
