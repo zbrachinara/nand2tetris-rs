@@ -172,7 +172,8 @@ impl ChipBuilder {
 
         println!("outer connections: {outer_connection_map:?}");
         println!("inner connections: {connection_map:?}");
-        todo!()
+        unimplemented!("pass two: write back connections");
+        unimplemented!("package into chip");
     }
 }
 
