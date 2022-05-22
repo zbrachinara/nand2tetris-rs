@@ -105,7 +105,7 @@ impl ChipBuilder {
         let chips = connections
             .into_iter()
             .map(|conn| {
-                Result::<_, ModelConstructionError>::Ok((
+                Ok((
                     id_provider.next(),
                     (
                         IncompleteBarrier::new(
