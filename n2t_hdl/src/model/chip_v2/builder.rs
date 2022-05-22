@@ -191,13 +191,23 @@ fn push_to_entry<K, T>(entry: Entry<K, Vec<T>>, value: T) {
 mod test {
     use super::*;
     use crate::Span;
+    use std::path::Path;
     use tap::Tap;
+
+    fn print_test(path: impl AsRef<Path>) {
+        let mut builder = ChipBuilder::new().tap_mut(|x| x.with_builtins());
+        let file = std::fs::read_to_string(path).unwrap();
+        let code = crate::model::parser::create_chip(Span::from(file.as_str())).unwrap();
+        builder.register_hdl(code).unwrap();
+    }
 
     #[test]
     fn print_test_not() {
-        let mut builder = ChipBuilder::new().tap_mut(|x| x.with_builtins());
-        let file = std::fs::read_to_string("../test_files/01/And.hdl").unwrap();
-        let code = crate::model::parser::create_chip(Span::from(file.as_str())).unwrap();
-        builder.register_hdl(code).unwrap();
+        print_test("../test_files/01/Not.hdl")
+    }
+
+    #[test]
+    fn print_test_and() {
+        print_test("../test_files/01/And.hdl");
     }
 }
