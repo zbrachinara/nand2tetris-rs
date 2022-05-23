@@ -2,6 +2,7 @@ use super::error::ModelConstructionError;
 use super::native::Router;
 use super::{builtin, Chip, Id};
 use crate::channel_range::ChannelRange;
+use crate::model::chip_v2::native::Hook;
 use crate::model::parser::{Chip as ChipRepr, Connection, Form, Interface, Symbol};
 use bitvec::prelude::*;
 use std::collections::hash_map::Entry;
@@ -30,12 +31,6 @@ struct IncompleteBarrier {
     interface: Interface,
     router: Router,
     default: BitVec,
-}
-
-#[derive(Debug)]
-enum Hook {
-    Output(Id, ChannelRange),
-    Input(Id, ChannelRange),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]

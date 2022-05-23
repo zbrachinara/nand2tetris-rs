@@ -44,6 +44,21 @@ pub struct NativeChip {
     pub(super) out_buffer: BitVec,
 }
 
+#[derive(Debug)]
+pub(super) enum Hook {
+    Output(Id, ChannelRange),
+    Input(Id, ChannelRange),
+}
+
+impl Hook {
+    fn unwrap(self) -> (Id, ChannelRange) {
+        match self {
+            Hook::Output(id, range) => (id, range),
+            Hook::Input(id, range) => (id, range),
+        }
+    }
+}
+
 impl Clone for Barrier {
     fn clone(&self) -> Self {
         Self {
@@ -58,6 +73,14 @@ impl Clone for Barrier {
 }
 
 impl Router {
+    pub fn new() -> Self {
+        Self { map: Vec::new() }
+    }
+
+    pub fn add_hook(&mut self, range: ChannelRange, hook: Hook) {
+        self.map.push((range, hook.unwrap()));
+    }
+
     fn gen_requests(&self, data: &BitSlice) -> impl Iterator<Item = Request> + '_ {
         let copy = data.to_bitvec();
         self.map
