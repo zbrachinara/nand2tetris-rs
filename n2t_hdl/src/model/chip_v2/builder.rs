@@ -98,7 +98,7 @@ impl ChipBuilder {
         let out_id = id_provider.next();
 
         // TODO: Return all required names instead of the most recent one
-        let chips = connections
+        let mut chips = connections
             .into_iter()
             .map(|conn| {
                 Ok((
@@ -168,7 +168,35 @@ impl ChipBuilder {
 
         println!("outer connections: {outer_connection_map:?}");
         println!("inner connections: {connection_map:?}");
-        unimplemented!("pass two: write back connections");
+        // unimplemented!("pass two: write back connections");
+
+        let mut in_router = Router::new();
+
+        for (outer_hook, hooks) in outer_connection_map {
+            for hook in hooks {
+                if let OuterHook::Input(input_range) = outer_hook {
+                    in_router.add_hook(input_range, hook);
+                } else if let OuterHook::Output(output_range) = outer_hook {
+                    let hook = hook.unwrap();
+                    chips
+                        .get_mut(&hook.0)
+                        .unwrap()
+                        .0
+                        .router
+                        .add_hook_parts(hook.1, (hook.0, output_range));
+                }
+            }
+        }
+
+        #[cfg(test)]
+        {
+            println!("Checking routers");
+            println!("input router: {in_router:?}");
+            for (id, (IncompleteBarrier { router, ..}, _)) in chips {
+                println!("router for chip {id:?}: {router:?}");
+            }
+        }
+
         unimplemented!("package into chip");
     }
 }

@@ -4,7 +4,7 @@ use super::{Chip, Id};
 use crate::channel_range::ChannelRange;
 use std::collections::{HashMap, VecDeque};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub(super) struct Router {
     pub map: Vec<(ChannelRange, (Id, ChannelRange))>,
 }
@@ -51,7 +51,7 @@ pub(super) enum Hook {
 }
 
 impl Hook {
-    fn unwrap(self) -> (Id, ChannelRange) {
+    pub fn unwrap(self) -> (Id, ChannelRange) {
         match self {
             Hook::Output(id, range) => (id, range),
             Hook::Input(id, range) => (id, range),
@@ -79,6 +79,10 @@ impl Router {
 
     pub fn add_hook(&mut self, range: ChannelRange, hook: Hook) {
         self.map.push((range, hook.unwrap()));
+    }
+
+    pub fn add_hook_parts(&mut self, range_self: ChannelRange, hook_parts: (Id, ChannelRange)) {
+        self.map.push((range_self, hook_parts));
     }
 
     fn gen_requests(&self, data: &BitSlice) -> impl Iterator<Item = Request> + '_ {
