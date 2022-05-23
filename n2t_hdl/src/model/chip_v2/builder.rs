@@ -1,12 +1,14 @@
 use super::error::ModelConstructionError;
-use super::native::Router;
+use super::native::{Barrier, Router};
 use super::{builtin, Chip, Id};
 use crate::channel_range::ChannelRange;
-use crate::model::chip_v2::native::Hook;
+use crate::model::chip_v2::native::{Hook, NativeChip};
 use crate::model::parser::{Chip as ChipRepr, Connection, Form, Interface, Symbol};
 use bitvec::prelude::*;
+use itertools::Itertools;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use tap::Tap;
 
 pub struct ChipBuilder {
     registered: HashMap<String, ChipInfo>,
@@ -88,19 +90,23 @@ enum OuterHook {
 
 impl IncompleteBarrier {
     fn new(info: ChipInfo) -> Self {
-        // generates a buffer and sets it to the proper size
         let storage_size = info.interface.size_in();
-        let mut storage = BitVec::with_capacity(storage_size);
-        unsafe {
-            storage.set_len(storage_size);
-        }
-        storage.set_uninitialized(false);
-
         Self {
             chip: info.chip,
             interface: info.interface,
             router: Router { map: Vec::new() },
-            default: storage,
+            default: BitVec::repeat(false, storage_size),
+        }
+    }
+
+    fn complete(self) -> Barrier {
+        Barrier {
+            in_buffer: self.default.clone(),
+            intermediate: self.default.clone(),
+            clock_mask: self.default.clone().tap_mut(|v| v.fill(true)),
+            out_buffer: self.default.clone().tap_mut(|v| v.fill(false)),
+            chip: self.chip,
+            router: self.router,
         }
     }
 }
@@ -141,7 +147,6 @@ impl ChipBuilder {
         top_interface: Interface,
         connections: Vec<Connection>,
     ) -> Result<ChipInfo, ModelConstructionError> {
-
         println!("building chip {}", top_interface.name);
 
         let mut id_provider = Id(0);
@@ -164,7 +169,7 @@ impl ChipBuilder {
                     ),
                 ))
             })
-            .try_collect::<HashMap<_, _>>()?;
+            .try_collect::<_, HashMap<_, _>, _>()?;
 
         let mut connection_map = HashMap::new();
         let mut outer_connection_map = HashMap::new();
@@ -251,12 +256,35 @@ impl ChipBuilder {
             println!("with output id {out_id:?}");
             println!("Checking routers");
             println!("input router: {in_router:#?}");
-            for (id, (IncompleteBarrier { router, interface, .. }, _)) in chips {
+            for (
+                id,
+                (
+                    IncompleteBarrier {
+                        router, interface, ..
+                    },
+                    _,
+                ),
+            ) in chips.iter()
+            {
                 println!("router for chip {}, {id:?}: {router:#?}", interface.name);
             }
         }
 
-        unimplemented!("package into chip");
+        let registry = chips
+            .into_iter()
+            .map(|(id, (barrier, _))| (id, barrier.complete()))
+            .collect::<HashMap<_, _>>();
+        let out_buffer = BitVec::repeat(false, top_interface.size_out());
+
+        Ok(ChipInfo {
+            interface: top_interface,
+            chip: Box::new(NativeChip {
+                registry,
+                in_router,
+                out_chip: out_id,
+                out_buffer,
+            }),
+        })
     }
 }
 
