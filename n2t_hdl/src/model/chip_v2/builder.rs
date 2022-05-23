@@ -33,6 +33,53 @@ struct IncompleteBarrier {
     default: BitVec,
 }
 
+#[derive(Debug)]
+struct EdgeSet {
+    output: Option<Hook>,
+    inputs: Vec<Hook>,
+}
+
+impl EdgeSet {
+    fn insert(
+        entry: Entry<String, Self>,
+        item: Hook,
+        as_input: bool,
+    ) -> Result<(), ModelConstructionError> {
+        let mut conflict = false;
+        let key = entry.key().clone();
+
+        entry
+            .and_modify(|mut entry| {
+                if as_input {
+                    entry.inputs.push(item.clone());
+                } else if let Some(_) = entry.output {
+                    conflict = true;
+                } else {
+                    entry.output = Some(item.clone());
+                }
+            })
+            .or_insert_with(|| {
+                if as_input {
+                    EdgeSet {
+                        output: None,
+                        inputs: vec![item],
+                    }
+                } else {
+                    EdgeSet {
+                        output: Some(item),
+                        inputs: vec![],
+                    }
+                }
+            });
+
+        if conflict {
+            Err(ModelConstructionError::ConflictingSources(key))
+        } else {
+            Ok(())
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 enum OuterHook {
     Output(ChannelRange),
@@ -139,29 +186,25 @@ impl ChipBuilder {
                 let external_bus = top_interface
                     .real_range(*external, arg.external_bus.as_ref())
                     .ok();
+                let hook = Hook {
+                    id: id.clone(),
+                    range: internal_bus,
+                };
 
                 if let Some(outer_range) = external_bus {
-                    let (k, hook) = if interface.is_input(*arg.internal) {
-                        (
-                            OuterHook::Input(outer_range),
-                            Hook::Input(id.clone(), internal_bus),
-                        )
+                    let k = if interface.is_input(*arg.internal) {
+                        OuterHook::Input(outer_range)
                     } else {
-                        (
-                            OuterHook::Output(outer_range),
-                            Hook::Output(id.clone(), internal_bus),
-                        )
+                        OuterHook::Output(outer_range)
                     };
+
                     push_to_entry(outer_connection_map.entry(k), hook);
                 } else {
-                    push_to_entry(
+                    EdgeSet::insert(
                         connection_map.entry(external.to_string()),
-                        if interface.is_input(*arg.internal) {
-                            Hook::Input(id.clone(), internal_bus)
-                        } else {
-                            Hook::Output(id.clone(), internal_bus)
-                        },
-                    );
+                        hook,
+                        interface.is_input(*arg.internal),
+                    )?;
                 };
             }
         }
@@ -177,13 +220,13 @@ impl ChipBuilder {
                 if let OuterHook::Input(input_range) = outer_hook {
                     in_router.add_hook(input_range, hook);
                 } else if let OuterHook::Output(output_range) = outer_hook {
-                    let hook = hook.unwrap();
-                    chips
-                        .get_mut(&hook.0)
-                        .unwrap()
-                        .0
-                        .router
-                        .add_hook_parts(hook.1, (hook.0, output_range));
+                    chips.get_mut(&hook.id).unwrap().0.router.add_hook(
+                        hook.range,
+                        Hook {
+                            id: hook.id,
+                            range: output_range,
+                        },
+                    );
                 }
             }
         }
@@ -192,7 +235,7 @@ impl ChipBuilder {
         {
             println!("Checking routers");
             println!("input router: {in_router:?}");
-            for (id, (IncompleteBarrier { router, ..}, _)) in chips {
+            for (id, (IncompleteBarrier { router, .. }, _)) in chips {
                 println!("router for chip {id:?}: {router:?}");
             }
         }

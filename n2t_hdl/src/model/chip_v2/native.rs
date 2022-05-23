@@ -6,7 +6,7 @@ use std::collections::{HashMap, VecDeque};
 
 #[derive(Debug, Clone)]
 pub(super) struct Router {
-    pub map: Vec<(ChannelRange, (Id, ChannelRange))>,
+    pub map: Vec<(ChannelRange, Hook)>,
 }
 
 /// Represents a request to modify the chip represented by the id with the
@@ -44,19 +44,10 @@ pub struct NativeChip {
     pub(super) out_buffer: BitVec,
 }
 
-#[derive(Debug)]
-pub(super) enum Hook {
-    Output(Id, ChannelRange),
-    Input(Id, ChannelRange),
-}
-
-impl Hook {
-    pub fn unwrap(self) -> (Id, ChannelRange) {
-        match self {
-            Hook::Output(id, range) => (id, range),
-            Hook::Input(id, range) => (id, range),
-        }
-    }
+#[derive(Debug, Clone)]
+pub(super) struct Hook {
+    pub id: Id,
+    pub range: ChannelRange,
 }
 
 impl Clone for Barrier {
@@ -78,21 +69,17 @@ impl Router {
     }
 
     pub fn add_hook(&mut self, range: ChannelRange, hook: Hook) {
-        self.map.push((range, hook.unwrap()));
-    }
-
-    pub fn add_hook_parts(&mut self, range_self: ChannelRange, hook_parts: (Id, ChannelRange)) {
-        self.map.push((range_self, hook_parts));
+        self.map.push((range, hook));
     }
 
     fn gen_requests(&self, data: &BitSlice) -> impl Iterator<Item = Request> + '_ {
         let copy = data.to_bitvec();
         self.map
             .iter()
-            .map(move |(in_range, (id, out_range))| Request {
+            .map(move |(in_range, Hook { id, range })| Request {
                 id: id.clone(),
                 data: copy[in_range.as_range()].to_bitvec(),
-                range: out_range.clone(),
+                range: range.clone(),
             })
     }
 }
@@ -159,7 +146,13 @@ mod test {
                     out_buffer: bitvec!(0, 0),
                     chip: crate::model::chip_v2::builtin::nand().chip,
                     router: Router {
-                        map: vec![((0..=0).into(), (Id(0), (0..=0).into()))],
+                        map: vec![(
+                            (0..=0).into(),
+                            Hook {
+                                id: Id(0),
+                                range: (0..=0).into(),
+                            },
+                        )],
                     },
                 },
             )]
@@ -167,8 +160,20 @@ mod test {
             .collect(),
             in_router: Router {
                 map: vec![
-                    ((0..=0).into(), (Id(1), (0..=0).into())),
-                    ((0..=0).into(), (Id(1), (1..=1).into())),
+                    (
+                        (0..=0).into(),
+                        Hook {
+                            id: Id(1),
+                            range: (0..=0).into(),
+                        },
+                    ),
+                    (
+                        (0..=0).into(),
+                        Hook {
+                            id: Id(1),
+                            range: (1..=1).into(),
+                        },
+                    ),
                 ],
             },
             out_chip: Id(0),
