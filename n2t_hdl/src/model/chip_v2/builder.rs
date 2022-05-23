@@ -152,8 +152,7 @@ impl ChipBuilder {
         let mut id_provider = Id(0);
         let out_id = id_provider.next();
 
-        // TODO: Return all required names instead of the most recent one
-        let mut chips = connections
+        let (mut chips, needed): (HashMap<_, _>, Vec<_>) = connections
             .into_iter()
             .map(|conn| {
                 Ok((
@@ -162,14 +161,18 @@ impl ChipBuilder {
                         IncompleteBarrier::new(
                             self.registered
                                 .get(*(conn.chip_name))
-                                .ok_or(ModelConstructionError::Needs(conn.chip_name.to_string()))?
+                                .ok_or(conn.chip_name.to_string())?
                                 .clone(),
                         ),
                         conn.inputs,
                     ),
                 ))
             })
-            .try_collect::<_, HashMap<_, _>, _>()?;
+            .partition_result();
+
+        if !needed.is_empty() {
+            return Err(ModelConstructionError::Needs(needed));
+        }
 
         let mut connection_map = HashMap::new();
         let mut outer_connection_map = HashMap::new();
