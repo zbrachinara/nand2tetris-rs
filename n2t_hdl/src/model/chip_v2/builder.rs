@@ -141,6 +141,9 @@ impl ChipBuilder {
         top_interface: Interface,
         connections: Vec<Connection>,
     ) -> Result<ChipInfo, ModelConstructionError> {
+
+        println!("building chip {}", top_interface.name);
+
         let mut id_provider = Id(0);
         let out_id = id_provider.next();
 
@@ -211,10 +214,10 @@ impl ChipBuilder {
 
         println!("outer connections: {outer_connection_map:?}");
         println!("inner connections: {connection_map:?}");
-        // unimplemented!("pass two: write back connections");
 
+        // pass two: write back connections
         let mut in_router = Router::new();
-
+        // write back top level connections
         for (outer_hook, hooks) in outer_connection_map {
             for hook in hooks {
                 if let OuterHook::Input(input_range) = outer_hook {
@@ -223,20 +226,33 @@ impl ChipBuilder {
                     chips.get_mut(&hook.id).unwrap().0.router.add_hook(
                         hook.range,
                         Hook {
-                            id: hook.id,
+                            id: out_id.clone(),
                             range: output_range,
                         },
                     );
                 }
             }
         }
+        // then write back internal connections
+        for (k, EdgeSet { output, inputs }) in connection_map {
+            let output = output.ok_or(ModelConstructionError::NoSource(k))?;
+            for input in inputs {
+                chips
+                    .get_mut(&output.id)
+                    .unwrap()
+                    .0
+                    .router
+                    .add_hook(output.range, input)
+            }
+        }
 
         #[cfg(test)]
         {
+            println!("with output id {out_id:?}");
             println!("Checking routers");
-            println!("input router: {in_router:?}");
-            for (id, (IncompleteBarrier { router, .. }, _)) in chips {
-                println!("router for chip {id:?}: {router:?}");
+            println!("input router: {in_router:#?}");
+            for (id, (IncompleteBarrier { router, interface, .. }, _)) in chips {
+                println!("router for chip {}, {id:?}: {router:#?}", interface.name);
             }
         }
 

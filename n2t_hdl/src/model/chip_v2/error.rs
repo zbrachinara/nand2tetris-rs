@@ -19,4 +19,6 @@ pub enum ModelConstructionError {
     PinNotFound(String, String),
     #[error("The pin {0} has two sources")]
     ConflictingSources(String),
+    #[error("The pin {0} has no source")]
+    NoSource(String),
 }
