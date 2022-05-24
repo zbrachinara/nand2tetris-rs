@@ -3,7 +3,7 @@ use super::native::{Barrier, Router};
 use super::{builtin, Chip, Id};
 use crate::channel_range::ChannelRange;
 use crate::model::chip_v2::native::{Hook, NativeChip};
-use crate::model::parser::{Chip as ChipRepr, Connection, Form, Interface, Symbol};
+use crate::model::parser::{Argument, Chip as ChipRepr, Connection, Form, Interface, Symbol};
 use bitvec::prelude::*;
 use itertools::Itertools;
 use std::collections::hash_map::Entry;
@@ -174,59 +174,15 @@ impl ChipBuilder {
             return Err(ModelConstructionError::Needs(needed));
         }
 
-        let mut connection_map = HashMap::new();
-        let mut outer_connection_map = HashMap::new();
+        let (conn_map, outer_conn_map) = create_connection_maps(&chips, &top_interface)?;
 
-        // pass one: register all connections
-        for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
-            for arg in inputs {
-                println!("working on {}", arg.internal);
-                let Ok(internal_bus) = interface
-                    .real_range(*(arg.internal), arg.internal_bus.as_ref()) else {
-                        return Err(ModelConstructionError::PinNotFound(
-                            arg.internal.to_string(),
-                            top_interface.name.clone(),
-                        ));
-                    };
-                let Symbol::Name(external) = arg.external else {
-                    // discard all by-value assignments
-                    return Err(ModelConstructionError::ValuesNotSupported(
-                        arg.internal.to_string(),
-                    ))
-                };
-                let external_bus = top_interface
-                    .real_range(*external, arg.external_bus.as_ref())
-                    .ok();
-                let hook = Hook {
-                    id: id.clone(),
-                    range: internal_bus,
-                };
-
-                if let Some(outer_range) = external_bus {
-                    let k = if interface.is_input(*arg.internal) {
-                        OuterHook::Input(outer_range)
-                    } else {
-                        OuterHook::Output(outer_range)
-                    };
-
-                    push_to_entry(outer_connection_map.entry(k), hook);
-                } else {
-                    EdgeSet::insert(
-                        connection_map.entry(external.to_string()),
-                        hook,
-                        interface.is_input(*arg.internal),
-                    )?;
-                };
-            }
-        }
-
-        println!("outer connections: {outer_connection_map:?}");
-        println!("inner connections: {connection_map:?}");
+        println!("outer connections: {outer_conn_map:?}");
+        println!("inner connections: {conn_map:?}");
 
         // pass two: write back connections
         let mut in_router = Router::new();
         // write back top level connections
-        for (outer_hook, hooks) in outer_connection_map {
+        for (outer_hook, hooks) in outer_conn_map {
             for hook in hooks {
                 if let OuterHook::Input(input_range) = outer_hook {
                     in_router.add_hook(input_range, hook);
@@ -242,7 +198,7 @@ impl ChipBuilder {
             }
         }
         // then write back internal connections
-        for (k, EdgeSet { output, inputs }) in connection_map {
+        for (k, EdgeSet { output, inputs }) in conn_map {
             let output = output.ok_or(ModelConstructionError::NoSource(k))?;
             for input in inputs {
                 chips
@@ -251,25 +207,6 @@ impl ChipBuilder {
                     .0
                     .router
                     .add_hook(output.range, input)
-            }
-        }
-
-        #[cfg(test)]
-        {
-            println!("with output id {out_id:?}");
-            println!("Checking routers");
-            println!("input router: {in_router:#?}");
-            for (
-                id,
-                (
-                    IncompleteBarrier {
-                        router, interface, ..
-                    },
-                    _,
-                ),
-            ) in chips.iter()
-            {
-                println!("router for chip {}, {id:?}: {router:#?}", interface.name);
             }
         }
 
@@ -289,6 +226,58 @@ impl ChipBuilder {
             }),
         })
     }
+}
+
+fn create_connection_maps(
+    chips: &HashMap<Id, (IncompleteBarrier, Vec<Argument>)>,
+    top_interface: &Interface,
+) -> Result<(HashMap<String, EdgeSet>, HashMap<OuterHook, Vec<Hook>>), ModelConstructionError> {
+    let mut connection_map = HashMap::new();
+    let mut outer_connection_map = HashMap::new();
+
+    // pass one: register all connections
+    for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
+        for arg in inputs {
+            let Ok(internal_bus) = interface
+                .real_range(*(arg.internal), arg.internal_bus.as_ref()) else {
+                    return Err(ModelConstructionError::PinNotFound(
+                        arg.internal.to_string(),
+                        top_interface.name.clone(),
+                    ));
+                };
+            let Symbol::Name(external) = arg.external else {
+                // discard all by-value assignments
+                return Err(ModelConstructionError::ValuesNotSupported(
+                    arg.internal.to_string(),
+                ))
+            };
+            let external_bus = top_interface
+                .real_range(*external, arg.external_bus.as_ref())
+                .ok();
+            let hook = Hook {
+                id: id.clone(),
+                range: internal_bus,
+            };
+
+            if let Some(outer_range) = external_bus {
+                let k = if interface.is_input(*arg.internal) {
+                    OuterHook::Input
+                } else {
+                    OuterHook::Output
+                }(outer_range);
+
+                push_to_entry(outer_connection_map.entry(k), hook);
+            } else {
+                EdgeSet::insert(
+                    connection_map.entry(external.to_string()),
+                    hook,
+                    interface.is_input(*arg.internal),
+                )?;
+            };
+        }
+    }
+
+    Ok((connection_map, outer_connection_map))
 }
 
 fn push_to_entry<K, T>(entry: Entry<K, Vec<T>>, value: T) {
