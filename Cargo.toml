@@ -1,5 +1,5 @@
 [workspace]
-members = ["n2t_asm", "n2t_hdl", "n2t_jack", "n2tcc"]
+members = ["n2t_asm", "n2t_hdl", "n2t_jack", "n2t_tauri/src-tauri",  "n2tcc"]
 
 [profile.release]
 strip = true
