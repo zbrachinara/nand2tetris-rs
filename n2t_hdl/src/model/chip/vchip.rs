@@ -5,8 +5,8 @@
 
 use crate::channel_range::ChannelRange;
 use crate::model::chip::{Chip, ChipObject};
-use crate::model::parser::Interface;
 use crate::model::parser::interface::ChannelPin;
+use crate::model::parser::Interface;
 use bitvec::prelude::*;
 use std::collections::HashMap;
 
@@ -24,7 +24,10 @@ impl VirtualBus {
             size: h.iter().map(|(_, x)| x.size() as u16).sum(),
             interface: Interface {
                 name: "_Input".to_string(),
-                map: h.into_iter().map(|(k, v)| (k, ChannelPin::ComOut(v))).collect(),
+                map: h
+                    .into_iter()
+                    .map(|(k, v)| (k, ChannelPin::ComOut(v)))
+                    .collect(),
             },
         }))
     }
@@ -34,7 +37,10 @@ impl VirtualBus {
             size: h.iter().map(|(_, x)| x.size() as u16).sum(),
             interface: Interface {
                 name: "_Output".to_string(),
-                map: h.into_iter().map(|(k, v)| (k, ChannelPin::ComIn(v))).collect(),
+                map: h
+                    .into_iter()
+                    .map(|(k, v)| (k, ChannelPin::ComIn(v)))
+                    .collect(),
             },
         }))
     }
