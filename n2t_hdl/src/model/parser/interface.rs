@@ -4,8 +4,6 @@ use crate::clock_behavior::ClockBehavior;
 use crate::Span;
 use std::collections::HashMap;
 
-// type PinMap = HashMap<String, ChannelRange>;
-
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ChannelPin {
     ComIn(ChannelRange),
@@ -26,13 +24,6 @@ impl ChannelPin {
 }
 
 #[derive(PartialEq, Debug, Clone, Default)]
-// pub struct Interface {
-//     pub name: String,
-//     pub com_in: PinMap,
-//     pub com_out: PinMap,
-//     pub seq_in: PinMap,
-//     pub seq_out: PinMap,
-// }
 pub struct Interface {
     pub name: String,
     pub map: HashMap<String, ChannelPin>,

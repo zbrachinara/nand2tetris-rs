@@ -22,15 +22,7 @@ pub fn nand() -> ChipInfo {
                 ("b".to_string(), ChannelPin::ComIn((1..=1).into())),
                 ("out".to_string(), ChannelPin::ComOut((0..=0).into())),
             ]
-            .into(), // com_in: [
-                     //     ("a".to_string(), (0..=0).into()),
-                     //     ("b".to_string(), (1..=1).into()),
-                     // ]
-                     // .into_iter()
-                     // .collect(),
-                     // com_out: [("out".to_string(), (0..=0).into())].into_iter().collect(),
-                     // seq_in: HashMap::new(),
-                     // seq_out: HashMap::new(),
+            .into(),
         },
         chip: Box::new(Nand),
     }
