@@ -22,10 +22,21 @@ pub fn native_chip(
     top_interface: Interface,
     connections: Vec<Connection>,
 ) -> Result<NativeChip, ModelConstructionError> {
-    let Interface {
-        com_in, com_out, ..
-    } = top_interface.clone();
-    let (input, output) = (VirtualBus::new_in(com_in), VirtualBus::new_out(com_out));
+    // let Interface { map, .. } = top_interface.clone();
+    let (input, output) = (
+        VirtualBus::new_in(
+            top_interface
+                .iter_inputs()
+                .map(|(a, b)| (a.clone(), b.clone()))
+                .collect(),
+        ),
+        VirtualBus::new_out(
+            top_interface
+                .iter_outputs()
+                .map(|(a, b)| (a.clone(), b.clone()))
+                .collect(),
+        ),
+    );
 
     let mut conn_graph = Graph::<_, ConnEdge>::new();
 

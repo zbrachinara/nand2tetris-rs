@@ -1,5 +1,5 @@
-use crate::channel_range::ChannelRange;
 use crate::model::chip::ChipObject;
+use crate::model::parser::interface::ChannelPin;
 use crate::model::parser::Interface;
 use bitvec::prelude::*;
 use std::iter::once;
@@ -17,14 +17,12 @@ impl ChipObject for Nand {
     fn interface(&self) -> Interface {
         Interface {
             name: "Nand".to_string(),
-            com_in: [
-                ("a".to_string(), ChannelRange::new(0, 0)),
-                ("b".to_string(), ChannelRange::new(1, 1)),
+            map: [
+                ("a".to_string(), ChannelPin::ComIn((0..=0).into())),
+                ("b".to_string(), ChannelPin::ComIn((1..=1).into())),
+                ("out".to_string(), ChannelPin::ComOut((0..=0).into())),
             ]
             .into(),
-            com_out: [("out".to_string(), ChannelRange::new(0, 0))].into(),
-            seq_in: Default::default(),
-            seq_out: Default::default(),
         }
     }
 

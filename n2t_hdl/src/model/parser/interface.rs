@@ -4,90 +4,159 @@ use crate::clock_behavior::ClockBehavior;
 use crate::Span;
 use std::collections::HashMap;
 
-type PinMap = HashMap<String, ChannelRange>;
+// type PinMap = HashMap<String, ChannelRange>;
 
-#[derive(PartialEq, Debug, Clone, Default)]
-pub struct Interface {
-    pub name: String,
-    pub com_in: PinMap,
-    pub com_out: PinMap,
-    pub seq_in: PinMap,
-    pub seq_out: PinMap,
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub enum ChannelPin {
+    ComIn(ChannelRange),
+    ComOut(ChannelRange),
+    SeqIn(ChannelRange),
+    SeqOut(ChannelRange),
 }
 
-fn to_map(pins: Vec<Channel>, mut next: u16) -> (PinMap, u16) {
-    let map = pins
+impl ChannelPin {
+    fn unwrap(&self) -> &ChannelRange {
+        match self {
+            ChannelPin::ComIn(c) => c,
+            ChannelPin::ComOut(c) => c,
+            ChannelPin::SeqIn(c) => c,
+            ChannelPin::SeqOut(c) => c,
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Default)]
+// pub struct Interface {
+//     pub name: String,
+//     pub com_in: PinMap,
+//     pub com_out: PinMap,
+//     pub seq_in: PinMap,
+//     pub seq_out: PinMap,
+// }
+pub struct Interface {
+    pub name: String,
+    pub map: HashMap<String, ChannelPin>,
+}
+fn sort_pins(
+    inputs: &[Channel],
+    outputs: &[Channel],
+    clocked: Option<&[Span]>,
+) -> HashMap<String, ChannelPin> {
+    enum PinIntermediate {
+        ComIn(u16),
+        ComOut(u16),
+        SeqIn(u16),
+        SeqOut(u16),
+    }
+
+    let clocked = clocked.unwrap_or(&[]);
+    println!("{clocked:?}");
+
+    let mut next_input = 0;
+    let mut next_output = 0;
+
+    inputs
         .into_iter()
         .map(|Channel { name, size }| {
             let size = size.unwrap_or(1);
-            let range = ChannelRange::new(next, next + size - 1);
-            next += size;
-            ((*name).to_string(), range)
+            let pin = if clocked.iter().any(|x| **x == **name) {
+                PinIntermediate::SeqIn
+            } else {
+                PinIntermediate::ComIn
+            }(size);
+            (name.to_string(), pin)
         })
-        .collect();
-
-    (map, next)
-}
-
-fn split_seq_com(pins: &Vec<Channel>, seq_names: &Vec<Span>) -> (PinMap, PinMap) {
-    let (in_seq, in_com) = pins.iter().cloned().partition(|pin| {
-        seq_names
-            .iter()
-            .find(|name| ***name == *(pin.name))
-            .is_some()
-    });
-    let (seq_in, next) = to_map(in_seq, 0);
-    let (com_in, _) = to_map(in_com, next);
-
-    (seq_in, com_in)
+        .chain(outputs.into_iter().map(|Channel { name, size }| {
+            let size = size.unwrap_or(1);
+            let pin = if clocked.iter().any(|x| **x == **name) {
+                PinIntermediate::SeqOut
+            } else {
+                PinIntermediate::ComOut
+            }(size);
+            (name.to_string(), pin)
+        }))
+        .map(|(x, pin)| {
+            (
+                x,
+                match pin {
+                    PinIntermediate::ComIn(size) => {
+                        next_input += size;
+                        ChannelPin::ComIn(ChannelRange::new(next_input - size, next_input - 1))
+                    }
+                    PinIntermediate::ComOut(size) => {
+                        next_output += size;
+                        ChannelPin::ComOut(ChannelRange::new(next_output - size, next_output - 1))
+                    }
+                    PinIntermediate::SeqIn(size) => {
+                        next_input += size;
+                        ChannelPin::SeqIn(ChannelRange::new(next_input - size, next_input - 1))
+                    }
+                    PinIntermediate::SeqOut(size) => {
+                        next_output += size;
+                        ChannelPin::SeqOut(ChannelRange::new(next_output - size, next_output - 1))
+                    }
+                },
+            )
+        })
+        .collect()
 }
 
 impl<'a> Chip<'a> {
     // defines the rules for interacting with the chip using Vec
     pub fn interface(&self) -> Interface {
         if let Form::Builtin(Builtin { ref clocked, .. }) = self.logic {
-            let empty = vec![];
-            let clocked = if let Some(x) = clocked { x } else { &empty };
-            let (seq_in, com_in) = split_seq_com(&self.in_pins, clocked);
-            let (seq_out, com_out) = split_seq_com(&self.out_pins, clocked);
-
             Interface {
                 name: self.name.to_string(),
-                seq_in,
-                com_in,
-                seq_out,
-                com_out,
+                map: sort_pins(
+                    &self.in_pins,
+                    &self.out_pins,
+                    clocked.as_ref().map(|x| x.as_slice()),
+                ),
             }
         } else {
             Interface {
                 name: self.name.to_string(),
-                com_in: to_map(self.in_pins.clone(), 0).0,
-                com_out: to_map(self.out_pins.clone(), 0).0,
-                ..Default::default()
+                map: sort_pins(&self.in_pins, &self.out_pins, None),
             }
         }
     }
 }
 
 impl Interface {
-    fn iter_inputs(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
-        self.com_in.iter().chain(self.seq_in.iter())
+    pub fn iter_inputs(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
+        self.map.iter().filter_map(|pin| match pin {
+            (name, ChannelPin::ComIn(range)) => Some((name, range)),
+            (name, ChannelPin::SeqIn(range)) => Some((name, range)),
+            _ => None,
+        })
     }
 
-    fn iter_outputs(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
-        self.com_out.iter().chain(self.seq_out.iter())
+    pub fn iter_outputs(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
+        self.map.iter().filter_map(|pin| match pin {
+            (name, ChannelPin::ComOut(range)) => Some((name, range)),
+            (name, ChannelPin::SeqOut(range)) => Some((name, range)),
+            _ => None,
+        })
     }
 
-    fn iter_all(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
-        self.iter_inputs().chain(self.iter_outputs())
+    pub fn iter_all(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
+        self.map.iter().map(|(x, pin)| (x, pin.unwrap()))
     }
 
-    fn iter_combinatorial(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
-        self.com_in.iter().chain(self.com_out.iter())
+    pub fn iter_combinatorial(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
+        self.map.iter().filter_map(|pin| match pin {
+            (name, ChannelPin::ComIn(range)) => Some((name, range)),
+            (name, ChannelPin::ComOut(range)) => Some((name, range)),
+            _ => None,
+        })
     }
 
-    fn iter_sequential(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
-        self.seq_in.iter().chain(self.seq_out.iter())
+    pub fn iter_sequential(&self) -> impl Iterator<Item = (&String, &ChannelRange)> {
+        self.map.iter().filter_map(|pin| match pin {
+            (name, ChannelPin::SeqIn(range)) => Some((name, range)),
+            (name, ChannelPin::SeqOut(range)) => Some((name, range)),
+            _ => None,
+        })
     }
 
     pub fn real_range(
@@ -163,49 +232,23 @@ CHIP test {
 
     #[test]
     fn test_gen_interface() {
-        let (_, com_chip) = chip(Span::from(COM_CHIP)).unwrap();
-        assert_eq!(
-            com_chip.interface(),
-            Interface {
-                name: "And16".to_string(),
-                com_in: [
-                    ("a".to_string(), ChannelRange::new(0, 15)),
-                    ("b".to_string(), ChannelRange::new(16, 31)),
-                ]
-                .into(),
-                com_out: [("out".to_string(), ChannelRange::new(0, 15))].into(),
-                seq_in: Default::default(),
-                seq_out: Default::default()
-            }
-        );
+        let com_chip = chip(Span::from(COM_CHIP)).unwrap().1.interface();
+        assert_eq!(com_chip.name, "And16");
+        assert!(matches!(com_chip.map["a"], ChannelPin::ComIn(range) if range.size() == 16));
+        assert!(matches!(com_chip.map["b"], ChannelPin::ComIn(range) if range.size() == 16));
+        assert!(matches!(com_chip.map["out"], ChannelPin::ComOut(range) if range.size() == 16));
 
-        let (_, seq_chip) = chip(Span::from(SEQ_CHIP)).unwrap();
-        assert_eq!(
-            seq_chip.interface(),
-            Interface {
-                name: String::from("DFF"),
-                com_in: Default::default(),
-                com_out: [("out".to_string(), ChannelRange::new(0, 0))].into(),
-                seq_in: [("in".to_string(), ChannelRange::new(0, 0))].into(),
-                seq_out: Default::default()
-            }
-        );
+        let seq_chip = chip(Span::from(SEQ_CHIP)).unwrap().1.interface();
+        assert_eq!(seq_chip.name, "DFF");
+        assert!(matches!(seq_chip.map["in"], ChannelPin::SeqIn(range) if range.size() == 1));
+        assert!(matches!(seq_chip.map["out"], ChannelPin::ComOut(range) if range.size() == 1));
 
-        let (_, example_chip) = chip(Span::from(EXAMPLE_CHIP)).unwrap();
-        assert_eq!(
-            example_chip.interface(),
-            Interface {
-                name: "test".to_string(),
-                com_in: [("a".to_string(), ChannelRange::new(5, 6))].into(),
-                com_out: [("d".to_string(), ChannelRange::new(0, 0))].into(),
-                seq_in: [
-                    ("b".to_string(), ChannelRange::new(0, 1)),
-                    ("c".to_string(), ChannelRange::new(2, 4)),
-                ]
-                .into(),
-                seq_out: Default::default()
-            }
-        )
+        let example_chip = chip(Span::from(EXAMPLE_CHIP)).unwrap().1.interface();
+        assert_eq!(example_chip.name, "test");
+        assert!(matches!(example_chip.map["a"], ChannelPin::ComIn(range) if range.size() == 2));
+        assert!(matches!(example_chip.map["b"], ChannelPin::SeqIn(range) if range.size() == 2));
+        assert!(matches!(example_chip.map["c"], ChannelPin::SeqIn(range) if range.size() == 3));
+        assert!(matches!(example_chip.map["d"], ChannelPin::ComOut(range) if range.size() == 1));
     }
 
     #[test]

@@ -1,7 +1,5 @@
-use std::collections::HashMap;
-
 use super::{builder::ChipInfo, Chip};
-use crate::model::parser::Interface;
+use crate::model::parser::{interface::ChannelPin, Interface};
 use bitvec::prelude::*;
 
 struct Nand;
@@ -19,15 +17,20 @@ pub fn nand() -> ChipInfo {
     ChipInfo {
         interface: Interface {
             name: "Nand".to_string(),
-            com_in: [
-                ("a".to_string(), (0..=0).into()),
-                ("b".to_string(), (1..=1).into()),
+            map: [
+                ("a".to_string(), ChannelPin::ComIn((0..=0).into())),
+                ("b".to_string(), ChannelPin::ComIn((1..=1).into())),
+                ("out".to_string(), ChannelPin::ComOut((0..=0).into())),
             ]
-            .into_iter()
-            .collect(),
-            com_out: [("out".to_string(), (0..=0).into())].into_iter().collect(),
-            seq_in: HashMap::new(),
-            seq_out: HashMap::new(),
+            .into(), // com_in: [
+                     //     ("a".to_string(), (0..=0).into()),
+                     //     ("b".to_string(), (1..=1).into()),
+                     // ]
+                     // .into_iter()
+                     // .collect(),
+                     // com_out: [("out".to_string(), (0..=0).into())].into_iter().collect(),
+                     // seq_in: HashMap::new(),
+                     // seq_out: HashMap::new(),
         },
         chip: Box::new(Nand),
     }
