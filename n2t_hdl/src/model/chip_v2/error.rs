@@ -6,7 +6,7 @@ pub enum ModelConstructionError {
     Needs(Vec<String>),
     #[error("Chip {0} was already loaded into the builder, but was just loaded again")]
     Rebuilt(String),
-    #[error("Pin {0} was set to a value, which is not supported as of yet")]
+    #[error("Pin {0} was set to a number, which is not supported as of yet")]
     ValuesNotSupported(String),
     #[error("Pin {failed_internal} was expected to have size {expected}, but {failed_external} has size {actual}")]
     MismatchedSizes {

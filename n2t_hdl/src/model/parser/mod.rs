@@ -55,8 +55,17 @@ pub struct Argument<'a> {
     pub external_bus: Option<ChannelRange>,
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone, Copy)]
 pub enum Value {
     True,
     False,
+}
+
+impl Into<bool> for Value {
+    fn into(self) -> bool {
+        match self {
+            Self::True => true,
+            Self::False => false,
+        }
+    }
 }

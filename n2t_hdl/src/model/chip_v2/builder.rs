@@ -33,6 +33,7 @@ struct IncompleteBarrier {
     interface: Interface,
     router: Router,
     default: BitVec,
+    clock_mask: BitVec,
 }
 
 #[derive(Debug)]
@@ -96,6 +97,7 @@ impl IncompleteBarrier {
             interface: info.interface,
             router: Router { map: Vec::new() },
             default: BitVec::repeat(false, storage_size),
+            clock_mask: BitVec::repeat(false, storage_size),
         }
     }
 
@@ -103,7 +105,7 @@ impl IncompleteBarrier {
         Barrier {
             in_buffer: self.default.clone(),
             intermediate: self.default.clone(),
-            clock_mask: self.default.clone().tap_mut(|v| v.fill(true)),
+            clock_mask: self.clock_mask,
             out_buffer: self.default.clone().tap_mut(|v| v.fill(false)),
             chip: self.chip,
             router: self.router,
@@ -174,7 +176,7 @@ impl ChipBuilder {
             return Err(ModelConstructionError::Needs(needed));
         }
 
-        let (conn_map, outer_conn_map) = create_connection_maps(&chips, &top_interface)?;
+        let (conn_map, outer_conn_map) = create_connection_maps(&mut chips, &top_interface)?;
 
         println!("outer connections: {outer_conn_map:?}");
         println!("inner connections: {conn_map:?}");
@@ -229,14 +231,23 @@ impl ChipBuilder {
 }
 
 fn create_connection_maps(
-    chips: &HashMap<Id, (IncompleteBarrier, Vec<Argument>)>,
+    chips: &mut HashMap<Id, (IncompleteBarrier, Vec<Argument>)>,
     top_interface: &Interface,
 ) -> Result<(HashMap<String, EdgeSet>, HashMap<OuterHook, Vec<Hook>>), ModelConstructionError> {
     let mut connection_map = HashMap::new();
     let mut outer_connection_map = HashMap::new();
 
     // pass one: register all connections
-    for (id, (IncompleteBarrier { interface, .. }, inputs)) in chips.iter() {
+    for (
+        id,
+        (
+            IncompleteBarrier {
+                interface, default, ..
+            },
+            inputs,
+        ),
+    ) in chips.iter_mut()
+    {
         for arg in inputs {
             let Ok(internal_bus) = interface
                 .real_range(*(arg.internal), arg.internal_bus.as_ref()) else {
@@ -245,35 +256,47 @@ fn create_connection_maps(
                         top_interface.name.clone(),
                     ));
                 };
-            let Symbol::Name(external) = arg.external else {
-                // discard all by-value assignments
-                return Err(ModelConstructionError::ValuesNotSupported(
-                    arg.internal.to_string(),
-                ))
-            };
-            let external_bus = top_interface
-                .real_range(*external, arg.external_bus.as_ref())
-                .ok();
-            let hook = Hook {
-                id: id.clone(),
-                range: internal_bus,
-            };
+            match arg.external {
+                Symbol::Name(external) => {
+                    let external_bus = top_interface
+                        .real_range(*external, arg.external_bus.as_ref())
+                        .ok();
+                    let hook = Hook {
+                        id: id.clone(),
+                        range: internal_bus,
+                    };
 
-            if let Some(outer_range) = external_bus {
-                let k = if interface.is_input(*arg.internal) {
-                    OuterHook::Input
-                } else {
-                    OuterHook::Output
-                }(outer_range);
+                    if let Some(outer_range) = external_bus {
+                        let k = if interface.is_input(*arg.internal) {
+                            OuterHook::Input
+                        } else {
+                            OuterHook::Output
+                        }(outer_range);
 
-                push_to_entry(outer_connection_map.entry(k), hook);
-            } else {
-                EdgeSet::insert(
-                    connection_map.entry(external.to_string()),
-                    hook,
-                    interface.is_input(*arg.internal),
-                )?;
-            };
+                        push_to_entry(outer_connection_map.entry(k), hook);
+                    } else {
+                        EdgeSet::insert(
+                            connection_map.entry(external.to_string()),
+                            hook,
+                            interface.is_input(*arg.internal),
+                        )?;
+                    };
+                }
+                Symbol::Value(ref val) => {
+                    let range = interface
+                        .real_range(*arg.internal, arg.internal_bus.as_ref())
+                        .unwrap() // TODO propogate error, don't unwrap
+                        .as_range();
+                    default[range].fill((*val).into());
+                    #[cfg(test)]
+                    println!("modified default into {default:?}");
+                }
+                Symbol::Number(_) => {
+                    return Err(ModelConstructionError::ValuesNotSupported(
+                        arg.internal.to_string(),
+                    ));
+                }
+            }
         }
     }
 
@@ -298,9 +321,12 @@ mod test {
     use std::path::Path;
 
     fn print_test(builder: &mut ChipBuilder, path: impl AsRef<Path>) {
+        print_test_str(builder, std::fs::read_to_string(path).unwrap().as_str());
+    }
+
+    fn print_test_str(builder: &mut ChipBuilder, code: &str) {
         builder.with_builtins();
-        let file = std::fs::read_to_string(path).unwrap();
-        let code = crate::model::parser::create_chip(Span::from(file.as_str())).unwrap();
+        let code = crate::model::parser::create_chip(Span::from(code)).unwrap();
         builder.register_hdl(code).unwrap();
     }
 
@@ -314,5 +340,23 @@ mod test {
         let mut builder = ChipBuilder::new();
         print_test(&mut builder, "../test_files/01/And.hdl");
         print_test(&mut builder, "../test_files/01/And16.hdl")
+    }
+
+    #[test]
+    fn print_test_boolean() {
+        let mut builder = ChipBuilder::new();
+        print_test(&mut builder, "../test_files/01/And.hdl");
+
+        let code = r#"
+CHIP Code {
+    IN a;
+    OUT b;
+
+    PARTS:
+    And(a=a, b=true, out=b);
+}
+        "#;
+
+        print_test_str(&mut builder, code);
     }
 }
