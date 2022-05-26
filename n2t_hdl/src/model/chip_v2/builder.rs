@@ -296,10 +296,9 @@ mod test {
     use super::*;
     use crate::Span;
     use std::path::Path;
-    use tap::Tap;
 
-    fn print_test(path: impl AsRef<Path>) {
-        let mut builder = ChipBuilder::new().tap_mut(|x| x.with_builtins());
+    fn print_test(builder: &mut ChipBuilder, path: impl AsRef<Path>) {
+        builder.with_builtins();
         let file = std::fs::read_to_string(path).unwrap();
         let code = crate::model::parser::create_chip(Span::from(file.as_str())).unwrap();
         builder.register_hdl(code).unwrap();
@@ -307,11 +306,13 @@ mod test {
 
     #[test]
     fn print_test_not() {
-        print_test("../test_files/01/Not.hdl")
+        print_test(&mut ChipBuilder::new(), "../test_files/01/Not.hdl")
     }
 
     #[test]
     fn print_test_and() {
-        print_test("../test_files/01/And.hdl");
+        let mut builder = ChipBuilder::new();
+        print_test(&mut builder, "../test_files/01/And.hdl");
+        print_test(&mut builder, "../test_files/01/And16.hdl")
     }
 }
