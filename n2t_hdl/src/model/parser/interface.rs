@@ -33,15 +33,7 @@ fn sort_pins(
     outputs: &[Channel],
     clocked: Option<&[Span]>,
 ) -> HashMap<String, ChannelPin> {
-    enum PinIntermediate {
-        ComIn(u16),
-        ComOut(u16),
-        SeqIn(u16),
-        SeqOut(u16),
-    }
-
     let clocked = clocked.unwrap_or(&[]);
-    println!("{clocked:?}");
 
     let mut next_input = 0;
     let mut next_output = 0;
@@ -50,45 +42,24 @@ fn sort_pins(
         .into_iter()
         .map(|Channel { name, size }| {
             let size = size.unwrap_or(1);
+            next_input += size;
             let pin = if clocked.iter().any(|x| **x == **name) {
-                PinIntermediate::SeqIn
+                ChannelPin::SeqIn
             } else {
-                PinIntermediate::ComIn
-            }(size);
+                ChannelPin::ComIn
+            }(ChannelRange::new(next_input - size, next_input - 1));
             (name.to_string(), pin)
         })
         .chain(outputs.into_iter().map(|Channel { name, size }| {
             let size = size.unwrap_or(1);
+            next_output += size;
             let pin = if clocked.iter().any(|x| **x == **name) {
-                PinIntermediate::SeqOut
+                ChannelPin::SeqOut
             } else {
-                PinIntermediate::ComOut
-            }(size);
+                ChannelPin::ComOut
+            }(ChannelRange::new(next_output - size, next_output - 1));
             (name.to_string(), pin)
         }))
-        .map(|(x, pin)| {
-            (
-                x,
-                match pin {
-                    PinIntermediate::ComIn(size) => {
-                        next_input += size;
-                        ChannelPin::ComIn(ChannelRange::new(next_input - size, next_input - 1))
-                    }
-                    PinIntermediate::ComOut(size) => {
-                        next_output += size;
-                        ChannelPin::ComOut(ChannelRange::new(next_output - size, next_output - 1))
-                    }
-                    PinIntermediate::SeqIn(size) => {
-                        next_input += size;
-                        ChannelPin::SeqIn(ChannelRange::new(next_input - size, next_input - 1))
-                    }
-                    PinIntermediate::SeqOut(size) => {
-                        next_output += size;
-                        ChannelPin::SeqOut(ChannelRange::new(next_output - size, next_output - 1))
-                    }
-                },
-            )
-        })
         .collect()
 }
 
