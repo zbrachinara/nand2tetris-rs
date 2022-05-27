@@ -1,5 +1,4 @@
 use bitvec::prelude::*;
-use itertools::Itertools;
 
 use super::{Chip, Id};
 use crate::channel_range::ChannelRange;
@@ -111,15 +110,34 @@ impl Barrier {
     fn clock(&mut self) -> Option<impl Iterator<Item = Request> + '_> {
         (!self.clock_mask.all()).then(|| {
             self.switch_buffers_clock();
-            self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
+            self.out_buffer = self.chip.clock(self.intermediate.as_bitslice());
             self.router.gen_requests(self.out_buffer.as_bitslice())
         })
     }
 }
 
-impl NativeChip {
-    fn eval_requests(&mut self, requests: impl IntoIterator<Item = Request>) {
-        self.request_queue.extend(requests);
+impl Chip for NativeChip {
+    fn clock(&mut self, args: &BitSlice) -> BitVec {
+        self.request_queue.extend(self.in_router.gen_requests(args));
+        while let Some(req) = self.request_queue.pop_front() {
+            println!(
+                "With request queue: {:?} and request: {req:?}",
+                self.request_queue
+            );
+            if req.id == self.out_chip {
+                self.out_buffer[req.range.as_range()].copy_from_bitslice(req.data.as_bitslice());
+            } else {
+                let chip = self.registry.get_mut(&req.id).unwrap();
+                chip.accept(&req);
+                chip.clock()
+                    .map(|requests| self.request_queue.extend(requests));
+            }
+        }
+        self.out_buffer.clone()
+    }
+
+    fn eval(&mut self, args: &BitSlice) -> BitVec {
+        self.request_queue.extend(self.in_router.gen_requests(args));
         while let Some(req) = self.request_queue.pop_front() {
             println!(
                 "With request queue: {:?} and request: {req:?}",
@@ -133,22 +151,6 @@ impl NativeChip {
                 self.request_queue.extend(chip.eval())
             }
         }
-    }
-}
-
-impl Chip for NativeChip {
-    fn clock(&mut self) {
-        let requests = self
-            .registry
-            .iter_mut()
-            .filter_map(|(_, barrier)| barrier.clock())
-            .flat_map(|x| x)
-            .collect_vec();
-        self.eval_requests(requests);
-    }
-
-    fn eval(&mut self, args: &BitSlice) -> BitVec {
-        self.eval_requests(self.in_router.gen_requests(args).collect_vec());
         self.out_buffer.clone()
     }
 

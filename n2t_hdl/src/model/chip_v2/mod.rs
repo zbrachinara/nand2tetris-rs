@@ -17,7 +17,7 @@ impl Id {
 }
 
 pub trait Chip {
-    fn clock(&mut self);
+    fn clock(&mut self, args: &BitSlice) -> BitVec;
     fn eval(&mut self, args: &BitSlice) -> BitVec;
     fn boxed_clone(&self) -> Box<dyn Chip>;
 }

@@ -2,14 +2,27 @@ use super::{builder::ChipInfo, Chip};
 use crate::model::parser::{interface::ChannelPin, Interface};
 use bitvec::prelude::*;
 
-struct Nand;
+#[derive(Clone)]
+struct Nand {
+    bit: bool,
+}
+
+impl Nand {
+    fn new() -> Self {
+        Self { bit: false }
+    }
+}
+
 impl Chip for Nand {
-    fn clock(&mut self) {}
     fn eval(&mut self, args: &BitSlice) -> BitVec {
-        [!(args[0] && args[1])].into_iter().collect()
+        self.bit = !(args[0] && args[1]);
+        BitVec::repeat(self.bit, 1)
     }
     fn boxed_clone(&self) -> Box<dyn Chip> {
-        Box::new(Nand)
+        Box::new(self.clone())
+    }
+    fn clock(&mut self, _: &BitSlice) -> BitVec {
+        BitVec::repeat(self.bit, 1)
     }
 }
 
@@ -24,7 +37,7 @@ pub fn nand() -> ChipInfo {
             ]
             .into(),
         },
-        chip: Box::new(Nand),
+        chip: Box::new(Nand::new()),
     }
 }
 
@@ -33,9 +46,10 @@ mod test {
     use super::*;
     #[test]
     fn nand() {
-        assert_eq!(Nand.eval(bits!(0, 0)), bits!(1));
-        assert_eq!(Nand.eval(bits!(0, 1)), bits!(1));
-        assert_eq!(Nand.eval(bits!(1, 0)), bits!(1));
-        assert_eq!(Nand.eval(bits!(1, 1)), bits!(0));
+        let mut nand = Nand::new();
+        assert_eq!(nand.eval(bits!(0, 0)), bits!(1));
+        assert_eq!(nand.eval(bits!(0, 1)), bits!(1));
+        assert_eq!(nand.eval(bits!(1, 0)), bits!(1));
+        assert_eq!(nand.eval(bits!(1, 1)), bits!(0));
     }
 }
