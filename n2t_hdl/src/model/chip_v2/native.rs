@@ -108,13 +108,23 @@ impl Barrier {
         self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
         self.router.gen_requests(self.out_buffer.as_bitslice())
     }
+    fn clock(&mut self) -> Option<impl Iterator<Item = Request> + '_> {
+        (!self.clock_mask.all()).then(|| {
+            self.switch_buffers_clock();
+            self.out_buffer = self.chip.eval(self.intermediate.as_bitslice());
+            self.router.gen_requests(self.out_buffer.as_bitslice())
+        })
+    }
 }
 
 impl NativeChip {
     fn eval_requests(&mut self, requests: impl IntoIterator<Item = Request>) {
         self.request_queue.extend(requests);
         while let Some(req) = self.request_queue.pop_front() {
-            println!("With request queue: {:?} and request: {req:?}", self.request_queue);
+            println!(
+                "With request queue: {:?} and request: {req:?}",
+                self.request_queue
+            );
             if req.id == self.out_chip {
                 self.out_buffer[req.range.as_range()].copy_from_bitslice(req.data.as_bitslice());
             } else {
@@ -128,7 +138,13 @@ impl NativeChip {
 
 impl Chip for NativeChip {
     fn clock(&mut self) {
-        todo!();
+        let requests = self
+            .registry
+            .iter_mut()
+            .filter_map(|(_, barrier)| barrier.clock())
+            .flat_map(|x| x)
+            .collect_vec();
+        self.eval_requests(requests);
     }
 
     fn eval(&mut self, args: &BitSlice) -> BitVec {
