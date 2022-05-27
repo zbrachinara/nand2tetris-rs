@@ -1,4 +1,5 @@
 use bitvec::prelude::*;
+use itertools::Itertools;
 
 use super::{Chip, Id};
 use crate::channel_range::ChannelRange;
@@ -14,8 +15,8 @@ pub(super) struct Router {
 ///
 /// Inside the targeted chip, only the data specified by the range will be
 /// modified.
-#[derive(Debug)]
-struct Request {
+#[derive(Debug, Clone)]
+pub(super) struct Request {
     id: Id,
     data: BitVec,
     range: ChannelRange,
@@ -42,6 +43,7 @@ pub struct NativeChip {
     pub(super) in_router: Router,
     pub(super) out_chip: Id,
     pub(super) out_buffer: BitVec,
+    pub(super) request_queue: VecDeque<Request>,
 }
 
 #[derive(Debug, Clone)]
@@ -108,24 +110,32 @@ impl Barrier {
     }
 }
 
-impl Chip for NativeChip {
-    fn clock(&mut self) {
-        todo!();
-    }
-    fn eval(&mut self, args: &BitSlice) -> BitVec {
-        let mut request_queue: VecDeque<_> = self.in_router.gen_requests(args).collect();
-        while let Some(req) = request_queue.pop_front() {
-            println!("With request queue: {request_queue:?} and request: {req:?}");
+impl NativeChip {
+    fn eval_requests(&mut self, requests: impl IntoIterator<Item = Request>) {
+        self.request_queue.extend(requests);
+        while let Some(req) = self.request_queue.pop_front() {
+            println!("With request queue: {:?} and request: {req:?}", self.request_queue);
             if req.id == self.out_chip {
                 self.out_buffer[req.range.as_range()].copy_from_bitslice(req.data.as_bitslice());
             } else {
                 let chip = self.registry.get_mut(&req.id).unwrap();
                 chip.accept(&req);
-                request_queue.extend(chip.eval())
+                self.request_queue.extend(chip.eval())
             }
         }
+    }
+}
+
+impl Chip for NativeChip {
+    fn clock(&mut self) {
+        todo!();
+    }
+
+    fn eval(&mut self, args: &BitSlice) -> BitVec {
+        self.eval_requests(self.in_router.gen_requests(args).collect_vec());
         self.out_buffer.clone()
     }
+
     fn boxed_clone(&self) -> Box<dyn Chip> {
         Box::new(self.clone())
     }
@@ -178,6 +188,7 @@ mod test {
             },
             out_chip: Id(0),
             out_buffer: bitvec![0],
+            request_queue: VecDeque::new(),
         }
     }
 

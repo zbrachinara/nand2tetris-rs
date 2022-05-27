@@ -7,7 +7,7 @@ use crate::model::parser::{Argument, Chip as ChipRepr, Connection, Form, Interfa
 use bitvec::prelude::*;
 use itertools::Itertools;
 use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use tap::Tap;
 
 pub struct ChipBuilder {
@@ -225,6 +225,7 @@ impl ChipBuilder {
                 in_router,
                 out_chip: out_id,
                 out_buffer,
+                request_queue: VecDeque::new(),
             }),
         })
     }
