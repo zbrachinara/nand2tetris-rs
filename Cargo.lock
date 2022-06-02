@@ -57,6 +57,9 @@ checksum = "94a45b455c14666b85fc40a019e8ab9eb75e3a124e05494f5397122bc9eb06e0"
 name = "app"
 version = "0.1.0"
 dependencies = [
+ "n2t_asm",
+ "n2t_hdl",
+ "n2t_jack",
  "serde",
  "serde_json",
  "tauri",
