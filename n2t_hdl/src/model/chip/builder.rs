@@ -2,7 +2,7 @@ use super::error::ModelConstructionError;
 use super::native::{Barrier, Router};
 use super::{builtin, Chip, Id};
 use crate::channel_range::ChannelRange;
-use crate::model::chip_v2::native::{Hook, NativeChip};
+use crate::model::chip::native::{Hook, NativeChip};
 use crate::model::parser::{Argument, Chip as ChipRepr, Connection, Form, Interface, Symbol};
 use bitvec::prelude::*;
 use itertools::Itertools;
@@ -118,6 +118,14 @@ impl ChipBuilder {
         Self {
             registered: HashMap::new(),
         }
+    }
+
+    pub fn get_registry(&self) -> &HashMap<String, ChipInfo> {
+        &self.registered
+    }
+
+    pub fn get_chip_info(&self, name: &str) -> Option<ChipInfo> {
+        self.registered.get(name).map(|c| c.clone())
     }
 
     pub fn with_builtins(&mut self) {

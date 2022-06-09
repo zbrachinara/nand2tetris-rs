@@ -1,21 +1,34 @@
-use crate::model::chip::ChipObject;
-use crate::model::parser::interface::ChannelPin;
-use crate::model::parser::Interface;
+use super::{builder::ChipInfo, Chip};
+use crate::model::parser::{interface::ChannelPin, Interface};
 use bitvec::prelude::*;
-use std::iter::once;
 
-pub fn get_builtin(name: &str) -> Option<Box<dyn ChipObject>> {
-    match name {
-        "Nand" => Some(Box::new(Nand)),
-        _ => None,
+#[derive(Clone)]
+struct Nand {
+    bit: bool,
+}
+
+impl Nand {
+    fn new() -> Self {
+        Self { bit: false }
     }
 }
 
-struct Nand;
+impl Chip for Nand {
+    fn eval(&mut self, args: &BitSlice) -> BitVec {
+        self.bit = !(args[0] && args[1]);
+        BitVec::repeat(self.bit, 1)
+    }
+    fn boxed_clone(&self) -> Box<dyn Chip> {
+        Box::new(self.clone())
+    }
+    fn clock(&mut self, _: &BitSlice) -> BitVec {
+        BitVec::repeat(self.bit, 1)
+    }
+}
 
-impl ChipObject for Nand {
-    fn interface(&self) -> Interface {
-        Interface {
+pub fn nand() -> ChipInfo {
+    ChipInfo {
+        interface: Interface {
             name: "Nand".to_string(),
             map: [
                 ("a".to_string(), ChannelPin::ComIn((0..=0).into())),
@@ -23,30 +36,20 @@ impl ChipObject for Nand {
                 ("out".to_string(), ChannelPin::ComOut((0..=0).into())),
             ]
             .into(),
-        }
-    }
-
-    fn clock(&mut self) {
-        // nothing
-    }
-
-    fn eval(&mut self, pins: &BitSlice) -> BitVec {
-        let expr = !(pins[0] && pins[1]);
-        once(expr).collect()
-        // vec![!(pins[0] && pins[1])]
-    }
-
-    fn chip_clone(&self) -> Box<dyn ChipObject> {
-        Box::new(Nand)
+        },
+        chip: Box::new(Nand::new()),
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-
     #[test]
     fn nand() {
-        assert!(!Nand.is_clocked())
+        let mut nand = Nand::new();
+        assert_eq!(nand.eval(bits!(0, 0)), bits!(1));
+        assert_eq!(nand.eval(bits!(0, 1)), bits!(1));
+        assert_eq!(nand.eval(bits!(1, 0)), bits!(1));
+        assert_eq!(nand.eval(bits!(1, 1)), bits!(0));
     }
 }

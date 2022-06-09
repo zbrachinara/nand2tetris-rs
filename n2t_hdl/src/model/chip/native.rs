@@ -172,7 +172,7 @@ mod test {
                     intermediate: bitvec!(0, 0),
                     clock_mask: bitvec!(1, 1),
                     out_buffer: bitvec!(0, 0),
-                    chip: crate::model::chip_v2::builtin::nand().chip,
+                    chip: crate::model::chip::builtin::nand().chip,
                     router: Router {
                         map: vec![(
                             (0..=0).into(),
