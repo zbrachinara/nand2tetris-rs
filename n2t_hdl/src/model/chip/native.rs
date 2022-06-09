@@ -47,7 +47,19 @@ pub(super) struct Barrier {
     pub router: Router,
 }
 
-#[derive(Clone)]
+impl Debug for Barrier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Barrier")
+            .field("in_buffer", &format!("{}", self.in_buffer))
+            .field("intermediate", &format!("{}", self.intermediate))
+            .field("clock_mask", &format!("{}", self.clock_mask))
+            .field("out_buffer", &format!("{}", self.out_buffer))
+            .field("router", &self.router)
+            .finish()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct NativeChip {
     pub(super) registry: HashMap<Id, Barrier>,
     pub(super) in_router: Router,

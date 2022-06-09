@@ -97,7 +97,7 @@ impl IncompleteBarrier {
             interface: info.interface,
             router: Router { map: Vec::new() },
             default: BitVec::repeat(false, storage_size),
-            clock_mask: BitVec::repeat(false, storage_size),
+            clock_mask: BitVec::repeat(true, storage_size),
         }
     }
 
@@ -226,15 +226,17 @@ impl ChipBuilder {
             .collect::<HashMap<_, _>>();
         let out_buffer = BitVec::repeat(false, top_interface.size_out());
 
+        let chip = Box::new(NativeChip {
+            registry,
+            in_router,
+            out_chip: out_id,
+            out_buffer,
+            request_queue: VecDeque::new(),
+        });
+
         Ok(ChipInfo {
             interface: top_interface,
-            chip: Box::new(NativeChip {
-                registry,
-                in_router,
-                out_chip: out_id,
-                out_buffer,
-                request_queue: VecDeque::new(),
-            }),
+            chip,
         })
     }
 }
