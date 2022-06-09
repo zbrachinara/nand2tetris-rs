@@ -157,7 +157,7 @@ impl ChipBuilder {
         top_interface: Interface,
         connections: Vec<Connection>,
     ) -> Result<ChipInfo, ModelConstructionError> {
-        println!("building chip {}", top_interface.name);
+        // println!("building chip {}", top_interface.name);
 
         let mut id_provider = Id(0);
         let out_id = id_provider.next();
@@ -186,8 +186,8 @@ impl ChipBuilder {
 
         let (conn_map, outer_conn_map) = create_connection_maps(&mut chips, &top_interface)?;
 
-        println!("outer connections: {outer_conn_map:?}");
-        println!("inner connections: {conn_map:?}");
+        // println!("outer connections: {outer_conn_map:?}");
+        // println!("inner connections: {conn_map:?}");
 
         // pass two: write back connections
         let mut in_router = Router::new();
@@ -297,8 +297,8 @@ fn create_connection_maps(
                         .unwrap() // TODO propogate error, don't unwrap
                         .as_range();
                     default[range].fill((*val).into());
-                    #[cfg(test)]
-                    println!("modified default into {default:?}");
+                    // #[cfg(test)]
+                    // println!("modified default into {default:?}");
                 }
                 Symbol::Number(_) => {
                     return Err(ModelConstructionError::ValuesNotSupported(

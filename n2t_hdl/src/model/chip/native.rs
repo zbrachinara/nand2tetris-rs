@@ -3,6 +3,7 @@ use bitvec::prelude::*;
 use super::{Chip, Id};
 use crate::channel_range::ChannelRange;
 use std::collections::{HashMap, VecDeque};
+use std::fmt::Debug;
 
 #[derive(Debug, Clone)]
 pub(super) struct Router {
@@ -14,11 +15,21 @@ pub(super) struct Router {
 ///
 /// Inside the targeted chip, only the data specified by the range will be
 /// modified.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub(super) struct Request {
     id: Id,
     data: BitVec,
     range: ChannelRange,
+}
+
+impl Debug for Request {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Request")
+            .field("id", &self.id)
+            .field("data", &format!("{}", self.data))
+            .field("range", &self.range)
+            .finish()
+    }
 }
 
 /// Barrier representing how the chip interacts inside a native chip
